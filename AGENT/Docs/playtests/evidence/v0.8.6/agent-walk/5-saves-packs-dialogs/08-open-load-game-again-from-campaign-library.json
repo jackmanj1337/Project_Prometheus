@@ -1,0 +1,10 @@
+{
+  "label": "open Load Game again from Campaign Library",
+  "result": null,
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+    "text": "Manage Campaigns"
+  }
+}

@@ -1,0 +1,313 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 37,
+  "engineFrame": 633,
+  "publishedAtMsec": 20285,
+  "screen": "main-menu",
+  "modal": null,
+  "modalStack": [],
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1.5,
+    "contentPreference": 1.5,
+    "effectiveMenu": 0.666666666666667,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+    "MenuFrame/Panel/Scroll/VBox/QuitButton"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [],
+    "popup": {
+      "visible": false
+    },
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "",
+    "campaignId": "",
+    "clearedNodeIds": [],
+    "currentNodeId": "",
+    "mapLive": false
+  },
+  "importResult": {
+    "errors": [],
+    "outcome": "ok",
+    "package_id": "prometheus-proving-grounds",
+    "package_version": "0.1.0"
+  },
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "MenuFrame": {
+      "h": 774,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1872,
+      "x": 24,
+      "y": 162
+    },
+    "MenuFrame/Panel": {
+      "h": 696.600036621094,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 786.239990234375,
+      "x": 565.5,
+      "y": 199.5
+    },
+    "MenuFrame/Panel/Scroll": {
+      "h": 654.600036621094,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 744.239990234375,
+      "x": 586.5,
+      "y": 220.5
+    },
+    "MenuFrame/Panel/Scroll/VBox": {
+      "h": 408,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 744.239990234375,
+      "x": 586.5,
+      "y": 220.5
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton": {
+      "h": 72,
+      "text": "Campaign Editor",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 82,
+        "minimumHeight": 48,
+        "minimumWidth": 110,
+        "overrunBehavior": 0
+      },
+      "w": 744,
+      "x": 586.5,
+      "y": 388.5
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton": {
+      "h": 72,
+      "text": "Manage Library",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 79,
+        "minimumHeight": 48,
+        "minimumWidth": 107,
+        "overrunBehavior": 0
+      },
+      "w": 744,
+      "x": 586.5,
+      "y": 304.5
+    },
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton": {
+      "h": 72,
+      "text": "Continue",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 744,
+      "x": 586.5,
+      "y": 220.5
+    },
+    "MenuFrame/Panel/Scroll/VBox/QuitButton": {
+      "h": 72,
+      "text": "Quit",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 48,
+        "minimumWidth": 49,
+        "overrunBehavior": 0
+      },
+      "w": 744,
+      "x": 586.5,
+      "y": 556.5
+    },
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton": {
+      "h": 72,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 744,
+      "x": 586.5,
+      "y": 472.5
+    },
+    "TitleLabel": {
+      "h": 114,
+      "text": "Project Prometheus",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 76,
+        "availableWidth": 1280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 65,
+        "measuredTextWidth": 411,
+        "minimumHeight": 76,
+        "minimumWidth": 411,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 24
+    },
+    "VersionLabel": {
+      "h": 96,
+      "text": "v0.8.6",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 64,
+        "availableWidth": 144,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 39,
+        "minimumHeight": 19,
+        "minimumWidth": 39,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 216,
+      "x": 1680,
+      "y": 960
+    }
+  },
+  "frame": {
+    "path": "MenuFrame/Panel",
+    "rect": {
+      "h": 696.600036621094,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 786.239990234375,
+      "x": 565.5,
+      "y": 199.5
+    }
+  }
+}

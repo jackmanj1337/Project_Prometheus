@@ -1,0 +1,10 @@
+{
+  "step": 1,
+  "label": "boot main menu",
+  "result": null,
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

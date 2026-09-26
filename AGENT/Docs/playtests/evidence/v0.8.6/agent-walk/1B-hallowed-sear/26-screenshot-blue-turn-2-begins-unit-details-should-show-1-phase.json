@@ -1,0 +1,110 @@
+{
+  "step": 26,
+  "label": "SCREENSHOT — BLUE turn 2 begins: Unit Details should show (1 phase)",
+  "result": {
+    "bearer": {
+      "hp": 13,
+      "team": "blue",
+      "tile": [
+        7,
+        3
+      ],
+      "unitId": "m006_hallowed_bearer",
+      "x": 640,
+      "y": 264
+    },
+    "target": {
+      "hp": 7,
+      "team": "red",
+      "tile": [
+        8,
+        3
+      ],
+      "unitId": "m006_revenant_1",
+      "x": 704,
+      "y": 264
+    },
+    "map": {
+      "cursorState": "free",
+      "cursorTile": [
+        8,
+        3
+      ],
+      "origin": {
+        "x": 192,
+        "y": 72
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 13,
+          "team": "blue",
+          "tile": [
+            7,
+            3
+          ],
+          "unitId": "m006_hallowed_bearer",
+          "x": 640,
+          "y": 264
+        },
+        {
+          "hp": 7,
+          "team": "red",
+          "tile": [
+            8,
+            3
+          ],
+          "unitId": "m006_revenant_1",
+          "x": 704,
+          "y": 264
+        }
+      ]
+    }
+  },
+  "map": {
+    "cursorState": "free",
+    "cursorTile": [
+      8,
+      3
+    ],
+    "origin": {
+      "x": 192,
+      "y": 72
+    },
+    "step": {
+      "x": 64,
+      "y": 64
+    },
+    "units": [
+      {
+        "hp": 13,
+        "team": "blue",
+        "tile": [
+          7,
+          3
+        ],
+        "unitId": "m006_hallowed_bearer",
+        "x": 640,
+        "y": 264
+      },
+      {
+        "hp": 7,
+        "team": "red",
+        "tile": [
+          8,
+          3
+        ],
+        "unitId": "m006_revenant_1",
+        "x": 704,
+        "y": 264
+      }
+    ]
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

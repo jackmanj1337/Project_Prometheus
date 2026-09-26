@@ -1,0 +1,147 @@
+{
+  "status": "passed",
+  "journey": "interaction-readout",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "actions": [
+    {
+      "index": 1,
+      "label": "boot main menu",
+      "screenshot": "01-boot-main-menu.png",
+      "state": "01-boot-main-menu.json"
+    },
+    {
+      "index": 2,
+      "label": "open Campaign Library",
+      "screenshot": "02-open-campaign-library.png",
+      "state": "02-open-campaign-library.json"
+    },
+    {
+      "index": 3,
+      "label": "choose campaign backup",
+      "screenshot": "03-choose-campaign-backup.png",
+      "state": "03-choose-campaign-backup.json"
+    },
+    {
+      "index": 4,
+      "label": "dismiss restore result",
+      "screenshot": "04-dismiss-restore-result.png",
+      "state": "04-dismiss-restore-result.json"
+    },
+    {
+      "index": 5,
+      "label": "return to Main Menu",
+      "screenshot": "05-return-to-main-menu.png",
+      "state": "05-return-to-main-menu.json"
+    },
+    {
+      "index": 6,
+      "label": "open Load Game",
+      "screenshot": "06-open-load-game.png",
+      "state": "06-open-load-game.json"
+    },
+    {
+      "index": 7,
+      "label": "retry restored campaign save",
+      "screenshot": "07-retry-restored-campaign-save.png",
+      "state": "07-retry-restored-campaign-save.json"
+    },
+    {
+      "index": 8,
+      "label": "resume the suspended battle resume_battle",
+      "screenshot": "08-resume-the-suspended-battle-resume-battle.png",
+      "state": "08-resume-the-suspended-battle-resume-battle.json"
+    },
+    {
+      "index": 9,
+      "label": "assert map_006_hallowed is the live board",
+      "screenshot": "09-assert-map-006-hallowed-is-the-live-board.png",
+      "state": "09-assert-map-006-hallowed-is-the-live-board.json"
+    },
+    {
+      "index": 10,
+      "label": "select the bearer at 2,3",
+      "screenshot": "10-select-the-bearer-at-2-3.png",
+      "state": "10-select-the-bearer-at-2-3.json"
+    },
+    {
+      "index": 11,
+      "label": "move the bearer to 7,3",
+      "screenshot": "11-move-the-bearer-to-7-3.png",
+      "state": "11-move-the-bearer-to-7-3.json"
+    },
+    {
+      "index": 12,
+      "label": "choose Attack",
+      "screenshot": "12-choose-attack.png",
+      "state": "12-choose-attack.json"
+    },
+    {
+      "index": 13,
+      "label": "confirm m006_revenant_1 at 8,3",
+      "screenshot": "13-confirm-m006-revenant-1-at-8-3.png",
+      "state": "13-confirm-m006-revenant-1-at-8-3.json"
+    },
+    {
+      "index": 14,
+      "label": "read the authored interaction rows",
+      "screenshot": "14-read-the-authored-interaction-rows.png",
+      "state": "14-read-the-authored-interaction-rows.json"
+    },
+    {
+      "index": 15,
+      "label": "cycle more info to an interaction row",
+      "screenshot": "15-cycle-more-info-to-an-interaction-row.png",
+      "state": "15-cycle-more-info-to-an-interaction-row.json"
+    }
+  ],
+  "browser": {
+    "console": [
+      "[log] Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org",
+      "[log] OpenGL API OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) - Compatibility - Using Device: WebKit - WebKit WebGL",
+      "[log] Build configuration: Emscripten 4.0.20, single-threaded, no GDExtension support.",
+      "[log] === BUILD STAMP ===",
+      "[log] version=0.8.6  commit=36686b0a  built_at=2026-09-25T19:18:16Z",
+      "[log] started_at=2026-09-25T21:53:53Z",
+      "[log] exe=index",
+      "[log] user_data_dir=/userfs/godot/app_userdata/Project Prometheus",
+      "[log] log=/userfs/godot/app_userdata/Project Prometheus/logs/godot.log",
+      "[log] === END BUILD STAMP ===",
+      "[log] === RUNTIME ENVIRONMENT ===",
+      "[log] os_name=Web",
+      "[log] os_version=",
+      "[log] os_distribution=",
+      "[log] device_model=GenericDevice",
+      "[log] cpu=",
+      "[log] cpu_threads=2",
+      "[log] locale=en_US",
+      "[log] timezone=UTC-0000 bias_minutes=0",
+      "[log] display_server=web",
+      "[log] rendering_api=OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+      "[log] gpu_name=WebKit WebGL",
+      "[log] gpu_vendor=WebKit",
+      "[log] gpu_type=0",
+      "[log] window_mode=0 window_size=(1280, 720) screen_size=(1280, 720)",
+      "[log] === END RUNTIME ENVIRONMENT ===",
+      "[error] warning: unsupported syscall: __syscall_prlimit64",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"\",\"campaign_id\":\"proving_grounds\",\"event\":\"campaign_restored\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"node_06_hallowed\",\"campaign_id\":\"proving_grounds\",\"event\":\"node_resumed\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"\",\"campaign_id\":\"proving_grounds\",\"event\":\"campaign_restaged\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"node_06_hallowed\",\"campaign_id\":\"proving_grounds\",\"event\":\"node_resumed\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[error] WARNING: layer 'shadow' could not resolve asset 'cavalier_shadow': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[error] WARNING: layer 'body' could not resolve asset 'cavalier_unit': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[error] WARNING: layer 'badge' could not resolve asset 'cavalier_badge': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[warning] [.WebGL-0x13fc031b8e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x13fc031b8e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x13fc031b8e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x13fc031b8e00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ],
+    "pageErrors": [],
+    "requestFailures": []
+  }
+}

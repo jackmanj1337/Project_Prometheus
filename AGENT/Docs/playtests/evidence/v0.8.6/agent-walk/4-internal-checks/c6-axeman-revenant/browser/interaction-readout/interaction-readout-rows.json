@@ -1,0 +1,18 @@
+{
+  "fixture": {
+    "map_id": "map_006_hallowed",
+    "node_id": "node_06_hallowed",
+    "campaign_id": "proving_grounds",
+    "package_id": "prometheus-proving-grounds-internal-fe",
+    "seed": 20260921
+  },
+  "attacker": "m006_plain_axeman",
+  "target": "m006_revenant_1",
+  "rows": [
+    {
+      "control": "Panel/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2431",
+      "side": "attacker",
+      "text": "▲ Undead Frailty  +1 Dmg"
+    }
+  ]
+}

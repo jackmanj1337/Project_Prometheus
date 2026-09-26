@@ -1,0 +1,33 @@
+{
+  "backup": "/workspace/godot-prometheus-env/builds/tester/Project_Prometheus_v0.8.6/agent-walk/4-internal-checks/interaction-readout-backup.zip",
+  "bearer": {
+    "tile": [
+      2,
+      3
+    ],
+    "unit_id": "m006_hallowed_bearer"
+  },
+  "campaign_id": "proving_grounds",
+  "campaign_slot": "resume_battle",
+  "expected_rows": [
+    {
+      "direction": "advantage",
+      "label": "Hallowed Rites",
+      "profile_id": "hallowed_rites",
+      "side": "attacker"
+    }
+  ],
+  "map_id": "map_006_hallowed",
+  "node_id": "node_06_hallowed",
+  "package_id": "prometheus-proving-grounds-internal-fe",
+  "package_version": "0.1.0",
+  "schema_version": 1,
+  "seed": 20260920,
+  "target": {
+    "tile": [
+      8,
+      3
+    ],
+    "unit_id": "m006_revenant_1"
+  }
+}

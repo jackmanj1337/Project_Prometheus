@@ -1,0 +1,10 @@
+{
+  "step": 29,
+  "label": "open Map Menu, Suspend & Quit, confirm",
+  "result": null,
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "label": "return to Main Menu before retrying 1B",
+  "result": null,
+  "screen": "main-menu",
+  "modal": null,
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  }
+}

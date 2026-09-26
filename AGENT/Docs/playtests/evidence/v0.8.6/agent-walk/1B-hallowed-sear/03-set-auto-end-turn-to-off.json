@@ -1,0 +1,10 @@
+{
+  "step": 3,
+  "label": "set Auto-End Turn to Off",
+  "result": null,
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

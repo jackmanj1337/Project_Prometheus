@@ -1,0 +1,1178 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 64,
+  "engineFrame": 1053,
+  "publishedAtMsec": 34189,
+  "screen": "main-menu",
+  "modal": null,
+  "modalStack": [],
+  "focus": {
+    "path": "CampaignEditorScreen/Shell/Body/TreePane/ContentTree",
+    "text": ""
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 1080,
+    "w": 1920
+  },
+  "scales": {
+    "content": 1.5,
+    "contentPreference": 1.5,
+    "effectiveMenu": 0.666666666666667,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+    "MenuFrame/Panel/Scroll/VBox/QuitButton",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/undo",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/redo",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/validate",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/test",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/export",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/help",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/content",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/maps",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/graph",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/assets",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/localization",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/test",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/release",
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree",
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerList",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Records",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/Issues"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [],
+    "popup": {
+      "visible": false
+    },
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "",
+    "campaignId": "",
+    "clearedNodeIds": [],
+    "currentNodeId": "",
+    "mapLive": false
+  },
+  "importResult": {
+    "errors": [],
+    "outcome": "ok",
+    "package_id": "prometheus-proving-grounds",
+    "package_version": "0.1.0"
+  },
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Background": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Body": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentLabel": {
+      "h": 20,
+      "text": "Content",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 55,
+        "minimumHeight": 20,
+        "minimumWidth": 55,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 280,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree": {
+      "h": 458,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerLabel": {
+      "h": 20,
+      "text": "Map layers",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 74,
+        "minimumHeight": 20,
+        "minimumWidth": 74,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 280,
+      "x": 0,
+      "y": 572
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerList": {
+      "h": 458,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 596
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1628,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel": {
+      "h": 200,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 854
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/Issues": {
+      "h": 176,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 878
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/IssuesHeader": {
+      "h": 20,
+      "text": "Issues",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 1236,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 42,
+        "minimumHeight": 20,
+        "minimumWidth": 42,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 854
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns": {
+      "h": 732,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document": {
+      "h": 732,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Placeholder": {
+      "h": 20,
+      "text": "No document open.",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 1236,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 134,
+        "minimumHeight": 20,
+        "minimumWidth": 134,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Records": {
+      "h": 708,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 142
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs": {
+      "h": 28,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll": {
+      "h": 944,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form": {
+      "h": 0,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/Heading": {
+      "h": 20,
+      "text": "Select a record",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 380,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 100,
+        "minimumHeight": 20,
+        "minimumWidth": 100,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Header": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1594,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 422,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/export": {
+      "h": 34,
+      "text": "Export",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 73,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 45,
+        "minimumHeight": 34,
+        "minimumWidth": 73,
+        "overrunBehavior": 0
+      },
+      "w": 73,
+      "x": 611,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/help": {
+      "h": 34,
+      "text": "Help",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 32,
+        "minimumHeight": 34,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      },
+      "w": 60,
+      "x": 688,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/redo": {
+      "h": 34,
+      "text": "Redo",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 63,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 35,
+        "minimumHeight": 34,
+        "minimumWidth": 63,
+        "overrunBehavior": 0
+      },
+      "w": 63,
+      "x": 395,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/test": {
+      "h": 34,
+      "text": "Test",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 57,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 29,
+        "minimumHeight": 34,
+        "minimumWidth": 57,
+        "overrunBehavior": 0
+      },
+      "w": 57,
+      "x": 550,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/undo": {
+      "h": 34,
+      "text": "Undo",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 65,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 37,
+        "minimumHeight": 34,
+        "minimumWidth": 65,
+        "overrunBehavior": 0
+      },
+      "w": 65,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/validate": {
+      "h": 34,
+      "text": "Validate",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 84,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 56,
+        "minimumHeight": 34,
+        "minimumWidth": 84,
+        "overrunBehavior": 0
+      },
+      "w": 84,
+      "x": 462,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/DraftIdentity": {
+      "h": 20,
+      "text": "prometheus-proving-grounds-draft-1790394870",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 322,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 322,
+        "minimumHeight": 20,
+        "minimumWidth": 322,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 322,
+      "x": 0,
+      "y": 12
+    },
+    "CampaignEditorScreen/Shell/StatusBar": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/KeyboardOwner": {
+      "h": 20,
+      "text": "Keyboard: Tree",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 103,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 103,
+        "minimumHeight": 20,
+        "minimumWidth": 103,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 103,
+      "x": 350,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Message": {
+      "h": 20,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1223,
+      "x": 697,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Selection": {
+      "h": 20,
+      "text": "0 selected",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 68,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 68,
+        "minimumHeight": 20,
+        "minimumWidth": 68,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 68,
+      "x": 601,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep1": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 334,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep2": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 465,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep3": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 585,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep4": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 681,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Validation": {
+      "h": 20,
+      "text": "Not validated",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 92,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 92,
+        "minimumHeight": 20,
+        "minimumWidth": 92,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 92,
+      "x": 481,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/WorkingCopy": {
+      "h": 20,
+      "text": "prometheus-proving-grounds-draft-1790394870",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 322,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 322,
+        "minimumHeight": 20,
+        "minimumWidth": 322,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 322,
+      "x": 0,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 560,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/assets": {
+      "h": 34,
+      "text": "Assets",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 44,
+        "minimumHeight": 34,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 230,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/content": {
+      "h": 34,
+      "text": "Content",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 83,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 55,
+        "minimumHeight": 34,
+        "minimumWidth": 83,
+        "overrunBehavior": 0
+      },
+      "w": 83,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/graph": {
+      "h": 34,
+      "text": "Graph",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 70,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 42,
+        "minimumHeight": 34,
+        "minimumWidth": 70,
+        "overrunBehavior": 0
+      },
+      "w": 70,
+      "x": 156,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/localization": {
+      "h": 34,
+      "text": "Localization",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 109,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 81,
+        "minimumHeight": 34,
+        "minimumWidth": 109,
+        "overrunBehavior": 0
+      },
+      "w": 109,
+      "x": 306,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/maps": {
+      "h": 34,
+      "text": "Maps",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 65,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 37,
+        "minimumHeight": 34,
+        "minimumWidth": 65,
+        "overrunBehavior": 0
+      },
+      "w": 65,
+      "x": 87,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/release": {
+      "h": 34,
+      "text": "Release",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 80,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 52,
+        "minimumHeight": 34,
+        "minimumWidth": 80,
+        "overrunBehavior": 0
+      },
+      "w": 80,
+      "x": 480,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/test": {
+      "h": 34,
+      "text": "Test",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 57,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 29,
+        "minimumHeight": 34,
+        "minimumWidth": 57,
+        "overrunBehavior": 0
+      },
+      "w": 57,
+      "x": 419,
+      "y": 48
+    },
+    "MenuFrame": {
+      "h": 876,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1888,
+      "x": 16,
+      "y": 108
+    },
+    "MenuFrame/Panel": {
+      "h": 788.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 792.9599609375,
+      "x": 563,
+      "y": 151
+    },
+    "MenuFrame/Panel/Scroll": {
+      "h": 760.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 764.9599609375,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox": {
+      "h": 272,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 764.9599609375,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton": {
+      "h": 48,
+      "text": "Campaign Editor",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 82,
+        "minimumHeight": 48,
+        "minimumWidth": 110,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 277
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton": {
+      "h": 48,
+      "text": "Manage Library",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 79,
+        "minimumHeight": 48,
+        "minimumWidth": 107,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 221
+    },
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton": {
+      "h": 48,
+      "text": "Continue",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox/QuitButton": {
+      "h": 48,
+      "text": "Quit",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 48,
+        "minimumWidth": 49,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 389
+    },
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton": {
+      "h": 48,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 333
+    },
+    "TitleLabel": {
+      "h": 76,
+      "text": "Project Prometheus",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 76,
+        "availableWidth": 1920,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 65,
+        "measuredTextWidth": 411,
+        "minimumHeight": 76,
+        "minimumWidth": 411,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 16
+    },
+    "VersionLabel": {
+      "h": 64,
+      "text": "v0.8.6",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 64,
+        "availableWidth": 144,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 39,
+        "minimumHeight": 19,
+        "minimumWidth": 39,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 144,
+      "x": 1760,
+      "y": 1000
+    }
+  },
+  "frame": {
+    "path": "MenuFrame/Panel",
+    "rect": {
+      "h": 788.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 792.9599609375,
+      "x": 563,
+      "y": 151
+    }
+  }
+}

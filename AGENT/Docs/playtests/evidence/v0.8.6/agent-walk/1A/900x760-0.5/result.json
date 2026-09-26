@@ -1,0 +1,72 @@
+{
+  "case": "900x760-0.5",
+  "viewport": {
+    "width": 900,
+    "height": 760
+  },
+  "scale": "0.5",
+  "url": "http://127.0.0.1:8611/index.html?test_bridge=1&bridge_rects=all&content_scale=0.5&menu_scale=0.5",
+  "mapLive": true,
+  "cursorState": "unit-selected",
+  "scales": {
+    "content": 0.5,
+    "contentPreference": 0.5,
+    "effectiveMenu": 1,
+    "menu": 0.5,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "viewportReported": {
+    "h": 1520,
+    "w": 1800
+  },
+  "panels": {
+    "objectives": {
+      "path": "ObjectivePanel",
+      "rect": {
+        "h": 79.5,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 146,
+        "x": 4,
+        "y": 24
+      }
+    },
+    "unit": {
+      "path": "UnitInfoPanel",
+      "rect": {
+        "h": 68,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 150,
+        "x": 4,
+        "y": 653
+      }
+    },
+    "terrain": {
+      "path": "TerrainCorner/TerrainInfoPanel",
+      "rect": {
+        "h": 85.5,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 140,
+        "x": 756,
+        "y": 670.5
+      }
+    }
+  },
+  "overlaps": []
+}

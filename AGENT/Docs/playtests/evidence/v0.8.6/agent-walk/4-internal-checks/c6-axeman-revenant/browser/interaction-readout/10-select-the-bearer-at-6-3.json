@@ -1,0 +1,596 @@
+{
+  "index": 10,
+  "label": "select the bearer at 6,3",
+  "screenshot": "10-select-the-bearer-at-6-3.png",
+  "state": "10-select-the-bearer-at-6-3.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 61,
+    "engineFrame": 1559,
+    "publishedAtMsec": 33714,
+    "screen": "hud",
+    "modal": "hud",
+    "modalStack": [
+      {
+        "id": "hud",
+        "path": "/root/GameMap/HUDMainLayer/HUD"
+      }
+    ],
+    "focus": null,
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      ""
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 720,
+      "w": 1280
+    },
+    "scales": {
+      "content": 1,
+      "contentPreference": 1,
+      "effectiveMenu": 1,
+      "menu": 1,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds-internal-fe",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_06_hallowed",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [
+        "node_01_rout",
+        "node_02_seize",
+        "node_03_boss",
+        "node_04_escape",
+        "node_05_defend"
+      ],
+      "currentNodeId": "node_06_hallowed",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "unit-selected",
+      "cursorTile": [
+        6,
+        3
+      ],
+      "origin": {
+        "x": 192,
+        "y": 72
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 24,
+          "team": "blue",
+          "tile": [
+            2,
+            3
+          ],
+          "unitId": "m006_hallowed_bearer",
+          "x": 320,
+          "y": 264
+        },
+        {
+          "hp": 24,
+          "team": "blue",
+          "tile": [
+            6,
+            3
+          ],
+          "unitId": "m006_plain_axeman",
+          "x": 576,
+          "y": 264
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            2,
+            5
+          ],
+          "unitId": "unit_01_cavalier",
+          "x": 320,
+          "y": 392
+        },
+        {
+          "hp": 18,
+          "team": "blue",
+          "tile": [
+            3,
+            3
+          ],
+          "unitId": "unit_02_mercenary",
+          "x": 384,
+          "y": 264
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            3,
+            4
+          ],
+          "unitId": "unit_03_archer",
+          "x": 384,
+          "y": 328
+        },
+        {
+          "hp": 15,
+          "team": "blue",
+          "tile": [
+            3,
+            5
+          ],
+          "unitId": "unit_04_mage",
+          "x": 384,
+          "y": 392
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            8,
+            3
+          ],
+          "unitId": "m006_revenant_1",
+          "x": 704,
+          "y": 264
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            8,
+            5
+          ],
+          "unitId": "m006_revenant_2",
+          "x": 704,
+          "y": 392
+        },
+        {
+          "hp": 24,
+          "team": "red",
+          "tile": [
+            10,
+            4
+          ],
+          "unitId": "m006_barrow_lord",
+          "x": 832,
+          "y": 328
+        }
+      ]
+    },
+    "rects": {
+      "ObjectivePanel": {
+        "h": 108,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 292,
+        "x": 8,
+        "y": 48
+      },
+      "ObjectivePanel/VBox": {
+        "h": 108,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 292,
+        "x": 8,
+        "y": 48
+      },
+      "ObjectivePanel/VBox/ObjectiveHeader": {
+        "h": 19,
+        "text": "Objectives",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 292,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 53,
+          "minimumHeight": 19,
+          "minimumWidth": 53,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 292,
+        "x": 8,
+        "y": 48
+      },
+      "ObjectivePanel/VBox/ObjectiveList": {
+        "h": 85,
+        "text": "Win:\n  Rout all hostiles\nLose:\n  Rout allies",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 85,
+          "availableWidth": 292,
+          "fits": true,
+          "lineCount": 4,
+          "measuredTextHeight": 68,
+          "measuredTextWidth": 97,
+          "minimumHeight": 85,
+          "minimumWidth": 97,
+          "overrunBehavior": 0,
+          "visibleLineCount": 4
+        },
+        "w": 292,
+        "x": 8,
+        "y": 71
+      },
+      "PhaseLabel": {
+        "h": 28,
+        "text": "BLUE - PLAYER 1 PHASE",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 28,
+          "availableWidth": 292,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 152,
+          "minimumHeight": 19,
+          "minimumWidth": 152,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 292,
+        "x": 8,
+        "y": 8
+      },
+      "TerrainCorner": {
+        "h": 111,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 280,
+        "x": 992,
+        "y": 601
+      },
+      "TerrainCorner/TerrainInfoPanel": {
+        "h": 111,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 280,
+        "x": 992,
+        "y": 601
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox": {
+        "h": 111,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 280,
+        "x": 992,
+        "y": 601
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox/TerrainCoord": {
+        "h": 19,
+        "text": "Tile (7, 4)",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 280,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 67,
+          "minimumHeight": 19,
+          "minimumWidth": 67,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 280,
+        "x": 992,
+        "y": 624
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox/TerrainDef": {
+        "h": 19,
+        "text": "DEF  +0",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 280,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 53,
+          "minimumHeight": 19,
+          "minimumWidth": 53,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 280,
+        "x": 992,
+        "y": 647
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox/TerrainDodge": {
+        "h": 19,
+        "text": "DODGE +0",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 280,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 64,
+          "minimumHeight": 19,
+          "minimumWidth": 64,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 280,
+        "x": 992,
+        "y": 670
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox/TerrainHint": {
+        "h": 19,
+        "text": "Press F for more info",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 280,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 117,
+          "minimumHeight": 19,
+          "minimumWidth": 117,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 280,
+        "x": 992,
+        "y": 693
+      },
+      "TerrainCorner/TerrainInfoPanel/VBox/TerrainName": {
+        "h": 19,
+        "text": "Plain",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 280,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 23,
+          "minimumHeight": 19,
+          "minimumWidth": 23,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 280,
+        "x": 992,
+        "y": 601
+      },
+      "TurnLabel": {
+        "h": 28,
+        "text": "Turn 1",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 28,
+          "availableWidth": 292,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 37,
+          "minimumHeight": 19,
+          "minimumWidth": 37,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 292,
+        "x": 980,
+        "y": 8
+      },
+      "UnitInfoPanel": {
+        "h": 102,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 300,
+        "x": 8,
+        "y": 540
+      },
+      "UnitInfoPanel/VBox": {
+        "h": 102,
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "w": 300,
+        "x": 8,
+        "y": 540
+      },
+      "UnitInfoPanel/VBox/UnitClass": {
+        "h": 19,
+        "text": "fighter  Lv 3",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 75,
+          "minimumHeight": 19,
+          "minimumWidth": 75,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 8,
+        "y": 563
+      },
+      "UnitInfoPanel/VBox/UnitHP": {
+        "h": 19,
+        "text": "HP 24 / 24",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 76,
+          "minimumHeight": 19,
+          "minimumWidth": 76,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 8,
+        "y": 586
+      },
+      "UnitInfoPanel/VBox/UnitName": {
+        "h": 19,
+        "text": "Free Company Axeman",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 116,
+          "minimumHeight": 19,
+          "minimumWidth": 116,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 8,
+        "y": 540
+      },
+      "UnitInfoPanel/VBox/UnitWeapon": {
+        "h": 19,
+        "text": "Iron Axe",
+        "theme": {
+          "owner": "ThemeDB",
+          "resource": "<built-in>",
+          "source": "theme-db-default"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 45,
+          "minimumHeight": 19,
+          "minimumWidth": 45,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 8,
+        "y": 609
+      }
+    },
+    "frame": null
+  },
+  "value": null
+}

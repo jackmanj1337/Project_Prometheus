@@ -1,0 +1,10 @@
+{
+  "label": "back to Campaign Library from Load Game",
+  "result": null,
+  "screen": "campaign-library",
+  "modal": "campaign-library",
+  "focus": {
+    "path": "Panel/VBox/HBoxActions/BtnLoadGame",
+    "text": "Load Game..."
+  }
+}

@@ -1,0 +1,365 @@
+{
+  "generatedAt": "2026-09-25T21:36:31.731Z",
+  "options": {
+    "url": "http://127.0.0.1:8765/index.html",
+    "screens": "/workspace/godot-prometheus-env/tools/playwright/screens/prometheus.json",
+    "screen": "new-game",
+    "out": "builds/tester/Project_Prometheus_v0.8.6/agent-walk/0-clean-new-game",
+    "viewports": [
+      "1280x720"
+    ],
+    "deviceScaleFactor": 1,
+    "contentScaleFactor": null,
+    "menuScaleFactor": null,
+    "safeArea": null,
+    "album": false,
+    "profile": null,
+    "baseline": null,
+    "device": null,
+    "taps": []
+  },
+  "pixelTools": {
+    "ok": true,
+    "errors": [],
+    "warnings": [],
+    "identify": "6.9.11-60",
+    "compare": "6.9.11-60",
+    "declared": "6.9.11"
+  },
+  "results": [
+    {
+      "label": "new-game@1280x720",
+      "ok": true,
+      "viewport": "1280x720",
+      "bootMs": 182,
+      "screenshot": "builds/tester/Project_Prometheus_v0.8.6/agent-walk/0-clean-new-game/new-game__1280x720__menu-1__content-1__safe-0-0-0-0.png",
+      "resolvedVia": [],
+      "instrumented": true,
+      "observed": {
+        "version": 5,
+        "supported": true,
+        "sequence": 4,
+        "engineFrame": 69,
+        "publishedAtMsec": 2718,
+        "screen": "new-game",
+        "modal": "new-game",
+        "modalStack": [
+          {
+            "id": "new-game",
+            "path": "/root/MainMenu/NewGameScreen"
+          }
+        ],
+        "focus": {
+          "path": "Panel/Scroll/VBox/BtnStart",
+          "text": "Start"
+        },
+        "focusHistory": [
+          "Panel/Scroll/VBox/BtnStart"
+        ],
+        "inputMode": {
+          "active": "mouse_keyboard",
+          "lastDetected": ""
+        },
+        "viewport": {
+          "h": 720,
+          "w": 1280
+        },
+        "scales": {
+          "content": 1,
+          "contentPreference": 1,
+          "effectiveMenu": 1,
+          "menu": 1,
+          "safe": {
+            "bottom": 0,
+            "left": 0,
+            "right": 0,
+            "top": 0
+          }
+        },
+        "controls": [
+          "Panel/Scroll/VBox/HBoxRun/OptRun",
+          "Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath",
+          "Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote",
+          "Panel/Scroll/VBox/HBoxLeveling/OptLeveling",
+          "Panel/Scroll/VBox/HBoxPairUp/OptPairUp",
+          "Panel/Scroll/VBox/HBoxStatus/OptStatus",
+          "Panel/Scroll/VBox/BtnManageCampaigns",
+          "Panel/Scroll/VBox/BtnImportStatus",
+          "Panel/Scroll/VBox/BtnStart",
+          "Panel/Scroll/VBox/BtnBack"
+        ],
+        "textEntry": {
+          "active": false,
+          "consumer": "",
+          "generation": 0,
+          "mode": "",
+          "presenterRect": null,
+          "semanticTransitions": 0,
+          "targetPath": "",
+          "targetRect": null,
+          "targetText": "",
+          "text": ""
+        },
+        "activePackage": {
+          "packageId": "",
+          "packageVersion": ""
+        },
+        "newGameEntries": {
+          "offered": [],
+          "popup": {
+            "visible": false
+          },
+          "selected": -1
+        },
+        "activeCampaign": {
+          "activeNodeId": "",
+          "campaignId": "",
+          "clearedNodeIds": [],
+          "currentNodeId": "",
+          "mapLive": false
+        },
+        "importResult": {},
+        "importDiagnostics": [],
+        "map": {},
+        "rects": {
+          "Panel": {
+            "h": 648,
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "w": 1152,
+            "x": 64,
+            "y": 36
+          },
+          "Panel/Scroll/VBox/BtnBack": {
+            "h": 33,
+            "text": "Back",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 1112,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 24,
+              "minimumHeight": 33,
+              "minimumWidth": 52,
+              "overrunBehavior": 0
+            },
+            "w": 1112,
+            "x": 82,
+            "y": 531
+          },
+          "Panel/Scroll/VBox/BtnImportStatus": {
+            "h": 33,
+            "text": "Import Status Record...",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 1112,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 122,
+              "minimumHeight": 33,
+              "minimumWidth": 150,
+              "overrunBehavior": 0
+            },
+            "w": 1112,
+            "x": 82,
+            "y": 410
+          },
+          "Panel/Scroll/VBox/BtnManageCampaigns": {
+            "h": 33,
+            "text": "Manage Campaigns...",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 1112,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 100,
+              "minimumHeight": 33,
+              "minimumWidth": 128,
+              "overrunBehavior": 0
+            },
+            "w": 1112,
+            "x": 82,
+            "y": 365
+          },
+          "Panel/Scroll/VBox/BtnStart": {
+            "h": 33,
+            "text": "Start",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 1112,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 29,
+              "minimumHeight": 33,
+              "minimumWidth": 57,
+              "overrunBehavior": 0
+            },
+            "w": 1112,
+            "x": 82,
+            "y": 486
+          },
+          "Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote": {
+            "h": 33,
+            "text": "Off",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 948,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 16,
+              "minimumHeight": 33,
+              "minimumWidth": 88,
+              "overrunBehavior": 0
+            },
+            "w": 948,
+            "x": 246,
+            "y": 176
+          },
+          "Panel/Scroll/VBox/HBoxLeveling/OptLeveling": {
+            "h": 33,
+            "text": "Random",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 948,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 36,
+              "minimumHeight": 33,
+              "minimumWidth": 108,
+              "overrunBehavior": 0
+            },
+            "w": 948,
+            "x": 246,
+            "y": 221
+          },
+          "Panel/Scroll/VBox/HBoxPairUp/OptPairUp": {
+            "h": 33,
+            "text": "On",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 948,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 13,
+              "minimumHeight": 33,
+              "minimumWidth": 88,
+              "overrunBehavior": 0
+            },
+            "w": 948,
+            "x": 246,
+            "y": 266
+          },
+          "Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath": {
+            "h": 33,
+            "text": "Off",
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "truncation": {
+              "availableHeight": 33,
+              "availableWidth": 948,
+              "fits": true,
+              "measuredTextHeight": 17,
+              "measuredTextWidth": 16,
+              "minimumHeight": 33,
+              "minimumWidth": 88,
+              "overrunBehavior": 0
+            },
+            "w": 948,
+            "x": 246,
+            "y": 131
+          },
+          "Panel/Scroll/VBox/HBoxRun/OptRun": {
+            "h": 26,
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "w": 948,
+            "x": 246,
+            "y": 93
+          },
+          "Panel/Scroll/VBox/HBoxStatus/OptStatus": {
+            "h": 26,
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "w": 948,
+            "x": 246,
+            "y": 311
+          }
+        },
+        "frame": {
+          "path": "Panel",
+          "rect": {
+            "h": 648,
+            "theme": {
+              "owner": "/root/MainMenu/NewGameScreen/Panel",
+              "resource": "<embedded>",
+              "source": "control"
+            },
+            "w": 1152,
+            "x": 64,
+            "y": 36
+          }
+        }
+      },
+      "controller": null,
+      "pixels": {
+        "blank": {
+          "ok": true,
+          "measured": true,
+          "stdDev": 0.170029,
+          "floor": 0.02
+        },
+        "diff": null
+      },
+      "frameContained": true,
+      "pageErrors": [],
+      "requestFailures": []
+    }
+  ]
+}

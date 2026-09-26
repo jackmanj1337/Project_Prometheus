@@ -1,0 +1,65 @@
+{
+  "label": "1C — open Load Game (mixed rows, before Retry)",
+  "result": {
+    "rows": [
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/DeleteButton",
+        "text": "Delete"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ExportButton",
+        "text": "Export"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/LoadButton",
+        "text": "[Needs campaign] [Autosave] Campaign Autosave\nCampaign package not installed.\n8 units · 3400G · 2026-09-25 21:48"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ManageCampaignsButton",
+        "text": "Manage Campaigns"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/RetryButton",
+        "text": "Retry"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/DeleteButton",
+        "text": "Delete"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ExportButton",
+        "text": "Export"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/LoadButton",
+        "text": "[Needs campaign] Prologue - Drill Yard — Prep\nCampaign package not installed.\n6 units · 0G · 2026-09-25 21:49"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+        "text": "Manage Campaigns"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/RetryButton",
+        "text": "Retry"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton",
+        "text": "Delete"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton",
+        "text": "Export"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+        "text": "Resume battle\nResume battle — Turn 1\n8 units · 3400G · 2026-09-25 21:48"
+      }
+    ]
+  },
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+    "text": "Manage Campaigns"
+  }
+}

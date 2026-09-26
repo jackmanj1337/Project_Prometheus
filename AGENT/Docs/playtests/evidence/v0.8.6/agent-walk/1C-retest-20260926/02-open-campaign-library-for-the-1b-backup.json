@@ -1,0 +1,10 @@
+{
+  "label": "open Campaign Library for the 1B backup",
+  "result": null,
+  "screen": "campaign-library",
+  "modal": "campaign-library",
+  "focus": {
+    "path": "Panel/VBox/BtnImport",
+    "text": "Import Package..."
+  }
+}

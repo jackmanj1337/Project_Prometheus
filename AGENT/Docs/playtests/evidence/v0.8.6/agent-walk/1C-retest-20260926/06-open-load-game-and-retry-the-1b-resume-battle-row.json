@@ -1,0 +1,7 @@
+{
+  "label": "open Load Game and retry the 1B Resume battle row",
+  "result": null,
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": null
+}

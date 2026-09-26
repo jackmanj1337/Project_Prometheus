@@ -1,0 +1,12 @@
+{
+  "step": 6,
+  "label": "restore interaction-duration-backup.zip",
+  "result": {
+    "restoreDialogText": "prometheus-proving-grounds-internal-fe 0.1.0"
+  },
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

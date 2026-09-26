@@ -1,0 +1,10 @@
+{
+  "label": "Load campaign_backup_v2 row (node-00-drill-prep-1789157303583)",
+  "result": null,
+  "screen": "prep",
+  "modal": "prep",
+  "focus": {
+    "path": "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1903",
+    "text": "Unit_01"
+  }
+}

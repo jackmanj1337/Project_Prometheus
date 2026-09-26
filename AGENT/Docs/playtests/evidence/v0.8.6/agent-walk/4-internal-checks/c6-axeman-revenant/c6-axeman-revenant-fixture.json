@@ -1,0 +1,35 @@
+{
+  "backup": "/workspace/godot-prometheus-env/builds/tester/Project_Prometheus_v0.8.6/agent-walk/4-internal-checks/c6-axeman-revenant/c6-axeman-revenant-backup.zip",
+  "bearer": {
+    "tile": [
+      6,
+      3
+    ],
+    "unit_id": "m006_plain_axeman"
+  },
+  "campaign_id": "proving_grounds",
+  "campaign_slot": "resume_battle",
+  "expected_rows": [
+    {
+      "direction": "advantage",
+      "label": "Undead Frailty",
+      "profile_id": "undead_frailty",
+      "side": "attacker",
+      "summary": "+1 Dmg"
+    }
+  ],
+  "map_id": "map_006_hallowed",
+  "node_id": "node_06_hallowed",
+  "package_id": "prometheus-proving-grounds-internal-fe",
+  "package_version": "0.1.0",
+  "schema_version": 1,
+  "seed": 20260921,
+  "staged": true,
+  "target": {
+    "tile": [
+      8,
+      3
+    ],
+    "unit_id": "m006_revenant_1"
+  }
+}

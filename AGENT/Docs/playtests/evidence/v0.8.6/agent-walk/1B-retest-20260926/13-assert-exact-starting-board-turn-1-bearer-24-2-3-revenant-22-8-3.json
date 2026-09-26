@@ -1,0 +1,76 @@
+{
+  "step": 13,
+  "label": "assert exact starting board (Turn 1, Bearer 24@(2,3), Revenant 22@(8,3))",
+  "result": {
+    "bearer": {
+      "hp": 24,
+      "team": "blue",
+      "tile": [
+        2,
+        3
+      ],
+      "unitId": "m006_hallowed_bearer",
+      "x": 320,
+      "y": 264
+    },
+    "target": {
+      "hp": 22,
+      "team": "red",
+      "tile": [
+        8,
+        3
+      ],
+      "unitId": "m006_revenant_1",
+      "x": 704,
+      "y": 264
+    },
+    "hud": {
+      "turnLabel": "Turn 1",
+      "phaseLabel": "BLUE - PLAYER 1 PHASE"
+    },
+    "matchesExpected": true
+  },
+  "map": {
+    "cursorState": "free",
+    "cursorTile": [
+      2,
+      3
+    ],
+    "origin": {
+      "x": 192,
+      "y": 72
+    },
+    "step": {
+      "x": 64,
+      "y": 64
+    },
+    "units": [
+      {
+        "hp": 24,
+        "team": "blue",
+        "tile": [
+          2,
+          3
+        ],
+        "unitId": "m006_hallowed_bearer",
+        "x": 320,
+        "y": 264
+      },
+      {
+        "hp": 22,
+        "team": "red",
+        "tile": [
+          8,
+          3
+        ],
+        "unitId": "m006_revenant_1",
+        "x": 704,
+        "y": 264
+      }
+    ]
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

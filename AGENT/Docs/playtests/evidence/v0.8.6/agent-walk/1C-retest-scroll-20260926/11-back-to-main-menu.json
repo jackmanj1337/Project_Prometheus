@@ -1,0 +1,10 @@
+{
+  "label": "back to Main Menu",
+  "result": null,
+  "screen": "main-menu",
+  "modal": null,
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  }
+}

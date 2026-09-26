@@ -1,0 +1,10 @@
+{
+  "step": 30,
+  "label": "open Load Game to Continue the suspended battle",
+  "result": null,
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

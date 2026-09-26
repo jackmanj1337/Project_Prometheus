@@ -1,0 +1,10 @@
+{
+  "label": "return to Main Menu with loadable 1B save",
+  "result": null,
+  "screen": "main-menu",
+  "modal": null,
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  }
+}

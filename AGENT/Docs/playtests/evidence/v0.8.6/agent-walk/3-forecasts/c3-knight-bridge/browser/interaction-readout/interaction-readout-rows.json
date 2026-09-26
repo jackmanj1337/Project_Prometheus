@@ -1,0 +1,28 @@
+{
+  "fixture": {
+    "map_id": "map_003_defeat_boss",
+    "node_id": "node_03_boss",
+    "campaign_id": "proving_grounds",
+    "package_id": "prometheus-proving-grounds",
+    "seed": 20260921
+  },
+  "attacker": "unit_06_knight",
+  "target": "m003_fighter_1",
+  "rows": [
+    {
+      "control": "Panel/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2434",
+      "side": "attacker",
+      "text": "▼ Weapon Triangle  -10 Hit, -2 Dmg"
+    },
+    {
+      "control": "Panel/HBox/DefenderBox/DefInteractions/@RichTextLabel@2437",
+      "side": "defender",
+      "text": "▲ Weapon Triangle  +10 Hit, +2 Dmg"
+    },
+    {
+      "control": "Panel/HBox/DefenderBox/DefInteractions/@RichTextLabel@2440",
+      "side": "defender",
+      "text": "▲ Weapon Effectiveness  ×3 Might"
+    }
+  ]
+}

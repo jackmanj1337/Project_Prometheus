@@ -1,0 +1,269 @@
+{
+  "index": 11,
+  "label": "move the bearer to 7,3",
+  "screenshot": "11-move-the-bearer-to-7-3.png",
+  "state": "11-move-the-bearer-to-7-3.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 68,
+    "engineFrame": 1726,
+    "publishedAtMsec": 36739,
+    "screen": "action-menu",
+    "modal": "action-menu",
+    "modalStack": [
+      {
+        "id": "action-menu",
+        "path": "/root/GameMap/HUDLayer/ActionMenu"
+      }
+    ],
+    "focus": {
+      "path": "VBox/BtnAttack",
+      "text": "Attack"
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "",
+      "VBox/BtnAttack"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 720,
+      "w": 1280
+    },
+    "scales": {
+      "content": 1,
+      "contentPreference": 1,
+      "effectiveMenu": 1,
+      "menu": 1,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "VBox/BtnAttack",
+      "VBox/BtnWait"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds-internal-fe",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_06_hallowed",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [
+        "node_01_rout",
+        "node_02_seize",
+        "node_03_boss",
+        "node_04_escape",
+        "node_05_defend"
+      ],
+      "currentNodeId": "node_06_hallowed",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "unit-moved",
+      "cursorTile": [
+        7,
+        3
+      ],
+      "origin": {
+        "x": 192,
+        "y": 72
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 24,
+          "team": "blue",
+          "tile": [
+            7,
+            3
+          ],
+          "unitId": "m006_hallowed_bearer",
+          "x": 640,
+          "y": 264
+        },
+        {
+          "hp": 24,
+          "team": "blue",
+          "tile": [
+            2,
+            4
+          ],
+          "unitId": "m006_plain_axeman",
+          "x": 320,
+          "y": 328
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            2,
+            5
+          ],
+          "unitId": "unit_01_cavalier",
+          "x": 320,
+          "y": 392
+        },
+        {
+          "hp": 18,
+          "team": "blue",
+          "tile": [
+            3,
+            3
+          ],
+          "unitId": "unit_02_mercenary",
+          "x": 384,
+          "y": 264
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            3,
+            4
+          ],
+          "unitId": "unit_03_archer",
+          "x": 384,
+          "y": 328
+        },
+        {
+          "hp": 15,
+          "team": "blue",
+          "tile": [
+            3,
+            5
+          ],
+          "unitId": "unit_04_mage",
+          "x": 384,
+          "y": 392
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            8,
+            3
+          ],
+          "unitId": "m006_revenant_1",
+          "x": 704,
+          "y": 264
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            8,
+            5
+          ],
+          "unitId": "m006_revenant_2",
+          "x": 704,
+          "y": 392
+        },
+        {
+          "hp": 24,
+          "team": "red",
+          "tile": [
+            10,
+            4
+          ],
+          "unitId": "m006_barrow_lord",
+          "x": 832,
+          "y": 328
+        }
+      ]
+    },
+    "rects": {
+      "VBox": {
+        "h": 70,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 100,
+        "x": 722,
+        "y": 278
+      },
+      "VBox/BtnAttack": {
+        "h": 33,
+        "text": "Attack",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 35,
+          "minimumHeight": 33,
+          "minimumWidth": 63,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 722,
+        "y": 278
+      },
+      "VBox/BtnWait": {
+        "h": 33,
+        "text": "Wait",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 21,
+          "minimumHeight": 33,
+          "minimumWidth": 49,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 722,
+        "y": 315
+      }
+    },
+    "frame": null
+  },
+  "value": null
+}

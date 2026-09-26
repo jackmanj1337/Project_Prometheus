@@ -1,0 +1,31 @@
+{
+  "step": 11,
+  "label": "resume_battle row after Retry — should now be loadable",
+  "result": {
+    "h": 73,
+    "text": "Resume battle\nResume battle — Turn 1\n8 units · 3400G · 2026-09-26 03:41",
+    "theme": {
+      "owner": "/root/MainMenu/LoadGameScreen/Panel",
+      "resource": "<embedded>",
+      "source": "control"
+    },
+    "truncation": {
+      "availableHeight": 73,
+      "availableWidth": 469,
+      "fits": true,
+      "measuredTextHeight": 59,
+      "measuredTextWidth": 250,
+      "minimumHeight": 73,
+      "minimumWidth": 278,
+      "overrunBehavior": 0
+    },
+    "w": 469,
+    "x": 341,
+    "y": 268
+  },
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

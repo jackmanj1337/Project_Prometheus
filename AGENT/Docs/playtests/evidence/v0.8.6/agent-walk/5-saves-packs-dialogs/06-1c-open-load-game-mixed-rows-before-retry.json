@@ -1,0 +1,33 @@
+{
+  "label": "1C — open Load Game (mixed rows, before Retry)",
+  "result": {
+    "rows": [
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/DeleteButton",
+        "text": "Delete"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ExportButton",
+        "text": "Export"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/LoadButton",
+        "text": "[Needs campaign] Prologue - Drill Yard — Prep\nCampaign package not installed.\n6 units · 0G · 2026-09-25 21:41"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+        "text": "Manage Campaigns"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/RetryButton",
+        "text": "Retry"
+      }
+    ]
+  },
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+    "text": "Manage Campaigns"
+  }
+}

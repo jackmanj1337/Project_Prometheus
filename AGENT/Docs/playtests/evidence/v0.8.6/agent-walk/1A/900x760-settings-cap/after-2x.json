@@ -1,0 +1,3254 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 46,
+  "engineFrame": 974,
+  "publishedAtMsec": 24336,
+  "screen": "settings",
+  "modal": "settings",
+  "modalStack": [
+    {
+      "id": "settings",
+      "path": "/root/MainMenu/SettingsScreen"
+    }
+  ],
+  "focus": {
+    "path": "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale",
+    "text": ""
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/ScrollContainer/Margin/VBox/BtnBack",
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 760,
+    "w": 900
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 2,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "Panel/ScrollContainer/Margin/VBox/HBoxMaster/SliderMaster",
+    "Panel/ScrollContainer/Margin/VBox/HBoxMusic/SliderMusic",
+    "Panel/ScrollContainer/Margin/VBox/HBoxSFX/SliderSFX",
+    "Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed/OptMovementSpeed",
+    "Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner/OptPhaseBanner",
+    "Panel/ScrollContainer/Margin/VBox/HBoxLevelUp/OptLevelUpScreen",
+    "Panel/ScrollContainer/Margin/VBox/HBoxInputMode/OptInputMode",
+    "Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/OptTextEntryMode",
+    "Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor/OptMouseCursor",
+    "Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn/OptAutoEndTurn",
+    "Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/SliderCameraBuffer",
+    "Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/SliderMapZoom",
+    "Panel/ScrollContainer/Margin/VBox/HBoxGridDim/SliderGridDim",
+    "Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale",
+    "Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity",
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/BtnRebind_cursor_up",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/BtnPadRebind_cursor_up",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/BtnRebind_cursor_down",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/BtnPadRebind_cursor_down",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/BtnRebind_cursor_left",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/BtnPadRebind_cursor_left",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/BtnRebind_cursor_right",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/BtnPadRebind_cursor_right",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/BtnRebind_confirm",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/BtnPadRebind_confirm",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/BtnRebind_cancel",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/BtnPadRebind_cancel",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/BtnRebind_next_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/BtnPadRebind_next_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/BtnRebind_prev_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/BtnPadRebind_prev_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/BtnRebind_show_danger_zone",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/BtnPadRebind_show_danger_zone",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/BtnRebind_peek_range",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/BtnPadRebind_peek_range",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/BtnRebind_open_menu",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/BtnPadRebind_open_menu",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/BtnRebind_open_settings",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/BtnPadRebind_open_settings",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/BtnRebind_inspect_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/BtnPadRebind_inspect_unit",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/BtnRebind_more_info",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/BtnPadRebind_more_info",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/BtnRebind_zoom_in",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/BtnPadRebind_zoom_in",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/BtnRebind_zoom_out",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/BtnPadRebind_zoom_out",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/BtnRebind_zoom_reset",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/BtnPadRebind_zoom_reset",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnApplyKeybindings",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnRevertKeybindings",
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnResetKeybindings",
+    "Panel/ScrollContainer/Margin/VBox/BtnEditHudLayout",
+    "Panel/ScrollContainer/Margin/VBox/BtnExportDiagnostics",
+    "Panel/ScrollContainer/Margin/VBox/BtnBack"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [],
+    "popup": {
+      "visible": false
+    },
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "",
+    "campaignId": "",
+    "clearedNodeIds": [],
+    "currentNodeId": "",
+    "mapLive": false
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Dimmer": {
+      "h": 760,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 900,
+      "x": 0,
+      "y": 0
+    },
+    "Panel": {
+      "h": 620,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 760,
+      "x": 70,
+      "y": 70
+    },
+    "Panel/ScrollContainer": {
+      "h": 592,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 732,
+      "x": 84,
+      "y": 84
+    },
+    "Panel/ScrollContainer/Margin": {
+      "h": 1698,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 728,
+      "x": 84,
+      "y": -952
+    },
+    "Panel/ScrollContainer/Margin/VBox": {
+      "h": 1698,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -952
+    },
+    "Panel/ScrollContainer/Margin/VBox/BtnBack": {
+      "h": 33,
+      "text": "Back",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 714,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 52,
+        "overrunBehavior": 0
+      },
+      "w": 714,
+      "x": 84,
+      "y": 713
+    },
+    "Panel/ScrollContainer/Margin/VBox/BtnEditHudLayout": {
+      "h": 33,
+      "text": "Edit HUD Layout",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 714,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 92,
+        "minimumHeight": 33,
+        "minimumWidth": 120,
+        "overrunBehavior": 0
+      },
+      "w": 714,
+      "x": 84,
+      "y": 627
+    },
+    "Panel/ScrollContainer/Margin/VBox/BtnExportDiagnostics": {
+      "h": 33,
+      "text": "Export Diagnostics",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 714,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 96,
+        "minimumHeight": 33,
+        "minimumWidth": 124,
+        "overrunBehavior": 0
+      },
+      "w": 714,
+      "x": 84,
+      "y": 670
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -515
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn/Label": {
+      "h": 19,
+      "text": "Auto-End Turn",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 79,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -508
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxAutoEndTurn/OptAutoEndTurn": {
+      "h": 33,
+      "text": "On",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 13,
+        "minimumHeight": 33,
+        "minimumWidth": 88,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -515
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -472
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/LabelCameraBuffer": {
+      "h": 19,
+      "text": "2",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 36,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 9,
+        "minimumHeight": 19,
+        "minimumWidth": 36,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 36,
+      "x": 762,
+      "y": -466
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/LabelCameraBufferTitle": {
+      "h": 19,
+      "text": "Camera Pan Buffer",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 100,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -466
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxCameraBuffer/SliderCameraBuffer": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 322,
+      "x": 432,
+      "y": -472
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxGridDim": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -388
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxGridDim/LabelGridDim": {
+      "h": 19,
+      "text": "0%",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 48,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 16,
+        "minimumHeight": 19,
+        "minimumWidth": 48,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 48,
+      "x": 750,
+      "y": -382
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxGridDim/LabelGridDimTitle": {
+      "h": 19,
+      "text": "Terrain Dim",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 62,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -382
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxGridDim/SliderGridDim": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 310,
+      "x": 432,
+      "y": -388
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxInputMode": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -644
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxInputMode/Label": {
+      "h": 19,
+      "text": "Input Prompts",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 73,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -637
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxInputMode/OptInputMode": {
+      "h": 33,
+      "text": "Auto",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 168,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -644
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxLevelUp": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -687
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxLevelUp/Label": {
+      "h": 19,
+      "text": "Level-Up Screen",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 88,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -680
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxLevelUp/OptLevelUpScreen": {
+      "h": 33,
+      "text": "Show",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 33,
+        "minimumWidth": 99,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -687
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMapZoom": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -430
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/LabelMapZoom": {
+      "h": 19,
+      "text": "1.0x",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 48,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 19,
+        "minimumWidth": 48,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 48,
+      "x": 750,
+      "y": -424
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/LabelMapZoomTitle": {
+      "h": 19,
+      "text": "Map Zoom",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 52,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -424
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMapZoom/SliderMapZoom": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 310,
+      "x": 432,
+      "y": -430
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMaster": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -913
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMaster/LabelMaster": {
+      "h": 19,
+      "text": "80",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 36,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 19,
+        "minimumHeight": 19,
+        "minimumWidth": 36,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 36,
+      "x": 762,
+      "y": -907
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMaster/LabelMasterTitle": {
+      "h": 19,
+      "text": "Master Volume",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 76,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -907
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMaster/SliderMaster": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 322,
+      "x": 432,
+      "y": -913
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -258
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/Label": {
+      "h": 19,
+      "text": "Menu Density",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 68,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -251
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMenuDensity/OptMenuDensity": {
+      "h": 33,
+      "text": "Standard",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 45,
+        "minimumHeight": 33,
+        "minimumWidth": 117,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -258
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -558
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor/Label": {
+      "h": 19,
+      "text": "Mouse Cursor",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 70,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -551
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMouseCursor/OptMouseCursor": {
+      "h": 33,
+      "text": "Follow",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 31,
+        "minimumHeight": 33,
+        "minimumWidth": 103,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -558
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -773
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed/Label": {
+      "h": 19,
+      "text": "Movement Speed",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 84,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -766
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMovementSpeed/OptMovementSpeed": {
+      "h": 33,
+      "text": "Normal",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 35,
+        "minimumHeight": 33,
+        "minimumWidth": 108,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -773
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMusic": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -871
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMusic/LabelMusic": {
+      "h": 19,
+      "text": "70",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 36,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 19,
+        "minimumHeight": 19,
+        "minimumWidth": 36,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 36,
+      "x": 762,
+      "y": -865
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMusic/LabelMusicTitle": {
+      "h": 19,
+      "text": "Music Volume",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 68,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -865
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxMusic/SliderMusic": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 322,
+      "x": 432,
+      "y": -871
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -730
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner/Label": {
+      "h": 19,
+      "text": "Phase Banner",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 69,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -723
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxPhaseBanner/OptPhaseBanner": {
+      "h": 33,
+      "text": "Show",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 33,
+        "minimumWidth": 99,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -730
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxSFX": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -829
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxSFX/LabelSFX": {
+      "h": 19,
+      "text": "90",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 36,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 19,
+        "minimumHeight": 19,
+        "minimumWidth": 36,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 36,
+      "x": 762,
+      "y": -823
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxSFX/LabelSFXTitle": {
+      "h": 19,
+      "text": "SFX Volume",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 64,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -823
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxSFX/SliderSFX": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 322,
+      "x": 432,
+      "y": -829
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -601
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/Label": {
+      "h": 19,
+      "text": "Text Entry",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 59,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -594
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxTextEntryMode/OptTextEntryMode": {
+      "h": 33,
+      "text": "Automatic",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 366,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 51,
+        "minimumHeight": 33,
+        "minimumWidth": 176,
+        "overrunBehavior": 0
+      },
+      "w": 366,
+      "x": 432,
+      "y": -601
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxUIScale": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -300
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScale": {
+      "h": 19,
+      "text": "1.0x",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 48,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 19,
+        "minimumWidth": 48,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 48,
+      "x": 750,
+      "y": -294
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxUIScale/LabelUIScaleTitle": {
+      "h": 19,
+      "text": "Menu Scale",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 57,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -294
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxUIScale/SliderUIScale": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 310,
+      "x": 432,
+      "y": -300
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -215
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/LabelViewportScale": {
+      "h": 19,
+      "text": "2.0x (1.0x)",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 71,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 71,
+        "minimumHeight": 19,
+        "minimumWidth": 71,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 71,
+      "x": 727,
+      "y": -209
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/LabelViewportScaleTitle": {
+      "h": 19,
+      "text": "Viewport Scale",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 340,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 78,
+        "minimumHeight": 19,
+        "minimumWidth": 340,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 340,
+      "x": 84,
+      "y": -209
+    },
+    "Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale": {
+      "h": 32,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 287,
+      "x": 432,
+      "y": -215
+    },
+    "Panel/ScrollContainer/Margin/VBox/HSep1": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -787
+    },
+    "Panel/ScrollContainer/Margin/VBox/HSep2": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 613
+    },
+    "Panel/ScrollContainer/Margin/VBox/HSepControls": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -173
+    },
+    "Panel/ScrollContainer/Margin/VBox/HSepDisplay": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -346
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList": {
+      "h": 730,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -127
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -127
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/@Label@1890": {
+      "h": 19,
+      "text": "Move Up",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 44,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": -120
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/@Label@1891": {
+      "h": 19,
+      "text": "W / D-pad Up / Left Stick Up",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 173,
+        "minimumHeight": 19,
+        "minimumWidth": 240,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": -120
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/BtnPadRebind_cursor_up": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": -127
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1892/BtnRebind_cursor_up": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": -127
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -86
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/@Label@1893": {
+      "h": 19,
+      "text": "Move Down",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 57,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": -79
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/@Label@1894": {
+      "h": 19,
+      "text": "S / D-pad Down / Left Stick Down",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 199,
+        "minimumHeight": 19,
+        "minimumWidth": 240,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": -79
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/BtnPadRebind_cursor_down": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": -86
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1895/BtnRebind_cursor_down": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": -86
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -45
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/@Label@1896": {
+      "h": 19,
+      "text": "Move Left",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 53,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": -38
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/@Label@1897": {
+      "h": 19,
+      "text": "A / D-pad Left / Left Stick Left",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 191,
+        "minimumHeight": 19,
+        "minimumWidth": 240,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": -38
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/BtnPadRebind_cursor_left": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": -45
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1898/BtnRebind_cursor_left": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": -45
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": -4
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/@Label@1899": {
+      "h": 19,
+      "text": "Move Right",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 56,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 3
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/@Label@1900": {
+      "h": 19,
+      "text": "D / D-pad Right / Left Stick Right",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 197,
+        "minimumHeight": 19,
+        "minimumWidth": 240,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 3
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/BtnPadRebind_cursor_right": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": -4
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1901/BtnRebind_cursor_right": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": -4
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 37
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/@Label@1902": {
+      "h": 19,
+      "text": "Confirm",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 39,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 44
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/@Label@1903": {
+      "h": 19,
+      "text": "Z / A",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 36,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 44
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/BtnPadRebind_confirm": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 37
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1904/BtnRebind_confirm": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 37
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 78
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/@Label@1905": {
+      "h": 19,
+      "text": "Cancel / Back",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 76,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 85
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/@Label@1906": {
+      "h": 19,
+      "text": "X / B",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 36,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 85
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/BtnPadRebind_cancel": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 78
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1907/BtnRebind_cancel": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 78
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 119
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/@Label@1908": {
+      "h": 19,
+      "text": "Next Unit",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 52,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 126
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/@Label@1909": {
+      "h": 19,
+      "text": "Tab / RB",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 53,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 126
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/BtnPadRebind_next_unit": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 119
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1910/BtnRebind_next_unit": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 119
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 160
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/@Label@1911": {
+      "h": 19,
+      "text": "Previous Unit",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 69,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 167
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/@Label@1912": {
+      "h": 19,
+      "text": "Shift+Tab / LB",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 89,
+        "minimumHeight": 19,
+        "minimumWidth": 191,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 167
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/BtnPadRebind_prev_unit": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 160
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1913/BtnRebind_prev_unit": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 160
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 201
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/@Label@1914": {
+      "h": 19,
+      "text": "Toggle Threat Range",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 108,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 208
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/@Label@1915": {
+      "h": 19,
+      "text": "Q / R3",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 42,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 208
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/BtnPadRebind_show_danger_zone": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 201
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1916/BtnRebind_show_danger_zone": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 201
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 242
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/@Label@1917": {
+      "h": 19,
+      "text": "Peek Range",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 58,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 249
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/@Label@1918": {
+      "h": 19,
+      "text": "E / View",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 51,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 249
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/BtnPadRebind_peek_range": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 242
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1919/BtnRebind_peek_range": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 242
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 283
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/@Label@1920": {
+      "h": 19,
+      "text": "Map Menu",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 50,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 290
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/@Label@1921": {
+      "h": 19,
+      "text": "M / Start",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 57,
+        "minimumHeight": 19,
+        "minimumWidth": 127,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 290
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/BtnPadRebind_open_menu": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 283
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1922/BtnRebind_open_menu": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 283
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 324
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/@Label@1923": {
+      "h": 19,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 331
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/@Label@1924": {
+      "h": 19,
+      "text": "O",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 8,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 331
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/BtnPadRebind_open_settings": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 324
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1925/BtnRebind_open_settings": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 324
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 365
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/@Label@1926": {
+      "h": 19,
+      "text": "Unit Details",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 62,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 372
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/@Label@1927": {
+      "h": 19,
+      "text": "I / Y",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 372
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/BtnPadRebind_inspect_unit": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 365
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1928/BtnRebind_inspect_unit": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 365
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 406
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/@Label@1929": {
+      "h": 19,
+      "text": "More Info",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 49,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 413
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/@Label@1930": {
+      "h": 19,
+      "text": "F / X",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 35,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 413
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/BtnPadRebind_more_info": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 406
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1931/BtnRebind_more_info": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 406
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 447
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/@Label@1932": {
+      "h": 19,
+      "text": "Zoom In",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 454
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/@Label@1933": {
+      "h": 19,
+      "text": "Equal / RT",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 59,
+        "minimumHeight": 19,
+        "minimumWidth": 133,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 454
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/BtnPadRebind_zoom_in": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 447
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1934/BtnRebind_zoom_in": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 447
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 488
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/@Label@1935": {
+      "h": 19,
+      "text": "Zoom Out",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 52,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 495
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/@Label@1936": {
+      "h": 19,
+      "text": "Minus / LT",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 63,
+        "minimumHeight": 19,
+        "minimumWidth": 137,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 495
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/BtnPadRebind_zoom_out": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 488
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1937/BtnRebind_zoom_out": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 488
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 529
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/@Label@1938": {
+      "h": 19,
+      "text": "Reset Zoom",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 175,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 61,
+        "minimumHeight": 19,
+        "minimumWidth": 175,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 175,
+      "x": 84,
+      "y": 536
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/@Label@1939": {
+      "h": 19,
+      "text": "0 / L3",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 351,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 45,
+        "minimumHeight": 19,
+        "minimumWidth": 124,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 351,
+      "x": 267,
+      "y": 536
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/BtnPadRebind_zoom_reset": {
+      "h": 33,
+      "text": "Pad",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 33,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 726,
+      "y": 529
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1940/BtnRebind_zoom_reset": {
+      "h": 33,
+      "text": "K&M",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 92,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 92,
+        "overrunBehavior": 0
+      },
+      "w": 92,
+      "x": 626,
+      "y": 529
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 714,
+      "x": 84,
+      "y": 570
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/@Control@1941": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 469,
+      "x": 84,
+      "y": 570
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnApplyKeybindings": {
+      "h": 33,
+      "text": "Apply",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 55,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 33,
+        "minimumWidth": 55,
+        "overrunBehavior": 0
+      },
+      "w": 55,
+      "x": 561,
+      "y": 570
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnResetKeybindings": {
+      "h": 33,
+      "text": "Reset Controls",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 105,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 77,
+        "minimumHeight": 33,
+        "minimumWidth": 105,
+        "overrunBehavior": 0
+      },
+      "w": 105,
+      "x": 693,
+      "y": 570
+    },
+    "Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnRevertKeybindings": {
+      "h": 33,
+      "text": "Revert",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      },
+      "w": 61,
+      "x": 624,
+      "y": 570
+    },
+    "Panel/ScrollContainer/Margin/VBox/LabelControls": {
+      "h": 22,
+      "text": "Controls",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 22,
+        "availableWidth": 714,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 18,
+        "measuredTextWidth": 48,
+        "minimumHeight": 22,
+        "minimumWidth": 48,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 714,
+      "x": 84,
+      "y": -159
+    },
+    "Panel/ScrollContainer/Margin/VBox/LabelDisplay": {
+      "h": 22,
+      "text": "Display",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 22,
+        "availableWidth": 714,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 18,
+        "measuredTextWidth": 39,
+        "minimumHeight": 22,
+        "minimumWidth": 39,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 714,
+      "x": 84,
+      "y": -332
+    },
+    "Panel/ScrollContainer/Margin/VBox/TitleLabel": {
+      "h": 29,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 29,
+        "availableWidth": 714,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 24,
+        "measuredTextWidth": 64,
+        "minimumHeight": 29,
+        "minimumWidth": 64,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 714,
+      "x": 84,
+      "y": -952
+    }
+  },
+  "frame": {
+    "path": "Panel",
+    "rect": {
+      "h": 620,
+      "theme": {
+        "owner": "/root/MainMenu/SettingsScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 760,
+      "x": 70,
+      "y": 70
+    }
+  }
+}

@@ -1,0 +1,2323 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 140,
+  "engineFrame": 1856,
+  "publishedAtMsec": 76744,
+  "screen": "main-menu",
+  "modal": null,
+  "modalStack": [],
+  "focus": null,
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Records",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2075/@LineEdit@2074",
+    ""
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 1080,
+    "w": 1920
+  },
+  "scales": {
+    "content": 1.5,
+    "contentPreference": 1.5,
+    "effectiveMenu": 0.666666666666667,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+    "MenuFrame/Panel/Scroll/VBox/QuitButton",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/undo",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/redo",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/validate",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/test",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/export",
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/help",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/content",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/maps",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/graph",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/assets",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/localization",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/test",
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/release",
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree",
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerList",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Records",
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/Issues",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2144/@LineEdit@2143",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2147/@LineEdit@2146",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2150/@LineEdit@2149",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2156/@LineEdit@2155",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2159/@LineEdit@2158",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2162/@LineEdit@2161",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2165/@LineEdit@2164",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2168/@CheckBox@2167",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2179/@OptionButton@2178",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2182/@LineEdit@2181",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2205/@OptionButton@2204",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2211/@LineEdit@2210",
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2225/@OptionButton@2224"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [],
+    "popup": {
+      "visible": false
+    },
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "",
+    "campaignId": "",
+    "clearedNodeIds": [],
+    "currentNodeId": "",
+    "mapLive": false
+  },
+  "importResult": {
+    "errors": [],
+    "outcome": "ok",
+    "package_id": "prometheus-proving-grounds",
+    "package_version": "0.1.0"
+  },
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Background": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell": {
+      "h": 1080,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Body": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentLabel": {
+      "h": 20,
+      "text": "Content",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 55,
+        "minimumHeight": 20,
+        "minimumWidth": 55,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 280,
+      "x": 0,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/ContentTree": {
+      "h": 458,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerLabel": {
+      "h": 20,
+      "text": "Map layers",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 74,
+        "minimumHeight": 20,
+        "minimumWidth": 74,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 280,
+      "x": 0,
+      "y": 572
+    },
+    "CampaignEditorScreen/Shell/Body/TreePane/LayerList": {
+      "h": 458,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 280,
+      "x": 0,
+      "y": 596
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1628,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel": {
+      "h": 200,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 854
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/Issues": {
+      "h": 176,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 878
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/BottomPanel/IssuesHeader": {
+      "h": 20,
+      "text": "Issues",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 1236,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 42,
+        "minimumHeight": 20,
+        "minimumWidth": 42,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 854
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns": {
+      "h": 732,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document": {
+      "h": 732,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Placeholder": {
+      "h": 20,
+      "text": "campaign  -  1 record(s)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 1236,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 157,
+        "minimumHeight": 20,
+        "minimumWidth": 157,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 118
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/DocumentColumns/Document/Records": {
+      "h": 708,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 142
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs": {
+      "h": 28,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1236,
+      "x": 292,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector": {
+      "h": 968,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll": {
+      "h": 944,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form": {
+      "h": 1310,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2144": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2144/@Label@2142": {
+      "h": 20,
+      "text": "Author Id",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 64,
+        "minimumHeight": 20,
+        "minimumWidth": 64,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 110
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2144/@LineEdit@2143": {
+      "h": 28,
+      "text": "project_prometheus",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 137,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 134
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2147": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 166
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2147/@Label@2145": {
+      "h": 20,
+      "text": "Campaign Id  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 159,
+        "minimumHeight": 20,
+        "minimumWidth": 159,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 166
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2147/@LineEdit@2146": {
+      "h": 28,
+      "text": "proving_grounds",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 113,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 190
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2150": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 222
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2150/@Label@2148": {
+      "h": 20,
+      "text": "Campaign Version",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 123,
+        "minimumHeight": 20,
+        "minimumWidth": 123,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 222
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2150/@LineEdit@2149": {
+      "h": 28,
+      "text": "1.0.0",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 32,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 246
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2153": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 278
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2153/@Label@2151": {
+      "h": 20,
+      "text": "Compatible Status Sources  [unset]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 236,
+        "minimumHeight": 20,
+        "minimumWidth": 236,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 278
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2153/@Label@2152": {
+      "h": 20,
+      "text": "(unset)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 48,
+        "minimumHeight": 20,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 302
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2156": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 326
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2156/@Label@2154": {
+      "h": 20,
+      "text": "Description",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 78,
+        "minimumHeight": 20,
+        "minimumWidth": 78,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 326
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2156/@LineEdit@2155": {
+      "h": 28,
+      "text": "Free-roam validation campaign: a short drill prologue, then five chapters over the shipped objective maps: rout, seize, boss, escape, and defend.",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": false,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 971,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 350
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2159": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 382
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2159/@Label@2157": {
+      "h": 20,
+      "text": "Display Name  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 168,
+        "minimumHeight": 20,
+        "minimumWidth": 168,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 382
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2159/@LineEdit@2158": {
+      "h": 28,
+      "text": "The Proving Grounds",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 142,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 406
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2162": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 438
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2162/@Label@2160": {
+      "h": 20,
+      "text": "Display Name Key  [unset]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 177,
+        "minimumHeight": 20,
+        "minimumWidth": 177,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 438
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2162/@LineEdit@2161": {
+      "h": 28,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 462
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2165": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 494
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2165/@Label@2163": {
+      "h": 20,
+      "text": "Id  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 88,
+        "minimumHeight": 20,
+        "minimumWidth": 88,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 494
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2165/@LineEdit@2164": {
+      "h": 28,
+      "text": "proving_grounds",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 113,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 518
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2168": {
+      "h": 54,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 550
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2168/@CheckBox@2167": {
+      "h": 30,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 574
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2168/@Label@2166": {
+      "h": 20,
+      "text": "Is Dev Only",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 76,
+        "minimumHeight": 20,
+        "minimumWidth": 76,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 550
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2179": {
+      "h": 58,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 608
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2179/@Label@2169": {
+      "h": 20,
+      "text": "Kind  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 106,
+        "minimumHeight": 20,
+        "minimumWidth": 106,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 608
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2179/@OptionButton@2178": {
+      "h": 34,
+      "text": "campaign",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 66,
+        "minimumHeight": 34,
+        "minimumWidth": 138,
+        "overrunBehavior": 0
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 632
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2182": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 670
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2182/@Label@2180": {
+      "h": 20,
+      "text": "Label  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 112,
+        "minimumHeight": 20,
+        "minimumWidth": 112,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 670
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2182/@LineEdit@2181": {
+      "h": 28,
+      "text": "The Proving Grounds",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 142,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 694
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2185": {
+      "h": 159,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 726
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2185/@Label@2183": {
+      "h": 20,
+      "text": "Nodes  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 118,
+        "minimumHeight": 20,
+        "minimumWidth": 118,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 726
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2185/@Label@2184": {
+      "h": 135,
+      "text": "[{ \"label\": \"Prologue - Drill Yard\", \"map_id\": \"map_000_drill\", \"next\": [\"node_01_rout\"], \"node_id\": \"node_00_drill\" }, { \"label\": \"Chapter 1 - First Blood\", \"map_id\": \"map_001\", \"next\": [\"node_02_seize\"], \"node_id\": \"node_01_rout\" }, { \"label\": \"Chapter 2 - Take the Throne\", \"map_id\": \"map_002_seize\", \"next\": [\"node_03_boss\"], \"node_id\": \"node_02_seize\" }, { \"label\": \"Chapter 3 - The Commander\", \"map_id\": \"map_003_defeat_boss\", \"next\": [\"node_04_escape\"], \"node_id\": \"node_03_boss\" }, { \"label\": \"Chapter 4 - Withdraw\", \"map_id\": \"map_004_escape\", \"next\": [\"node_05_defend\"], \"node_id\": \"node_04_escape\" }, { \"label\": \"Chapter 5 - Hold the Line\", \"map_id\": \"map_005_defend\", \"next\": [], \"node_id\": \"node_05_defend\" }]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 135,
+        "availableWidth": 376,
+        "fits": false,
+        "lineCount": 15,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 4769,
+        "minimumHeight": 135,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 6
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 750
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2188": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 889
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2188/@Label@2186": {
+      "h": 20,
+      "text": "Occurrence Audit Refs  [unset]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 206,
+        "minimumHeight": 20,
+        "minimumWidth": 206,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 889
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2188/@Label@2187": {
+      "h": 20,
+      "text": "(unset)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 48,
+        "minimumHeight": 20,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 913
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2191": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 937
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2191/@Label@2189": {
+      "h": 20,
+      "text": "Protected Fields  [unset]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 164,
+        "minimumHeight": 20,
+        "minimumWidth": 164,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 937
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2191/@Label@2190": {
+      "h": 20,
+      "text": "(unset)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 48,
+        "minimumHeight": 20,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 961
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2194": {
+      "h": 159,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 985
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2194/@Label@2192": {
+      "h": 20,
+      "text": "Rules",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 37,
+        "minimumHeight": 20,
+        "minimumWidth": 37,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 985
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2194/@Label@2193": {
+      "h": 135,
+      "text": "{ \"interaction_profiles\": [{ \"context\": \"combat\", \"presentation\": { \"display_order\": 10.0, \"label_key\": \"interaction.weapon_triangle\" }, \"priority\": 100.0, \"profile_id\": \"weapon_triangle\", \"rules\": [{ \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"axe_vs_lance\", \"when\": { \"children\": [{ \"params\": { \"id\": \"axe\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"lance\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"axe_vs_sword\", \"when\": { \"children\": [{ \"params\": { \"id\": \"axe\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"sword\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"dark_vs_fire\", \"when\": { \"children\": [{ \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"fire\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"dark_vs_light\", \"when\": { \"children\": [{ \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"dark_vs_thunder\", \"when\": { \"children\": [{ \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"thunder\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"dark_vs_wind\", \"when\": { \"children\": [{ \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"wind\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"fire_vs_dark\", \"when\": { \"children\": [{ \"params\": { \"id\": \"fire\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"fire_vs_light\", \"when\": { \"children\": [{ \"params\": { \"id\": \"fire\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"lance_vs_axe\", \"when\": { \"children\": [{ \"params\": { \"id\": \"lance\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"axe\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"lance_vs_sword\", \"when\": { \"children\": [{ \"params\": { \"id\": \"lance\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"sword\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"light_vs_dark\", \"when\": { \"children\": [{ \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"light_vs_fire\", \"when\": { \"children\": [{ \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"fire\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"light_vs_thunder\", \"when\": { \"children\": [{ \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"thunder\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"light_vs_wind\", \"when\": { \"children\": [{ \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"wind\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"sword_vs_axe\", \"when\": { \"children\": [{ \"params\": { \"id\": \"sword\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"axe\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"sword_vs_lance\", \"when\": { \"children\": [{ \"params\": { \"id\": \"sword\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"lance\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"thunder_vs_dark\", \"when\": { \"children\": [{ \"params\": { \"id\": \"thunder\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"thunder_vs_light\", \"when\": { \"children\": [{ \"params\": { \"id\": \"thunder\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 10.0 }] }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"op\": \"neg\", \"operands\": [{ \"literal\": 2.0 }] }, \"target\": \"source\" }], \"rule_id\": \"wind_vs_dark\", \"when\": { \"children\": [{ \"params\": { \"id\": \"wind\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dark\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }, { \"effects\": [{ \"composition_id\": \"combat_accuracy_modifier\", \"magnitude\": { \"literal\": 10.0 }, \"target\": \"source\" }, { \"composition_id\": \"combat_damage_modifier\", \"magnitude\": { \"literal\": 2.0 }, \"target\": \"source\" }], \"rule_id\": \"wind_vs_light\", \"when\": { \"children\": [{ \"params\": { \"id\": \"wind\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"light\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_target\" } }], \"op\": \"all\" } }], \"stack_group\": \"weapon_triangle\", \"stack_policy\": \"highest\", \"stops_below\": false, \"subjects\": [\"source\", \"target\", \"equipped_source\", \"equipped_target\"] }, { \"context\": \"combat\", \"presentation\": { \"display_order\": 20.0, \"label_key\": \"interaction.weapon_effectiveness\" }, \"priority\": 200.0, \"profile_id\": \"weapon_effectiveness\", \"rules\": [{ \"effects\": [{ \"composition_id\": \"combat_might_multiplier\", \"magnitude\": { \"literal\": 300.0 }, \"target\": \"source\" }], \"rule_id\": \"effective_weapon\", \"when\": { \"children\": [{ \"children\": [{ \"params\": { \"id\": \"effective_flying\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"flying\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_armoured\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"armoured\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_mounted\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"mounted\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_dragon\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dragon\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_beast\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"beast\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }], \"op\": \"any\" } }, { \"effects\": [{ \"composition_id\": \"combat_might_multiplier\", \"magnitude\": { \"literal\": 400.0 }, \"target\": \"source\" }], \"rule_id\": \"giantkiller\", \"when\": { \"children\": [{ \"params\": { \"id\": \"giantkiller\" }, \"predicate_id\": \"has_skill\", \"subject\": { \"kind\": \"source\" } }, { \"children\": [{ \"children\": [{ \"params\": { \"id\": \"effective_flying\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"flying\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_armoured\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"armoured\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_mounted\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"mounted\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_dragon\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"dragon\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }, { \"children\": [{ \"params\": { \"id\": \"effective_beast\" }, \"predicate_id\": \"has_trait\", \"subject\": { \"kind\": \"equipped_source\" } }, { \"params\": { \"id\": \"beast\" }, \"predicate_id\": \"has_vulnerability\", \"subject\": { \"kind\": \"target\" } }], \"op\": \"all\" }], \"op\": \"any\" }], \"op\": \"all\" } }], \"stack_group\": \"weapon_effectiveness\", \"stack_policy\": \"highest\", \"stops_below\": false, \"subjects\": [\"source\", \"target\", \"equipped_source\", \"equipped_target\"] }] }",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 135,
+        "availableWidth": 376,
+        "fits": false,
+        "lineCount": 259,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 89225,
+        "minimumHeight": 135,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 6
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1009
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2205": {
+      "h": 58,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1148
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2205/@Label@2195": {
+      "h": 20,
+      "text": "Schema Version  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 183,
+        "minimumHeight": 20,
+        "minimumWidth": 183,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1148
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2205/@OptionButton@2204": {
+      "h": 34,
+      "text": "1",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 8,
+        "minimumHeight": 34,
+        "minimumWidth": 80,
+        "overrunBehavior": 0
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1172
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2208": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1210
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2208/@Label@2206": {
+      "h": 20,
+      "text": "Source Refs  (required)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 154,
+        "minimumHeight": 20,
+        "minimumWidth": 154,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1210
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2208/@Label@2207": {
+      "h": 20,
+      "text": "[\"project_original\"]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 127,
+        "minimumHeight": 20,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1234
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2211": {
+      "h": 52,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1258
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2211/@Label@2209": {
+      "h": 20,
+      "text": "Start Node Id",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 90,
+        "minimumHeight": 20,
+        "minimumWidth": 90,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1258
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2211/@LineEdit@2210": {
+      "h": 28,
+      "text": "node_00_drill",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 28,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 89,
+        "minimumHeight": 28,
+        "minimumWidth": 60.9375,
+        "overrunBehavior": null
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1282
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2214": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1314
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2214/@Label@2212": {
+      "h": 20,
+      "text": "Status Import Benefits  [unset]",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 207,
+        "minimumHeight": 20,
+        "minimumWidth": 207,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1314
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2214/@Label@2213": {
+      "h": 20,
+      "text": "(unset)",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 48,
+        "minimumHeight": 20,
+        "minimumWidth": 1,
+        "overrunBehavior": 3,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1338
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2225": {
+      "h": 58,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1362
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2225/@Label@2215": {
+      "h": 20,
+      "text": "Traversal Mode",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 376,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 105,
+        "minimumHeight": 20,
+        "minimumWidth": 105,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1362
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2225/@OptionButton@2224": {
+      "h": 34,
+      "text": "free_roam",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 376,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 70,
+        "minimumHeight": 34,
+        "minimumWidth": 142,
+        "overrunBehavior": 0
+      },
+      "w": 376,
+      "x": 1540,
+      "y": 1386
+    },
+    "CampaignEditorScreen/Shell/Body/Workspace/Inspector/Heading": {
+      "h": 20,
+      "text": "proving_grounds",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 380,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 113,
+        "minimumHeight": 20,
+        "minimumWidth": 113,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 380,
+      "x": 1540,
+      "y": 86
+    },
+    "CampaignEditorScreen/Shell/Header": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll": {
+      "h": 44,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1594,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 422,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/export": {
+      "h": 34,
+      "text": "Export",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 73,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 45,
+        "minimumHeight": 34,
+        "minimumWidth": 73,
+        "overrunBehavior": 0
+      },
+      "w": 73,
+      "x": 611,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/help": {
+      "h": 34,
+      "text": "Help",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 32,
+        "minimumHeight": 34,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      },
+      "w": 60,
+      "x": 688,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/redo": {
+      "h": 34,
+      "text": "Redo",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 63,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 35,
+        "minimumHeight": 34,
+        "minimumWidth": 63,
+        "overrunBehavior": 0
+      },
+      "w": 63,
+      "x": 395,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/test": {
+      "h": 34,
+      "text": "Test",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 57,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 29,
+        "minimumHeight": 34,
+        "minimumWidth": 57,
+        "overrunBehavior": 0
+      },
+      "w": 57,
+      "x": 550,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/undo": {
+      "h": 34,
+      "text": "Undo",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 65,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 37,
+        "minimumHeight": 34,
+        "minimumWidth": 65,
+        "overrunBehavior": 0
+      },
+      "w": 65,
+      "x": 326,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/ActionScroll/Actions/validate": {
+      "h": 34,
+      "text": "Validate",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 84,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 56,
+        "minimumHeight": 34,
+        "minimumWidth": 84,
+        "overrunBehavior": 0
+      },
+      "w": 84,
+      "x": 462,
+      "y": 0
+    },
+    "CampaignEditorScreen/Shell/Header/DraftIdentity": {
+      "h": 20,
+      "text": "prometheus-proving-grounds-draft-1790394870",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 322,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 322,
+        "minimumHeight": 20,
+        "minimumWidth": 322,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 322,
+      "x": 0,
+      "y": 12
+    },
+    "CampaignEditorScreen/Shell/StatusBar": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/KeyboardOwner": {
+      "h": 20,
+      "text": "Keyboard: Records",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 127,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 127,
+        "minimumHeight": 20,
+        "minimumWidth": 127,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 127,
+      "x": 350,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Message": {
+      "h": 20,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1199,
+      "x": 721,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Selection": {
+      "h": 20,
+      "text": "1 selected",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 68,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 68,
+        "minimumHeight": 20,
+        "minimumWidth": 68,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 68,
+      "x": 625,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep1": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 334,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep2": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 489,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep3": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 609,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Sep4": {
+      "h": 22,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 4,
+      "x": 705,
+      "y": 1058
+    },
+    "CampaignEditorScreen/Shell/StatusBar/Validation": {
+      "h": 20,
+      "text": "Not validated",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 92,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 92,
+        "minimumHeight": 20,
+        "minimumWidth": 92,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 92,
+      "x": 505,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/StatusBar/WorkingCopy": {
+      "h": 20,
+      "text": "prometheus-proving-grounds-draft-1790394870",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 20,
+        "availableWidth": 322,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 322,
+        "minimumHeight": 20,
+        "minimumWidth": 322,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 322,
+      "x": 0,
+      "y": 1059
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces": {
+      "h": 34,
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 560,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/assets": {
+      "h": 34,
+      "text": "Assets",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 72,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 44,
+        "minimumHeight": 34,
+        "minimumWidth": 72,
+        "overrunBehavior": 0
+      },
+      "w": 72,
+      "x": 230,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/content": {
+      "h": 34,
+      "text": "Content",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 83,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 55,
+        "minimumHeight": 34,
+        "minimumWidth": 83,
+        "overrunBehavior": 0
+      },
+      "w": 83,
+      "x": 0,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/graph": {
+      "h": 34,
+      "text": "Graph",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 70,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 42,
+        "minimumHeight": 34,
+        "minimumWidth": 70,
+        "overrunBehavior": 0
+      },
+      "w": 70,
+      "x": 156,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/localization": {
+      "h": 34,
+      "text": "Localization",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 109,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 81,
+        "minimumHeight": 34,
+        "minimumWidth": 109,
+        "overrunBehavior": 0
+      },
+      "w": 109,
+      "x": 306,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/maps": {
+      "h": 34,
+      "text": "Maps",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 65,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 37,
+        "minimumHeight": 34,
+        "minimumWidth": 65,
+        "overrunBehavior": 0
+      },
+      "w": 65,
+      "x": 87,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/release": {
+      "h": 34,
+      "text": "Release",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 80,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 52,
+        "minimumHeight": 34,
+        "minimumWidth": 80,
+        "overrunBehavior": 0
+      },
+      "w": 80,
+      "x": 480,
+      "y": 48
+    },
+    "CampaignEditorScreen/Shell/WorkspaceBar/Workspaces/test": {
+      "h": 34,
+      "text": "Test",
+      "theme": {
+        "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 34,
+        "availableWidth": 57,
+        "fits": true,
+        "measuredTextHeight": 20,
+        "measuredTextWidth": 29,
+        "minimumHeight": 34,
+        "minimumWidth": 57,
+        "overrunBehavior": 0
+      },
+      "w": 57,
+      "x": 419,
+      "y": 48
+    },
+    "MenuFrame": {
+      "h": 876,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1888,
+      "x": 16,
+      "y": 108
+    },
+    "MenuFrame/Panel": {
+      "h": 788.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 792.9599609375,
+      "x": 563,
+      "y": 151
+    },
+    "MenuFrame/Panel/Scroll": {
+      "h": 760.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 764.9599609375,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox": {
+      "h": 272,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 764.9599609375,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton": {
+      "h": 48,
+      "text": "Campaign Editor",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 82,
+        "minimumHeight": 48,
+        "minimumWidth": 110,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 277
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton": {
+      "h": 48,
+      "text": "Manage Library",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 79,
+        "minimumHeight": 48,
+        "minimumWidth": 107,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 221
+    },
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton": {
+      "h": 48,
+      "text": "Continue",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 165
+    },
+    "MenuFrame/Panel/Scroll/VBox/QuitButton": {
+      "h": 48,
+      "text": "Quit",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 48,
+        "minimumWidth": 49,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 389
+    },
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton": {
+      "h": 48,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 764,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 764,
+      "x": 577,
+      "y": 333
+    },
+    "TitleLabel": {
+      "h": 76,
+      "text": "Project Prometheus",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 76,
+        "availableWidth": 1920,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 65,
+        "measuredTextWidth": 411,
+        "minimumHeight": 76,
+        "minimumWidth": 411,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1920,
+      "x": 0,
+      "y": 16
+    },
+    "VersionLabel": {
+      "h": 64,
+      "text": "v0.8.6",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 64,
+        "availableWidth": 144,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 39,
+        "minimumHeight": 19,
+        "minimumWidth": 39,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 144,
+      "x": 1760,
+      "y": 1000
+    }
+  },
+  "frame": {
+    "path": "MenuFrame/Panel",
+    "rect": {
+      "h": 788.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 792.9599609375,
+      "x": 563,
+      "y": 151
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "step": 9,
+  "label": "open Load Game — expect stale [Needs campaign] rows",
+  "result": {
+    "rows": [
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/LoadButton",
+        "text": "[Needs campaign] [Autosave] Campaign Autosave\nCampaign package not installed.\n8 units · 3400G · 2026-09-25 21:29"
+      },
+      {
+        "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+        "text": "[Needs campaign] Resume battle\nCampaign package not installed.\n8 units · 3400G · 2026-09-25 21:29"
+      }
+    ]
+  },
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

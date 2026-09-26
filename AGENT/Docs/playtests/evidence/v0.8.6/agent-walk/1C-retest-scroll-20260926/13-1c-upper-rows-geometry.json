@@ -1,0 +1,245 @@
+{
+  "label": "1C upper rows geometry",
+  "result": [
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/DeleteButton",
+      "text": "Delete",
+      "x": 814.5,
+      "y": 461,
+      "w": 60,
+      "h": 69,
+      "truncation": {
+        "availableHeight": 69,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 33,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ExportButton",
+      "text": "Export",
+      "x": 878.5,
+      "y": 461,
+      "w": 61,
+      "h": 69,
+      "truncation": {
+        "availableHeight": 69,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/LoadButton",
+      "text": "[Needs campaign] [Autosave] Campaign Autosave\nCampaign package not installed.\n8 units · 3400G · 2026-09-26 03:51",
+      "x": 336.5,
+      "y": 461,
+      "w": 290,
+      "h": 69,
+      "truncation": {
+        "availableHeight": 69,
+        "availableWidth": 290,
+        "fits": true,
+        "measuredTextHeight": 55,
+        "measuredTextWidth": 257,
+        "minimumHeight": 69,
+        "minimumWidth": 285,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ManageCampaignsButton",
+      "text": "Manage Campaigns",
+      "x": 630.5,
+      "y": 461,
+      "w": 120,
+      "h": 69,
+      "truncation": {
+        "availableHeight": 69,
+        "availableWidth": 120,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 92,
+        "minimumHeight": 33,
+        "minimumWidth": 120,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/RetryButton",
+      "text": "Retry",
+      "x": 754.5,
+      "y": 461,
+      "w": 56,
+      "h": 69,
+      "truncation": {
+        "availableHeight": 69,
+        "availableWidth": 56,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 28,
+        "minimumHeight": 33,
+        "minimumWidth": 56,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/DeleteButton",
+      "text": "Delete",
+      "x": 814.5,
+      "y": 268,
+      "w": 60,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 33,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ExportButton",
+      "text": "Export",
+      "x": 878.5,
+      "y": 268,
+      "w": 61,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/LoadButton",
+      "text": "[Needs campaign] Prologue - Drill Yard — Prep\nCampaign package not installed.\n6 units · 0G · 2026-09-26 03:51",
+      "x": 336.5,
+      "y": 268,
+      "w": 290,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 290,
+        "fits": true,
+        "measuredTextHeight": 59,
+        "measuredTextWidth": 262,
+        "minimumHeight": 73,
+        "minimumWidth": 290,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+      "text": "Manage Campaigns",
+      "x": 630.5,
+      "y": 268,
+      "w": 120,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 120,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 92,
+        "minimumHeight": 33,
+        "minimumWidth": 120,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/RetryButton",
+      "text": "Retry",
+      "x": 754.5,
+      "y": 268,
+      "w": 56,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 56,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 28,
+        "minimumHeight": 33,
+        "minimumWidth": 56,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton",
+      "text": "Delete",
+      "x": 814.5,
+      "y": 380,
+      "w": 60,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 33,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton",
+      "text": "Export",
+      "x": 878.5,
+      "y": 380,
+      "w": 61,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      }
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+      "text": "Resume battle\nResume battle — Turn 1\n8 units · 3400G · 2026-09-26 03:51",
+      "x": 336.5,
+      "y": 380,
+      "w": 474,
+      "h": 73,
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 474,
+        "fits": true,
+        "measuredTextHeight": 59,
+        "measuredTextWidth": 252,
+        "minimumHeight": 73,
+        "minimumWidth": 280,
+        "overrunBehavior": 0
+      }
+    }
+  ],
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+    "text": "Manage Campaigns"
+  }
+}
