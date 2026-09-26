@@ -20,30 +20,32 @@ const SelectionCursor = preload("res://scripts/ui/SelectionCursor.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 
 @onready var _panel: PanelContainer = $Panel
-# The column grid. Still named "HBox" because every harness and bridge path addresses the
-# rows through `Panel/HBox/...`; it became a GridContainer so it can reflow (see
-# `_columns_for_width`).
-@onready var _columns: GridContainer = $Panel/HBox
-@onready var _attacker_box: VBoxContainer = $Panel/HBox/AttackerBox
-@onready var _defender_box: VBoxContainer = $Panel/HBox/DefenderBox
-@onready var _info_box: VBoxContainer = $Panel/HBox/InfoBox
-@onready var _atk_name: RichTextLabel = $Panel/HBox/AttackerBox/AtkName
-@onready var _atk_weapon: RichTextLabel = $Panel/HBox/AttackerBox/AtkWeapon
-@onready var _atk_hp: RichTextLabel = $Panel/HBox/AttackerBox/AtkHP
-@onready var _atk_dmg: RichTextLabel = $Panel/HBox/AttackerBox/AtkDmg
-@onready var _atk_hit: RichTextLabel = $Panel/HBox/AttackerBox/AtkHit
-@onready var _atk_crit: RichTextLabel = $Panel/HBox/AttackerBox/AtkCrit
-@onready var _atk_interactions: VBoxContainer = $Panel/HBox/AttackerBox/AtkInteractions
-@onready var _def_name: RichTextLabel = $Panel/HBox/DefenderBox/DefName
-@onready var _def_weapon: RichTextLabel = $Panel/HBox/DefenderBox/DefWeapon
-@onready var _def_hp: RichTextLabel = $Panel/HBox/DefenderBox/DefHP
-@onready var _def_dmg: RichTextLabel = $Panel/HBox/DefenderBox/DefDmg
-@onready var _def_hit: RichTextLabel = $Panel/HBox/DefenderBox/DefHit
-@onready var _def_crit: RichTextLabel = $Panel/HBox/DefenderBox/DefCrit
-@onready var _def_interactions: VBoxContainer = $Panel/HBox/DefenderBox/DefInteractions
-@onready var _info_title: Label = $Panel/HBox/InfoBox/InfoTitle
-@onready var _info_hint: Label = $Panel/HBox/InfoBox/InfoHint
-@onready var _info_desc: RichTextLabel = $Panel/HBox/InfoBox/InfoDescription
+@onready var _forecast_scroll: ScrollContainer = $Panel/ForecastScroll
+# The column grid keeps its HBox name for the existing row paths. It became a
+# GridContainer so it can reflow (see `_columns_for_width`).
+@onready var _columns: GridContainer = $Panel/ForecastScroll/HBox
+@onready var _attacker_box: VBoxContainer = $Panel/ForecastScroll/HBox/AttackerBox
+@onready var _defender_box: VBoxContainer = $Panel/ForecastScroll/HBox/DefenderBox
+@onready var _info_box: VBoxContainer = $Panel/ForecastScroll/HBox/InfoBox
+@onready var _atk_name: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkName
+@onready var _atk_weapon: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon
+@onready var _atk_hp: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkHP
+@onready var _atk_dmg: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkDmg
+@onready var _atk_hit: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkHit
+@onready var _atk_crit: RichTextLabel = $Panel/ForecastScroll/HBox/AttackerBox/AtkCrit
+@onready
+var _atk_interactions: VBoxContainer = $Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions
+@onready var _def_name: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefName
+@onready var _def_weapon: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefWeapon
+@onready var _def_hp: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefHP
+@onready var _def_dmg: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefDmg
+@onready var _def_hit: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefHit
+@onready var _def_crit: RichTextLabel = $Panel/ForecastScroll/HBox/DefenderBox/DefCrit
+@onready
+var _def_interactions: VBoxContainer = $Panel/ForecastScroll/HBox/DefenderBox/DefInteractions
+@onready var _info_title: Label = $Panel/ForecastScroll/HBox/InfoBox/InfoTitle
+@onready var _info_hint: Label = $Panel/ForecastScroll/HBox/InfoBox/InfoHint
+@onready var _info_desc: RichTextLabel = $Panel/ForecastScroll/HBox/InfoBox/InfoDescription
 
 # BBCode colour strings (Hex without alpha — RichTextLabel matches the
 # previous modulate colours). Inline [color] wraps the link text so the
@@ -539,6 +541,7 @@ func _fit_name_to_column(p_name: String, suffix: String, label: RichTextLabel) -
 
 
 func _size_panel_to_content() -> void:
+	_refresh_forecast_row_heights()
 	# REFLOW BEFORE MEASURING (v0.8.2 rejection). Three 300px columns make the panel ~976px
 	# wide, and below that the old fixed row pushed More Info and the defender's rows off the
 	# canvas at 560px. The columns are NOT narrowed instead: a narrower column wraps the
@@ -548,6 +551,25 @@ func _size_panel_to_content() -> void:
 		_panel_chrome_width(),
 		float(_columns.get_theme_constant("h_separation"))
 	)
+	# A stacked forecast can be taller than the logical viewport at high content
+	# scale. Bound the scroll viewport, leaving the complete authored readout in
+	# the grid so its lower rows remain accessible with wheel or touch scrolling.
+	var view_height: float = get_viewport_rect().size.y
+	var panel_chrome_height: float = _panel.get_theme_stylebox("panel").get_minimum_size().y
+	var content_height: float = _columns.get_combined_minimum_size().y
+	var scroll_height: float = maxf(0.0, view_height - PANEL_MARGIN_PX * 2.0 - panel_chrome_height)
+	# Before the first combat projection, the scene's placeholder labels can
+	# report unsettled content height. Keep its authored default until there is
+	# an actual readout to size.
+	_forecast_scroll.custom_minimum_size.y = (
+		minf(content_height, scroll_height) if not _entries.is_empty() else 0.0
+	)
+	_forecast_scroll.custom_minimum_size.x = _columns.get_combined_minimum_size().x
+	if content_height > scroll_height:
+		_forecast_scroll.custom_minimum_size.x += (
+			_forecast_scroll.get_v_scroll_bar().get_combined_minimum_size().x
+		)
+	_forecast_scroll.scroll_vertical = 0
 	_panel.reset_size()
 	var min_size: Vector2 = _panel.get_combined_minimum_size()
 	# Height is deliberately NOT taken from get_combined_minimum_size(): on the

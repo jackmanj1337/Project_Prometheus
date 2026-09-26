@@ -584,7 +584,12 @@ func _init() -> void:
 	var reflow_failures: Array[String] = []
 	# Headless, the root's visible rect follows content_scale_size, not the window size.
 	var original_size: Vector2i = root.content_scale_size
-	for case in [[Vector2i(560, 900), 1], [Vector2i(800, 600), 2], [Vector2i(1280, 720), 3]]:
+	for case in [
+		[Vector2i(560, 900), 1],
+		[Vector2i(800, 600), 2],
+		[Vector2i(1280, 720), 3],
+		[Vector2i(640, 360), 1],  # 1280x720 physical at 2x content scale
+	]:
 		root.content_scale_size = case[0]
 		resolver.preview_data = _make_preview_data(true, false, true)
 		preview.show_preview(attacker, defender)
@@ -599,6 +604,25 @@ func _init() -> void:
 			fits = fits and box.position.x + box.size.x <= panel_w + 0.5
 		for row in preview._interaction_rows(preview._def_interactions):
 			fits = fits and row.get_line_count() == 1
+		if case[0] == Vector2i(640, 360):
+			var scroll: ScrollContainer = preview._forecast_scroll
+			var bar: VScrollBar = scroll.get_v_scroll_bar()
+			var last_row: RichTextLabel = (
+				preview._interaction_rows(preview._def_interactions).back()
+			)
+			var can_scroll: bool = bar.max_value > bar.page
+			scroll.scroll_vertical = int(bar.max_value - bar.page)
+			await process_frame
+			var viewport_rect: Rect2 = scroll.get_global_rect()
+			var last_rect: Rect2 = last_row.get_global_rect()
+			fits = fits and can_scroll and viewport_rect.encloses(last_rect)
+			if not fits:
+				reflow_failures.append(
+					(
+						"640x360 scroll: panel=%s scroll=%s last=%s range=%.0f/%.0f"
+						% [preview._panel.size, viewport_rect, last_rect, bar.max_value, bar.page]
+					)
+				)
 		if not fits or preview._columns.columns != case[1]:
 			reflow_failures.append(
 				(
