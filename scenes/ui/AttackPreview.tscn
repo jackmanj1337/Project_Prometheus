@@ -19,16 +19,20 @@ offset_top = 620.0
 offset_right = 1000.0
 offset_bottom = 712.0
 
-[node name="HBox" type="GridContainer" parent="Panel"]
+[node name="ForecastScroll" type="ScrollContainer" parent="Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 3
+
+[node name="HBox" type="GridContainer" parent="Panel/ForecastScroll"]
 layout_mode = 2
 theme_override_constants/h_separation = 24
 theme_override_constants/v_separation = 12
 columns = 3
 
-[node name="AttackerBox" type="VBoxContainer" parent="Panel/HBox"]
+[node name="AttackerBox" type="VBoxContainer" parent="Panel/ForecastScroll/HBox"]
 layout_mode = 2
 
-[node name="AtkName" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkName" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
@@ -36,7 +40,7 @@ scroll_active = false
 autowrap_mode = 0
 text = "Attacker"
 
-[node name="AtkWeapon" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkWeapon" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
@@ -44,42 +48,42 @@ scroll_active = false
 autowrap_mode = 0
 text = "--"
 
-[node name="AtkHP" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkHP" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "HP 0"
 
-[node name="AtkDmg" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkDmg" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "Dmg  0×1"
 
-[node name="AtkHit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkHit" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "Hit  0%%"
 
-[node name="AtkCrit" type="RichTextLabel" parent="Panel/HBox/AttackerBox"]
+[node name="AtkCrit" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "Crit 0%%"
 
-[node name="AtkInteractions" type="VBoxContainer" parent="Panel/HBox/AttackerBox"]
+[node name="AtkInteractions" type="VBoxContainer" parent="Panel/ForecastScroll/HBox/AttackerBox"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="DefenderBox" type="VBoxContainer" parent="Panel/HBox"]
+[node name="DefenderBox" type="VBoxContainer" parent="Panel/ForecastScroll/HBox"]
 layout_mode = 2
 
-[node name="DefName" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefName" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
@@ -87,7 +91,7 @@ scroll_active = false
 autowrap_mode = 0
 text = "Defender"
 
-[node name="DefWeapon" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefWeapon" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
@@ -95,56 +99,56 @@ scroll_active = false
 autowrap_mode = 0
 text = "--"
 
-[node name="DefHP" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefHP" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "HP 0"
 
-[node name="DefDmg" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefDmg" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = "No counter"
 
-[node name="DefHit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefHit" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = ""
 
-[node name="DefCrit" type="RichTextLabel" parent="Panel/HBox/DefenderBox"]
+[node name="DefCrit" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = false
 scroll_active = false
 text = ""
 
-[node name="DefInteractions" type="VBoxContainer" parent="Panel/HBox/DefenderBox"]
+[node name="DefInteractions" type="VBoxContainer" parent="Panel/ForecastScroll/HBox/DefenderBox"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="InfoBox" type="VBoxContainer" parent="Panel/HBox"]
+[node name="InfoBox" type="VBoxContainer" parent="Panel/ForecastScroll/HBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 custom_minimum_size = Vector2(300, 0)
 
-[node name="InfoTitle" type="Label" parent="Panel/HBox/InfoBox"]
+[node name="InfoTitle" type="Label" parent="Panel/ForecastScroll/HBox/InfoBox"]
 layout_mode = 2
 text = "More Info"
 theme_override_font_sizes/font_size = 16
 
-[node name="InfoHint" type="Label" parent="Panel/HBox/InfoBox"]
+[node name="InfoHint" type="Label" parent="Panel/ForecastScroll/HBox/InfoBox"]
 layout_mode = 2
 text = "Click any value, or press F, for details. Enter attacks."
 autowrap_mode = 2
 modulate = Color(0.7, 0.7, 0.75, 1)
 
-[node name="InfoDescription" type="RichTextLabel" parent="Panel/HBox/InfoBox"]
+[node name="InfoDescription" type="RichTextLabel" parent="Panel/ForecastScroll/HBox/InfoBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 144)
 size_flags_vertical = 3
