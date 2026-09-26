@@ -1,0 +1,948 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 41,
+  "engineFrame": 1035,
+  "publishedAtMsec": 21799,
+  "screen": "prep",
+  "modal": "prep",
+  "modalStack": [
+    {
+      "id": "prep",
+      "path": "/root/PrepScreen"
+    }
+  ],
+  "focus": {
+    "path": "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900",
+    "text": "Unit_01"
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "Panel/Scroll/VBox/BtnStart",
+    "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 1,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@Button@1902",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@Button@1903",
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@CheckButton@1904",
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@Button@1906",
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@Button@1907",
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@CheckButton@1908",
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@Button@1910",
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@Button@1911",
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@CheckButton@1912",
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@Button@1914",
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@Button@1915",
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@CheckButton@1916",
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@Button@1918",
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@Button@1919",
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@CheckButton@1920",
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@Button@1922",
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@Button@1923",
+    "Margin/VBox/SaveBox/SaveButton",
+    "Margin/VBox/Actions/BeginButton"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "prometheus-proving-grounds",
+    "packageVersion": "0.1.0"
+  },
+  "newGameEntries": {
+    "offered": [],
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "node_00_drill",
+    "campaignId": "proving_grounds",
+    "clearedNodeIds": [],
+    "currentNodeId": "node_00_drill",
+    "mapLive": false
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 720,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Margin": {
+      "h": 624,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox": {
+      "h": 624,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox/Actions": {
+      "h": 44,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 628
+    },
+    "Margin/VBox/Actions/BeginButton": {
+      "h": 44,
+      "text": "Begin Battle",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 44,
+        "availableWidth": 240,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 80,
+        "minimumHeight": 44,
+        "minimumWidth": 240,
+        "overrunBehavior": 0
+      },
+      "w": 240,
+      "x": 520,
+      "y": 628
+    },
+    "Margin/VBox/HSeparator": {
+      "h": 4,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 542
+    },
+    "Margin/VBox/RulesSummary": {
+      "h": 107,
+      "text": "Rules (read only): Auto Promote At Max Level: false · Autosave Rules: 1 · Battle Result Actions: 2 · Death Mode: casual · Exp Gaining Factions: 2 · Exposed Tunables: none · Hit Formula: two_roll · Interaction Profiles: 2 · Leveling Method: growth_random · Max Inventory: 8 · Max Skills: 5 · Pair Up Enabled: true · Profile Selections: none · Pxp Profiles: none · Requirement Depth Budget: 16 · Requirement Node Budget: 128 · Rewind Charges Per Map: 4 · Rewind Cost Mode: per_activation · Save Slot Classes: 2 · Undo Activations: 0 · Undo Rounds: 0 · Value Term Depth Budget: 16 · Value Term Node Budget: 128",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 107,
+        "availableWidth": 960,
+        "fits": false,
+        "lineCount": 5,
+        "measuredTextHeight": 19,
+        "measuredTextWidth": 4235,
+        "minimumHeight": 107,
+        "minimumWidth": 1,
+        "overrunBehavior": 0,
+        "visibleLineCount": 5
+      },
+      "w": 960,
+      "x": 160,
+      "y": 127
+    },
+    "Margin/VBox/SaveBox": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 558
+    },
+    "Margin/VBox/SaveBox/SaveButton": {
+      "h": 27,
+      "text": "Save",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 960,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 27,
+        "minimumWidth": 41,
+        "overrunBehavior": 0
+      },
+      "w": 960,
+      "x": 160,
+      "y": 558
+    },
+    "Margin/VBox/SaveStatus": {
+      "h": 19,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 597
+    },
+    "Margin/VBox/Scroll": {
+      "h": 253,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows": {
+      "h": 192,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@Button@1902": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@Button@1903": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900": {
+      "h": 27,
+      "text": "Unit_01",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 47,
+        "minimumHeight": 27,
+        "minimumWidth": 95,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 246
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@Label@1901": {
+      "h": 19,
+      "text": "Start 1  (1, 3)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 92,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 250
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 279
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@Button@1906": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 279
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@Button@1907": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 279
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@CheckButton@1904": {
+      "h": 27,
+      "text": "Unit_02",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 50,
+        "minimumHeight": 27,
+        "minimumWidth": 98,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 279
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_02_mercenary/@Label@1905": {
+      "h": 19,
+      "text": "Start 2  (1, 4)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 94,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 283
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 312
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@Button@1910": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 312
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@Button@1911": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 312
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@CheckButton@1908": {
+      "h": 27,
+      "text": "Unit_03",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 50,
+        "minimumHeight": 27,
+        "minimumWidth": 98,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 312
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_03_archer/@Label@1909": {
+      "h": 19,
+      "text": "Start 3  (1, 5)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 96,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 316
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 345
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@Button@1914": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 345
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@Button@1915": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 345
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@CheckButton@1912": {
+      "h": 27,
+      "text": "Unit_04",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 49,
+        "minimumHeight": 27,
+        "minimumWidth": 97,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 345
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_04_mage/@Label@1913": {
+      "h": 19,
+      "text": "Start 4  (2, 3)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 98,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 349
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 378
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@Button@1918": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 378
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@Button@1919": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 378
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@CheckButton@1916": {
+      "h": 27,
+      "text": "Unit_05",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 50,
+        "minimumHeight": 27,
+        "minimumWidth": 98,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 378
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_05_cleric/@Label@1917": {
+      "h": 19,
+      "text": "Start 5  (2, 4)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 97,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 382
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 411
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@Button@1922": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 25,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 17,
+        "minimumHeight": 27,
+        "minimumWidth": 25,
+        "overrunBehavior": 0
+      },
+      "w": 25,
+      "x": 1045,
+      "y": 411
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@Button@1923": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 46,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 38,
+        "minimumHeight": 27,
+        "minimumWidth": 46,
+        "overrunBehavior": 0
+      },
+      "w": 46,
+      "x": 1074,
+      "y": 411
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@CheckButton@1920": {
+      "h": 27,
+      "text": "Unit_06",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 732,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 50,
+        "minimumHeight": 27,
+        "minimumWidth": 98,
+        "overrunBehavior": 0
+      },
+      "w": 732,
+      "x": 160,
+      "y": 411
+    },
+    "Margin/VBox/Scroll/Rows/Unit_unit_06_knight/@Label@1921": {
+      "h": 19,
+      "text": "Start 6  (2, 5)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 99,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 896,
+      "y": 415
+    },
+    "Margin/VBox/Summary": {
+      "h": 19,
+      "text": "Choose up to 6 units. Deployment order maps to the numbered start tiles.",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 497,
+        "minimumHeight": 19,
+        "minimumWidth": 497,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 96
+    },
+    "Margin/VBox/Title": {
+      "h": 36,
+      "text": "Prologue - Drill Yard",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 36,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 31,
+        "measuredTextWidth": 276,
+        "minimumHeight": 36,
+        "minimumWidth": 276,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox/Validation": {
+      "h": 19,
+      "text": "Ready to begin.",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 103,
+        "minimumHeight": 19,
+        "minimumWidth": 103,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 511
+    }
+  },
+  "frame": null
+}

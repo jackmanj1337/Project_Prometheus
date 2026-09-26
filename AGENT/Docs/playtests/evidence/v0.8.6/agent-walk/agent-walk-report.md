@@ -1,10 +1,32 @@
 ---
 Role: dated
 Type: playtest
-Status: Session 1 retest complete; native acceptance and remaining checklist items pending
+Status: Session 2 found a 1280x720/2x forecast overflow; candidate acceptance stopped
 ---
 
 # v0.8.6 agent browser walk report
+
+**SESSION 2 FOUND A PRODUCT FAILURE (2026-09-26) — v0.8.6 acceptance is stopped pending a forecast fix and recut.**
+
+At 1280×720 with Menu Scale and Viewport Scale both 2×, the live Chapter 3 Knight
+versus Bridge Fighter forecast extends below the window. The defender's relationship
+rows are offscreen. The browser journey still reported 14/14 actions passed because
+the bridge publishes those offscreen rows; the screenshot and panel geometry are the
+visual verdict. `2-session2-forecast-1280x720-2.0/` has the exact release-web
+reproducer. Its panel rect is x=208, y=32, w=656, h=1298 in rendered pixels against
+the 1280×720 window. At 560×900/1×, 900×760/1×, 1920×1080/1× and
+1280×720/0.5×, the same authored forecast reached the final screen with the three
+expected relationship rows and fit inside the window. The 1280×720/2× defect needs
+a focused product fix, a new export, and a complete forecast size retest before
+native acceptance. The candidate source remains `36686b0a`.
+
+Session 2 also captured the active free-roam font on Prep, HUD, Map Menu and Settings
+at 1280×720/1× (`2-session2-font-surfaces/`). Settings opened from the live Map Menu;
+the bridge reported `hud` while Settings was visibly on top, so its screen label is a
+bridge ordering limitation. At 560×900/0.5× and 2×, mouse-wheel scrolling reached
+the bottom of Settings, including Export Diagnostics and Back
+(`2-session2-settings-560-*/`). Keyboard and scroll-bar access, font restoration after
+pack deactivation, the four dialogs and the native readability judgment remain open.
 
 **SESSION 1 RETEST COMPLETE (2026-09-26) — the turn-3 timeout was a harness error; native Windows acceptance remains pending.**
 
@@ -37,7 +59,7 @@ unverified until the behavior is observed through another route.
 | Session | Focus and order | Evidence needed to finish |
 |---|---|---|
 | 1 — Resolve current blockers | **Done 2026-09-26**, except native hover/readability checks. The step-35 timeout was caused by the driver's extra Enter; turn-3 expiry passed. Both mixed Load Game rows can be exposed by scrolling. Rules wrap, edit/save, and scale restoration passed; hover text did not appear in headless Chromium. | `1B-retest-20260926/`, `1C-retest-scroll-20260926/`, `2-editor-retest-commit-20260926/`; native hover/readability remains in Session 4. |
-| 2 — UI and viewport pass | With free-roam active, check the pack font and overflow on Settings, live HUD, Map Menu, Prep, and forecast; then deactivate it and check standard-font restoration, including editor chrome. Recheck the two-row forecast at 1280×720 (0.5×, 1×, 2×), 1920×1080, 900×760, and 560×900 at 1×. Exercise all four confirmation dialogs and Settings below 600 px, including wheel, scroll bar, and arrow-key access to the bottom. | Labeled captures for each viewport/font surface, layout variant, dialog default, and successful bottom-of-Settings navigation. Record any clipped/overlapping text or box glyphs by checklist item. |
+| 2 — UI and viewport pass | **Stopped on product failure 2026-09-26.** The 1280×720/2× forecast extends below the window. Four other requested forecast layouts passed their browser journey. Prep, HUD, Map Menu and Settings with free-roam active were captured; the Settings wheel reached the bottom at 560×900/0.5× and 2×. | Fix and recut the forecast, then rerun all requested sizes including 1280×720/1×. Pack deactivation/font restoration, dialogs, keyboard/scroll-bar Settings access and native readability remain. |
 | 3 — Content and save rules | Run the remaining Section 3 matchups (Prologue, Chapter 1, Chapel Bishop, Horseslayer), numeric damage delta, and mouse/F/Enter/More Info access. In Chapter 6 compare Bearer and Axeman Hit/Dmg/Crit against one Revenant, confirm Bearer has no Undead Frailty row, land a Hallowed hit and capture the Resistance breakdown. Test migration-v1/v2 refusal text and collision-a/b fingerprints and wrong-pack save protection. | Forecast screenshots and values; Chapter 6 condition/breakdown; migration error text and collision save identity. Note any checks that require a fresh save or pack state. |
 | 4 — Native Windows acceptance | Run the remaining checklist on the shipped release executable: BUILD STAMP/SHA identity, clean profile, representative 1A layouts on the actual GPU/DPI, the full 1B countdown, populated 1C list, editor at 1920×1080 and Windows 125% scaling, controller navigation, Diagnostics ZIP, and the Section 7 player judgments. Return the checklist, diagnostics, failed-check screenshots, display/GPU/DPI details, and any reproducer save. | Human Windows return reviewed against Sections 0–7. Accept only if all required items pass; otherwise record the finding and recut decision in the tracker. |
 
@@ -83,7 +105,9 @@ that survives those checks.
 
 ## 3. Defects found
 
-No confirmed product defect from this continuation. The original 1B timeout was
+The 1280×720/2× forecast extends below the window, hiding the defender's
+relationship rows. This is a confirmed product failure in Session 2, so v0.8.6
+acceptance is stopped pending a focused fix and recut. The original 1B timeout was
 a harness error: End Turn had already advanced to BLUE turn 3 with a free cursor;
 the extra Enter selected the Bearer. The corrected run passed the expiry check.
 
