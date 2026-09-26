@@ -58,6 +58,7 @@
 0df0b1975ff88c6d406513559e5051a0a44ed2f8	Map the Fixture author identity to the human in .mailmap
 0e1212cbeea1ed4414d5d8eb2cdab13d8091cfb9	Correct the gated-entry guard's own output
 0e17fd2ff8d2932c257119be3cad00663b1cedbc	Record responsive prep deployment research
+0e5882d80dcbeb8847ca8bd66b32f715f08960b8	Prepare v0.8.6 forecast recut metadata and checklist
 0e6ab9aade52372d8fecf4841ada13c59fb5f833	Sync the policy block with the agent/staging-area flow
 0f13e31f3a34996147d15baf2de54537a06c806c	Verify transactional registry replacement and empty unload
 0f31bfc5c6a1f01778c520d620cfa5f428f20ff5	Claim and track populated Load Game test
