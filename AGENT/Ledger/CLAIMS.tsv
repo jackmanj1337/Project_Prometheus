@@ -730,6 +730,7 @@ d12a79e9d4461fe44e34beb9043d79f982757540	Make save content activation transactio
 d143b88848268a64c6fb2c5c94cd43f3641a004a	Add the forecast scenario fixture builder and point the checklist at its screenshots
 d1ed301be0c058e935900c5d47043028c45d022b	Add v0.7.6 tester build record
 d1fcb24d3191160ef814698d2572d7349129738b	R1: write the plan-corpus precedence diff, and file five registers nobody could find
+d258b25213854ffef3dfaba5fa0fd812a3e6a2c7	Preserve v0.8.6 browser retest evidence
 d2787f59fce6f6261c5101a258c8f77b7df451cf	Sync policy and close unblocker session
 d2f2c10904dd66c2971f74e9f044bcd9b87e13a6	Session note: close v0.6.1 responsive review
 d2faaaefbfa218a414cd5bef07432e5fd9dcbad9	Stack compact Settings labels above controls
