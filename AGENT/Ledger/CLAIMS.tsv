@@ -94,6 +94,7 @@
 1be4d48ceeca65e4b9d806c6b4f7dc6e41d73be1	Gate the backup surfaces against the whole failure set
 1be89fe4fc414758f5ba40d83b12dec7ad96b972	Validate migrated save candidates
 1c278e94998e7ef4cf60879a5fec4322c0533033	Fire HudLayoutEditor 'closed' on every teardown path (V053-05 follow-up)
+1c56ebd0a3cf0fc226c656b0fcd6d63e46fc9b14	Keep stacked combat forecasts inside the viewport
 1c5e9b3f8205378cf6fe94af233cd51784bb8cef	Refresh the research sequencing authority
 1c90607090ad7b143530ba868a85a76fb847af10	Fix forecast readability and explain suppression
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
