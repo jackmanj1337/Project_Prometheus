@@ -1,0 +1,12 @@
+{
+  "fixture": {
+    "map_id": "map_001",
+    "node_id": "node_01_rout",
+    "campaign_id": "proving_grounds",
+    "package_id": "prometheus-proving-grounds",
+    "seed": 20260921
+  },
+  "attacker": "unit_04_mage",
+  "target": "e2_mage",
+  "rows": []
+}

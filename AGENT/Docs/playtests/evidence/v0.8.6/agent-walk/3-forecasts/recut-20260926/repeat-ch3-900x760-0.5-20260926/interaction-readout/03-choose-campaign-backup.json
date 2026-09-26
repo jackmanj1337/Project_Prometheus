@@ -1,0 +1,453 @@
+{
+  "index": 3,
+  "label": "choose campaign backup",
+  "screenshot": "03-choose-campaign-backup.png",
+  "state": "03-choose-campaign-backup.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 11,
+    "engineFrame": 284,
+    "publishedAtMsec": 6481,
+    "screen": "campaign-library",
+    "modal": "campaign-library",
+    "modalStack": [
+      {
+        "id": "campaign-library",
+        "path": "/root/MainMenu/CampaignLibraryScreen"
+      }
+    ],
+    "focus": {
+      "path": "Panel/VBox/HBoxBackup/BtnRestore",
+      "text": "Restore..."
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 1520,
+      "w": 1800
+    },
+    "scales": {
+      "content": 0.5,
+      "contentPreference": 0.5,
+      "effectiveMenu": 1,
+      "menu": 0.5,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/HBoxActions/BtnLoadGame",
+      "Panel/VBox/HBoxPackage/OptPackage",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/BtnExport",
+      "Panel/VBox/BtnEditCopy",
+      "Panel/VBox/HBoxBackup/BtnBackup",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "Panel/VBox/BtnBack"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "",
+      "packageVersion": ""
+    },
+    "newGameEntries": {
+      "offered": [],
+      "popup": {
+        "visible": false
+      },
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "",
+      "campaignId": "",
+      "clearedNodeIds": [],
+      "currentNodeId": "",
+      "mapLive": false
+    },
+    "importResult": {
+      "errors": [],
+      "outcome": "none",
+      "package_id": "",
+      "package_version": ""
+    },
+    "importDiagnostics": [],
+    "map": {},
+    "rects": {
+      "Dimmer": {
+        "h": 760,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 900,
+        "x": 0,
+        "y": 0
+      },
+      "Panel": {
+        "h": 291,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 250,
+        "x": 325,
+        "y": 234.5
+      },
+      "Panel/VBox": {
+        "h": 277,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 236,
+        "x": 332,
+        "y": 241.5
+      },
+      "Panel/VBox/BtnBack": {
+        "h": 16.5,
+        "text": "Back",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 472,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 24,
+          "minimumHeight": 33,
+          "minimumWidth": 52,
+          "overrunBehavior": 0
+        },
+        "w": 236,
+        "x": 332,
+        "y": 424
+      },
+      "Panel/VBox/BtnEditCopy": {
+        "h": 16.5,
+        "text": "Edit a Copy...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 472,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 71,
+          "minimumHeight": 33,
+          "minimumWidth": 99,
+          "overrunBehavior": 0
+        },
+        "w": 236,
+        "x": 332,
+        "y": 377
+      },
+      "Panel/VBox/BtnExport": {
+        "h": 16.5,
+        "text": "Export Selected...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 472,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 90,
+          "minimumHeight": 33,
+          "minimumWidth": 118,
+          "overrunBehavior": 0
+        },
+        "w": 236,
+        "x": 332,
+        "y": 353.5
+      },
+      "Panel/VBox/BtnImport": {
+        "h": 16.5,
+        "semanticId": "campaign.import",
+        "text": "Import Package...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 472,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 86,
+          "minimumHeight": 33,
+          "minimumWidth": 114,
+          "overrunBehavior": 0
+        },
+        "w": 236,
+        "x": 332,
+        "y": 330
+      },
+      "Panel/VBox/Description": {
+        "h": 9.5,
+        "text": "Start or load a campaign, install packages, or back up and restore everything.",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 472,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 414,
+          "minimumHeight": 19,
+          "minimumWidth": 1,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 236,
+        "x": 332,
+        "y": 266.5
+      },
+      "Panel/VBox/HBoxActions": {
+        "h": 16.5,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 236,
+        "x": 332,
+        "y": 283
+      },
+      "Panel/VBox/HBoxActions/BtnLoadGame": {
+        "h": 16.5,
+        "text": "Load Game...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 234,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 65,
+          "minimumHeight": 33,
+          "minimumWidth": 93,
+          "overrunBehavior": 0
+        },
+        "w": 117,
+        "x": 451,
+        "y": 283
+      },
+      "Panel/VBox/HBoxActions/BtnNewGame": {
+        "h": 16.5,
+        "text": "New Game...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 234,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 62,
+          "minimumHeight": 33,
+          "minimumWidth": 90,
+          "overrunBehavior": 0
+        },
+        "w": 117,
+        "x": 332,
+        "y": 283
+      },
+      "Panel/VBox/HBoxBackup": {
+        "h": 16.5,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 236,
+        "x": 332,
+        "y": 400.5
+      },
+      "Panel/VBox/HBoxBackup/BtnBackup": {
+        "h": 16.5,
+        "text": "Back Up...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 234,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 52,
+          "minimumHeight": 33,
+          "minimumWidth": 80,
+          "overrunBehavior": 0
+        },
+        "w": 117,
+        "x": 332,
+        "y": 400.5
+      },
+      "Panel/VBox/HBoxBackup/BtnRestore": {
+        "h": 16.5,
+        "text": "Restore...",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 234,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 47,
+          "minimumHeight": 33,
+          "minimumWidth": 75,
+          "overrunBehavior": 0
+        },
+        "w": 117,
+        "x": 451,
+        "y": 400.5
+      },
+      "Panel/VBox/HBoxPackage": {
+        "h": 16.5,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 236,
+        "x": 332,
+        "y": 306.5
+      },
+      "Panel/VBox/HBoxPackage/Label": {
+        "h": 9.5,
+        "text": "Installed package",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 150,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 85,
+          "minimumHeight": 19,
+          "minimumWidth": 150,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 75,
+        "x": 332,
+        "y": 310
+      },
+      "Panel/VBox/HBoxPackage/OptPackage": {
+        "h": 16.5,
+        "text": "prometheus-proving-grounds 0.1.0",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 318,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 178,
+          "minimumHeight": 33,
+          "minimumWidth": 250,
+          "overrunBehavior": 0
+        },
+        "w": 159,
+        "x": 409,
+        "y": 306.5
+      },
+      "Panel/VBox/Title": {
+        "h": 18,
+        "text": "Manage Library",
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 36,
+          "availableWidth": 472,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 30,
+          "measuredTextWidth": 148,
+          "minimumHeight": 36,
+          "minimumWidth": 148,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 236,
+        "x": 332,
+        "y": 241.5
+      }
+    },
+    "frame": {
+      "path": "Panel",
+      "rect": {
+        "h": 291,
+        "theme": {
+          "owner": "/root/MainMenu/CampaignLibraryScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 250,
+        "x": 325,
+        "y": 234.5
+      }
+    }
+  },
+  "value": null
+}

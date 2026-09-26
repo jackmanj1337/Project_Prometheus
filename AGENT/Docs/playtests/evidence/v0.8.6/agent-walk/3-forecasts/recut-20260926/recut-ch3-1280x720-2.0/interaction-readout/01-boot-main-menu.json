@@ -1,0 +1,313 @@
+{
+  "index": 1,
+  "label": "boot main menu",
+  "screenshot": "01-boot-main-menu.png",
+  "state": "01-boot-main-menu.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 5,
+    "engineFrame": 98,
+    "publishedAtMsec": 4271,
+    "screen": "main-menu",
+    "modal": null,
+    "modalStack": [],
+    "focus": {
+      "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "text": "Manage Library"
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": ""
+    },
+    "viewport": {
+      "h": 360,
+      "w": 640
+    },
+    "scales": {
+      "content": 2,
+      "contentPreference": 2,
+      "effectiveMenu": 1,
+      "menu": 2,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+      "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+      "MenuFrame/Panel/Scroll/VBox/QuitButton"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "",
+      "packageVersion": ""
+    },
+    "newGameEntries": {
+      "offered": [],
+      "popup": {
+        "visible": false
+      },
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "",
+      "campaignId": "",
+      "clearedNodeIds": [],
+      "currentNodeId": "",
+      "mapLive": false
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {},
+    "rects": {
+      "Background": {
+        "h": 720,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 1280,
+        "x": 0,
+        "y": 0
+      },
+      "MenuFrame": {
+        "h": 320,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 1216,
+        "x": 32,
+        "y": 208
+      },
+      "MenuFrame/Panel": {
+        "h": 288,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 875.52001953125,
+        "x": 202,
+        "y": 224
+      },
+      "MenuFrame/Panel/Scroll": {
+        "h": 232,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 819.52001953125,
+        "x": 230,
+        "y": 252
+      },
+      "MenuFrame/Panel/Scroll/VBox": {
+        "h": 544,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 811.52001953125,
+        "x": 230,
+        "y": 252
+      },
+      "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton": {
+        "h": 96,
+        "text": "Campaign Editor",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 48,
+          "availableWidth": 405,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 82,
+          "minimumHeight": 48,
+          "minimumWidth": 110,
+          "overrunBehavior": 0
+        },
+        "w": 810,
+        "x": 230,
+        "y": 476
+      },
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton": {
+        "h": 96,
+        "text": "Manage Library",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 48,
+          "availableWidth": 405,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 79,
+          "minimumHeight": 48,
+          "minimumWidth": 107,
+          "overrunBehavior": 0
+        },
+        "w": 810,
+        "x": 230,
+        "y": 364
+      },
+      "MenuFrame/Panel/Scroll/VBox/ContinueButton": {
+        "h": 96,
+        "text": "Continue",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 48,
+          "availableWidth": 405,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 43,
+          "minimumHeight": 48,
+          "minimumWidth": 71,
+          "overrunBehavior": 0
+        },
+        "w": 810,
+        "x": 230,
+        "y": 252
+      },
+      "MenuFrame/Panel/Scroll/VBox/QuitButton": {
+        "h": 96,
+        "text": "Quit",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 48,
+          "availableWidth": 405,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 21,
+          "minimumHeight": 48,
+          "minimumWidth": 49,
+          "overrunBehavior": 0
+        },
+        "w": 810,
+        "x": 230,
+        "y": 700
+      },
+      "MenuFrame/Panel/Scroll/VBox/SettingsButton": {
+        "h": 96,
+        "text": "Settings",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 48,
+          "availableWidth": 405,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 43,
+          "minimumHeight": 48,
+          "minimumWidth": 71,
+          "overrunBehavior": 0
+        },
+        "w": 810,
+        "x": 230,
+        "y": 588
+      },
+      "TitleLabel": {
+        "h": 144,
+        "text": "Project Prometheus",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 72,
+          "availableWidth": 640,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 48,
+          "measuredTextWidth": 308,
+          "minimumHeight": 57,
+          "minimumWidth": 308,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 1280,
+        "x": 0,
+        "y": 32
+      },
+      "VersionLabel": {
+        "h": 128,
+        "text": "v0.8.6",
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 64,
+          "availableWidth": 144,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 39,
+          "minimumHeight": 19,
+          "minimumWidth": 39,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 288,
+        "x": 960,
+        "y": 560
+      }
+    },
+    "frame": {
+      "path": "MenuFrame/Panel",
+      "rect": {
+        "h": 288,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 875.52001953125,
+        "x": 202,
+        "y": 224
+      }
+    }
+  },
+  "value": null
+}

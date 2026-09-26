@@ -1,0 +1,37 @@
+{
+  "build_stamp": {
+    "built_at": "2026-09-26T19:16:54Z",
+    "commit": "0e5882d8",
+    "version": "0.8.6"
+  },
+  "build_stamp_evidence": "v0.8.6 0e5882d8",
+  "build_type": "release",
+  "debug_controls": false,
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "031f986f581a59cda5eec3be54d854858fa3947e8c30d867c368154e004a6d5c",
+      "size": 10912
+    },
+    {
+      "path": "index.pck",
+      "sha256": "058413fb1d84d5981fb3f1a0981aa7e215a7f40f5b9f502e185bf8405989ed6d",
+      "size": 2659952
+    },
+    {
+      "path": "index.wasm",
+      "sha256": "26b61ce95247012ab3dca3ff51e96d1cdbff44ee91a8c20a83e150afca83f1b6",
+      "size": 37700666
+    }
+  ],
+  "generated_at": "2026-09-26T19:16:58.400872+00:00",
+  "godot_export_verb": "--export-release",
+  "godot_version": "4.6.3.stable.official.7d41c59c4",
+  "mode": "release",
+  "platform": "web",
+  "preset": "Web",
+  "repository": "Project_Prometheus",
+  "schema_version": 2,
+  "source_sha": "0e5882d80dcbeb8847ca8bd66b32f715f08960b8",
+  "source_tree": "34a29db427ee9f1f803780d1aa6249de45cd5107"
+}

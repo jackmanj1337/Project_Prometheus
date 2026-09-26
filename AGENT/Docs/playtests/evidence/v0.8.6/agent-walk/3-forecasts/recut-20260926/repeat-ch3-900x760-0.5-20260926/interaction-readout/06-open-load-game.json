@@ -1,0 +1,518 @@
+{
+  "index": 6,
+  "label": "open Load Game",
+  "screenshot": "06-open-load-game.png",
+  "state": "06-open-load-game.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 20,
+    "engineFrame": 556,
+    "publishedAtMsec": 11076,
+    "screen": "load-game",
+    "modal": "load-game",
+    "modalStack": [
+      {
+        "id": "load-game",
+        "path": "/root/MainMenu/LoadGameScreen"
+      }
+    ],
+    "focus": {
+      "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "text": "Manage Campaigns"
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 1520,
+      "w": 1800
+    },
+    "scales": {
+      "content": 0.5,
+      "contentPreference": 0.5,
+      "effectiveMenu": 1,
+      "menu": 0.5,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/RetryButton",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton",
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/LoadButton",
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ManageCampaignsButton",
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/RetryButton",
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/DeleteButton",
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ExportButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/BtnBack"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "",
+      "packageVersion": ""
+    },
+    "newGameEntries": {
+      "offered": [],
+      "popup": {
+        "visible": false
+      },
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "",
+      "campaignId": "",
+      "clearedNodeIds": [],
+      "currentNodeId": "",
+      "mapLive": false
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {},
+    "rects": {
+      "Dimmer": {
+        "h": 760,
+        "theme": {
+          "owner": "/root/MainMenu",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 900,
+        "x": 0,
+        "y": 0
+      },
+      "Panel": {
+        "h": 180,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 317,
+        "x": 291.5,
+        "y": 290
+      },
+      "Panel/VBox": {
+        "h": 164,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 298
+      },
+      "Panel/VBox/BtnBack": {
+        "h": 16.5,
+        "text": "Back",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 598,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 24,
+          "minimumHeight": 33,
+          "minimumWidth": 52,
+          "overrunBehavior": 0
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 445.5
+      },
+      "Panel/VBox/BtnImport": {
+        "h": 16.5,
+        "semanticId": "campaign.import",
+        "text": "Import Save...",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 598,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 72,
+          "minimumHeight": 33,
+          "minimumWidth": 100,
+          "overrunBehavior": 0
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 423
+      },
+      "Panel/VBox/HSep": {
+        "h": 2,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 415
+      },
+      "Panel/VBox/Scroll": {
+        "h": 90.5,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 318.5
+      },
+      "Panel/VBox/Scroll/Rows": {
+        "h": 88.5,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 318.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01": {
+        "h": 34.5,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/DeleteButton": {
+        "h": 34.5,
+        "text": "Delete",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 60,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 32,
+          "minimumHeight": 33,
+          "minimumWidth": 60,
+          "overrunBehavior": 0
+        },
+        "w": 30,
+        "x": 537,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ExportButton": {
+        "h": 34.5,
+        "text": "Export",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 61,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 33,
+          "minimumHeight": 33,
+          "minimumWidth": 61,
+          "overrunBehavior": 0
+        },
+        "w": 30.5,
+        "x": 569,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/LoadButton": {
+        "h": 34.5,
+        "text": "[Needs campaign] [Autosave] Campaign Autosave\nCampaign package not installed.\n6 units · 1300G · 2026-09-26 20:56",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 285,
+          "fits": true,
+          "measuredTextHeight": 55,
+          "measuredTextWidth": 257,
+          "minimumHeight": 69,
+          "minimumWidth": 285,
+          "overrunBehavior": 0
+        },
+        "w": 142.5,
+        "x": 300.5,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/ManageCampaignsButton": {
+        "h": 34.5,
+        "text": "Manage Campaigns",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 120,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 92,
+          "minimumHeight": 33,
+          "minimumWidth": 120,
+          "overrunBehavior": 0
+        },
+        "w": 60,
+        "x": 445,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_auto_campaign_progress_01/RetryButton": {
+        "h": 34.5,
+        "text": "Retry",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 56,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 28,
+          "minimumHeight": 33,
+          "minimumWidth": 56,
+          "overrunBehavior": 0
+        },
+        "w": 28,
+        "x": 507,
+        "y": 372.5
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle": {
+        "h": 34.5,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton": {
+        "h": 34.5,
+        "text": "Delete",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 60,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 32,
+          "minimumHeight": 33,
+          "minimumWidth": 60,
+          "overrunBehavior": 0
+        },
+        "w": 30,
+        "x": 537,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton": {
+        "h": 34.5,
+        "text": "Export",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 61,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 33,
+          "minimumHeight": 33,
+          "minimumWidth": 61,
+          "overrunBehavior": 0
+        },
+        "w": 30.5,
+        "x": 569,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton": {
+        "h": 34.5,
+        "text": "[Needs campaign] Resume battle\nCampaign package not installed.\n6 units · 1300G · 2026-09-26 20:56",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 285,
+          "fits": true,
+          "measuredTextHeight": 55,
+          "measuredTextWidth": 255,
+          "minimumHeight": 69,
+          "minimumWidth": 283,
+          "overrunBehavior": 0
+        },
+        "w": 142.5,
+        "x": 300.5,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton": {
+        "h": 34.5,
+        "text": "Manage Campaigns",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 120,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 92,
+          "minimumHeight": 33,
+          "minimumWidth": 120,
+          "overrunBehavior": 0
+        },
+        "w": 60,
+        "x": 445,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/RetryButton": {
+        "h": 34.5,
+        "text": "Retry",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 69,
+          "availableWidth": 56,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 28,
+          "minimumHeight": 33,
+          "minimumWidth": 56,
+          "overrunBehavior": 0
+        },
+        "w": 28,
+        "x": 507,
+        "y": 334
+      },
+      "Panel/VBox/Scroll/Rows/SaveGroupLabel": {
+        "h": 11.5,
+        "text": "prometheus-proving-grounds v0.1.0 — proving_grounds",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 23,
+          "availableWidth": 598,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 23,
+          "measuredTextWidth": 332,
+          "minimumHeight": 23,
+          "minimumWidth": 332,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 318.5
+      },
+      "Panel/VBox/TitleLabel": {
+        "h": 14.5,
+        "text": "Load Game",
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 29,
+          "availableWidth": 598,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 24,
+          "measuredTextWidth": 86,
+          "minimumHeight": 29,
+          "minimumWidth": 86,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 299,
+        "x": 300.5,
+        "y": 298
+      }
+    },
+    "frame": {
+      "path": "Panel",
+      "rect": {
+        "h": 180,
+        "theme": {
+          "owner": "/root/MainMenu/LoadGameScreen/Panel",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 317,
+        "x": 291.5,
+        "y": 290
+      }
+    }
+  },
+  "value": null
+}

@@ -1,12 +1,18 @@
 ---
 Role: dated
 Type: playtest
-Status: Session 2 found a 1280x720/2x forecast overflow; candidate acceptance stopped
+Status: recut Section 3 browser pass; native acceptance and other checklist sections remain pending
 ---
 
 # v0.8.6 agent browser walk report
 
-**SESSION 2 FOUND A PRODUCT FAILURE (2026-09-26) — v0.8.6 acceptance is stopped pending a forecast fix and recut.**
+**RECUT SECTION 3 RETEST — 2026-09-26.** Repeated against the exact current web release, source SHA `0e5882d80dcbeb8847ca8bd66b32f715f08960b8` (BUILD STAMP `0e5882d8`, Godot 4.6.3). At 1280×720 with Content Scale and Menu Scale both 2×, the Chapter 3 Unit_06 Knight vs Bridge Fighter forecast passes: panel `(200,32,664,656)` fits within the viewport, all three expected rows publish, and after scrolling both defender rows, More Info and the Enter hint are visible. The blocker did not recur.
+
+The rest of browser Section 3 passed: 1280×720 at 0.5×, 1× and 2×; 1920×1080/1×; 900×760/1× (two columns with More Info below) and fresh-profile default 0.5× (three columns); 560×900/1× (stacked); final-row scrolling at 560×900 and 1280×720/2×; all requested Prologue, Chapter 1 neutral, Chapter 3 Bishop and Horseslayer matchups. Horseslayer displayed `Dmg 29×1` and `×3 Might`; Unit_01 Strength 7, Horseslayer Mt 9 and E3_Cavalier Defense 5 give normal damage 11 plus 18 effectiveness damage = 29. Mouse clicks opened More Info for all three Chapter 3 rows; a 30-press F cycle reached all three distinct descriptions; the hint `Enter attacks.` was checked and Enter opened the forecast. Pad button 2 remains native-only.
+
+The first neutral matchup attempt exposed a harness-only assertion: zero relationship rows are correct, but the generic scroller demanded a final row. The local runner was corrected to skip that scroll; the neutral rerun passed. Equip and More Info readers also needed the current bridge rect paths; after correction the actual weapon, damage and details were read. No product defect was found in Section 3. All screenshots and states are now stored in this report's evidence tree at `3-forecasts/recut-20260926/`.
+
+**INITIAL SESSION 2 FINDING SUPERSEDED (2026-09-26).** The first candidate had a confirmed 1280×720/2× forecast overflow; the focused fix and recut now pass the repeated browser geometry and content checks below. Native acceptance remains pending.
 
 At 1280×720 with Menu Scale and Viewport Scale both 2×, the live Chapter 3 Knight
 versus Bridge Fighter forecast extends below the window. The defender's relationship
@@ -16,9 +22,7 @@ visual verdict. `2-session2-forecast-1280x720-2.0/` has the exact release-web
 reproducer. Its panel rect is x=208, y=32, w=656, h=1298 in rendered pixels against
 the 1280×720 window. At 560×900/1×, 900×760/1×, 1920×1080/1× and
 1280×720/0.5×, the same authored forecast reached the final screen with the three
-expected relationship rows and fit inside the window. The 1280×720/2× defect needs
-a focused product fix, a new export, and a complete forecast size retest before
-native acceptance. The candidate source remains `36686b0a`.
+expected relationship rows and fit inside the window. That original candidate used source `36686b0a`; its finding led to the focused panel-height/scroll fix. The recut retest uses source `0e5882d80dcbeb8847ca8bd66b32f715f08960b8`, documented under Section 3 below.
 
 Session 2 also captured the active free-roam font on Prep, HUD, Map Menu and Settings
 at 1280×720/1× (`2-session2-font-surfaces/`). Settings opened from the live Map Menu;
@@ -60,7 +64,7 @@ unverified until the behavior is observed through another route.
 |---|---|---|
 | 1 — Resolve current blockers | **Done 2026-09-26**, except native hover/readability checks. The step-35 timeout was caused by the driver's extra Enter; turn-3 expiry passed. Both mixed Load Game rows can be exposed by scrolling. Rules wrap, edit/save, and scale restoration passed; hover text did not appear in headless Chromium. | `1B-retest-20260926/`, `1C-retest-scroll-20260926/`, `2-editor-retest-commit-20260926/`; native hover/readability remains in Session 4. |
 | 2 — UI and viewport pass | **Stopped on product failure 2026-09-26.** The 1280×720/2× forecast extends below the window. Four other requested forecast layouts passed their browser journey. Prep, HUD, Map Menu and Settings with free-roam active were captured; the Settings wheel reached the bottom at 560×900/0.5× and 2×. | Fix and recut the forecast, then rerun all requested sizes including 1280×720/1×. Pack deactivation/font restoration, dialogs, keyboard/scroll-bar Settings access and native readability remain. |
-| 3 — Content and save rules | Run the remaining Section 3 matchups (Prologue, Chapter 1, Chapel Bishop, Horseslayer), numeric damage delta, and mouse/F/Enter/More Info access. In Chapter 6 compare Bearer and Axeman Hit/Dmg/Crit against one Revenant, confirm Bearer has no Undead Frailty row, land a Hallowed hit and capture the Resistance breakdown. Test migration-v1/v2 refusal text and collision-a/b fingerprints and wrong-pack save protection. | Forecast screenshots and values; Chapter 6 condition/breakdown; migration error text and collision save identity. Note any checks that require a fresh save or pack state. |
+| 3 — Content and save rules | Section 3 browser retest is complete on the recut. In Chapter 6 compare Bearer and Axeman Hit/Dmg/Crit against one Revenant, confirm Bearer has no Undead Frailty row, land a Hallowed hit and capture the Resistance breakdown. Test migration-v1/v2 refusal text and collision-a/b fingerprints and wrong-pack save protection. | Chapter 6 condition/breakdown; migration error text and collision save identity. Note any checks that require a fresh save or pack state. |
 | 4 — Native Windows acceptance | Run the remaining checklist on the shipped release executable: BUILD STAMP/SHA identity, clean profile, representative 1A layouts on the actual GPU/DPI, the full 1B countdown, populated 1C list, editor at 1920×1080 and Windows 125% scaling, controller navigation, Diagnostics ZIP, and the Section 7 player judgments. Return the checklist, diagnostics, failed-check screenshots, display/GPU/DPI details, and any reproducer save. | Human Windows return reviewed against Sections 0–7. Accept only if all required items pass; otherwise record the finding and recut decision in the tracker. |
 
 The next session starts with Session 2 or 3. Session 4 uses the exact candidate
@@ -97,7 +101,7 @@ that survives those checks.
 | 1B | PASS (browser) | Corrected driver reached BLUE turn 3: condition gone, Resistance 4 restored, HP/tiles unchanged. Native release check remains. |
 | 1C | PASS for scrolling; native readability pending | The lower row becomes fully visible when the list is scrolled; row text fits its control. |
 | 2 | PARTIAL | Rules six-line ellipsis, dirty → saved, and scale restore passed. Full hover text did not appear in headless Chromium; other font surfaces remain pending. |
-| 3 | PARTIAL | Chapter 3 Knight vs Bridge Fighter browser forecast passed with all three expected rows. Other matchups, viewport comparisons, mouse/pad navigation and damage arithmetic remain pending. |
+| 3 | PASS (browser; native pad pending) | Recut retest covers all matchups, requested viewports, panel geometry/scrolling, mouse row access, F cycle, Enter confirmation and damage arithmetic. Pad button 2 remains native-only. See `3-forecasts/recut-20260926/`. |
 | 4 | PARTIAL | Chapter 6 browser fixtures confirmed Bearer `Hallowed Rites +5 Dmg`, Axeman `Undead Frailty +1 Dmg`, and More Info suppression sentence. No hit/condition expiry or full stats/Hit/Dmg/Crit comparison. |
 | 5 | PARTIAL | 1C mixed save-list and Retry→Prep succeeded; small Settings screens captured at 0.5×/2×, but scroll behavior not verified. Migration/collision, confirmation-dialog, and Diagnostics checks remain. |
 | 6 | PASS (skim) | v0.8.6 supplemental receipt passed (40 cases, zero errors); pack-gate receipt passed. Visually skimmed all 40 album images and all 46 pack screenshots; contact sheets at `section6-skim/`. |
@@ -186,14 +190,15 @@ judgment remain explicitly pending.
 
 ### Section 3 — Attack forecast and weapon relationships
 
-Built a Chapter 3 forecast fixture from the v0.8.6 Proving Grounds campaign data and
-ran it against the exact 36686b0a web export. The 14-action browser journey passed.
-The attack forecast showed Unit_06 Knight’s `▼ Weapon Triangle -10 Hit, -2 Dmg`,
-the Bridge Fighter’s `▲ Weapon Triangle +10 Hit, +2 Dmg`, and `▲ Weapon
-Effectiveness ×3 Might`. Text and the three relationship rows were separate and
-readable at 1280×720. Evidence and fixture sidecar are in
-`3-forecasts/c3-knight-bridge/`. Other checklist matchups and viewport variants were
-not run here.
+**Browser section complete on the recut; pad button 2 remains native-only.** The exact repeated 1280×720/2× case passed: panel rect `(200,32,664,656)` is inside the viewport, all three expected relationship rows publish, and the final scrolled state shows both defender rows, More Info and the Enter hint. The forecast did not run below the window. Screenshot and bridge states are under `3-forecasts/recut-20260926/repeat-ch3-1280x720-2-20260926/`.
+
+The full viewport matrix passed and was visually inspected. 1280×720 at 0.5×, 1× and 2×; 1920×1080 at 1×; 900×760 at 1× with More Info below; 900×760 in a fresh browser context defaulting to 0.5× with three columns; and 560×900 at 1× stacked. All forecast panels are contained. The last defender relationship row scrolls fully into view at 560×900 and 1280×720/2×. Captures and geometry are under `3-forecasts/recut-20260926/recut-ch3-*` and `repeat-ch3-900x760-*`.
+
+All other content matchups passed: Prologue Unit_02 sword vs lance dummy (attacker disadvantage and defender advantage); Chapter 1 Unit_04 Fire vs E2_Mage Thunder (zero rows); Chapter 3 Unit_04 Fire vs Chapel Bishop (opposite magic-triangle rows); Chapter 1 Unit_01 with Horseslayer vs E3_Cavalier (effectiveness row). Horseslayer showed `Dmg 29×1`; Mt 9 becomes 27 under ×3 effectiveness, so Strength 7 + 27 − Defense 5 = 29, an 18 damage increase over the non-effective 11. Evidence is under `3-forecasts/recut-20260926/repeat-{prologue,ch1-fire-thunder-fixed,ch3-magic-triangle,ch1-equip-fixed}-20260926/` and the baseline capture `repeat-ch1-equip-baseline-20260926/`.
+
+Mouse opened details for all three Chapter 3 relationship rows; thirty F presses reached all three distinct descriptions. A separate run checked the hint `Enter attacks.` and confirmed the Bridge Fighter with Enter. Pad button 2 was not emulated. Evidence: `repeat-ch3-mouse-f-enter-20260926/` and `repeat-ch3-fullcycle-20260926/`.
+
+The zero-row neutral matchup initially tripped a harness assertion that expected a last defender row. The corrected scratch runner skipped the impossible scroll, after which the same candidate passed with zero rows. Stale bridge paths in the Equip and More Info readers were also corrected; no product defect was found.
 
 ### Section 4 — Internal campaign readouts (local-only fixture)
 
@@ -242,13 +247,13 @@ saves, confirmation dialogs, and native Diagnostics export remain pending.
 | 2 — Free-roam font on Settings/HUD/Map Menu/Prep/forecast | NOT RUN | 1A covers only live map; other surfaces not driven. |
 | 2 — Campaign Editor uses standard font | NOT RUN | Not checked. |
 | 2 — Standard font after pack removal | NOT RUN | Not checked. |
-| 3 — Ch3 Knight vs Bridge Fighter relationship rows | PASS | Three rows captured in live forecast at 1280×720. |
-| 3 — Forecast layout at requested sizes/scales | NOT RUN | One default-size browser capture only. |
-| 3 — Prologue weapon triangle cases | NOT RUN | Not driven. |
-| 3 — Ch1 Fire vs Thunder neutral | NOT RUN | Not driven. |
-| 3 — Ch3 Fire vs Bishop magic triangle | NOT RUN | Not driven. |
-| 3 — Horseslayer effectiveness and damage delta | NOT RUN | Not driven. |
-| 3 — Mouse/F/Enter/pad navigation | PARTIAL | Browser F/Enter journey path exercised; mouse-per-row and pad input not tested. |
+| 3 — Ch3 Knight vs Bridge Fighter relationship rows | PASS (recut rerun) | Three rows and contained panel at 1280×720/2×; scroll exposes both defender rows and More Info. `3-forecasts/recut-20260926/repeat-ch3-1280x720-2-20260926/`. |
+| 3 — Forecast layout at requested sizes/scales | PASS (browser) | 1280×720 at 0.5×/1×/2×; 1920×1080/1×; 900×760/1× and fresh default 0.5×; 560×900/1×. Three/two/stacked layouts contained. `3-forecasts/recut-20260926/recut-ch3-*`. |
+| 3 — Prologue weapon triangle cases | PASS | Unit_02 sword vs lance dummy shows attacker disadvantage and defender advantage. `repeat-prologue-20260926/`. |
+| 3 — Ch1 Fire vs Thunder neutral | PASS | Zero rows; corrected no-row scrolling harness. `repeat-ch1-fire-thunder-fixed-20260926/`. |
+| 3 — Ch3 Fire vs Bishop magic triangle | PASS | Attacker +10 Hit/+2 Dmg and defender -10 Hit/-2 Dmg. `repeat-ch3-magic-triangle-20260926/`. |
+| 3 — Horseslayer effectiveness and damage delta | PASS (live forecast + data arithmetic) | `Dmg 29×1`, ×3 Might; baseline math 11 + 18 = 29. `repeat-ch1-equip-fixed-20260926/`; stats baseline `repeat-ch1-equip-baseline-20260926/`. |
+| 3 — Mouse/F/Enter/pad navigation | PASS except pad (native-only) | Mouse opens each of 3 details; F reaches all 3; `Enter attacks.` hint and Enter confirmation pass. Pad button 2 not emulated. `repeat-ch3-mouse-f-enter-20260926/`, `repeat-ch3-fullcycle-20260926/`. |
 | 4 — Chapter 6 party/stat identity | PARTIAL | Fixtures reached the live Chapter 6 scenario; full identical-stat comparison not recorded. |
 | 4 — Bearer/Axeman forecasts | PARTIAL | Each expected player-facing row observed; comparative Hit/Dmg/Crit values not tabulated. |
 | 4 — Bearer suppression and More Info wording | PASS (browser) | More Info names Undead Frailty; no programmer-style identifier in captured text. |

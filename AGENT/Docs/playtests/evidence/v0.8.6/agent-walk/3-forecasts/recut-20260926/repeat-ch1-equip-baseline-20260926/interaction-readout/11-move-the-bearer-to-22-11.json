@@ -1,0 +1,366 @@
+{
+  "index": 11,
+  "label": "move the bearer to 22,11",
+  "screenshot": "11-move-the-bearer-to-22-11.png",
+  "state": "11-move-the-bearer-to-22-11.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 91,
+    "engineFrame": 2294,
+    "publishedAtMsec": 48133,
+    "screen": "action-menu",
+    "modal": "action-menu",
+    "modalStack": [
+      {
+        "id": "action-menu",
+        "path": "/root/GameMap/HUDLayer/ActionMenu"
+      }
+    ],
+    "focus": {
+      "path": "VBox/BtnAttack",
+      "text": "Attack"
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "",
+      "VBox/BtnAttack"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 720,
+      "w": 1280
+    },
+    "scales": {
+      "content": 1,
+      "contentPreference": 1,
+      "effectiveMenu": 1,
+      "menu": 1,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "VBox/BtnAttack",
+      "VBox/BtnItem",
+      "VBox/BtnEquip",
+      "VBox/BtnWait"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_01_rout",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [
+        "node_00_drill"
+      ],
+      "currentNodeId": "node_01_rout",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "unit-moved",
+      "cursorTile": [
+        22,
+        11
+      ],
+      "origin": {
+        "x": -320,
+        "y": -192
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            22,
+            11
+          ],
+          "unitId": "unit_01_cavalier",
+          "x": 1088,
+          "y": 512
+        },
+        {
+          "hp": 18,
+          "team": "blue",
+          "tile": [
+            1,
+            10
+          ],
+          "unitId": "unit_02_mercenary",
+          "x": -256,
+          "y": 448
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            1,
+            11
+          ],
+          "unitId": "unit_03_archer",
+          "x": -256,
+          "y": 512
+        },
+        {
+          "hp": 15,
+          "team": "blue",
+          "tile": [
+            2,
+            9
+          ],
+          "unitId": "unit_04_mage",
+          "x": -192,
+          "y": 384
+        },
+        {
+          "hp": 16,
+          "team": "blue",
+          "tile": [
+            2,
+            10
+          ],
+          "unitId": "unit_05_cleric",
+          "x": -192,
+          "y": 448
+        },
+        {
+          "hp": 21,
+          "team": "blue",
+          "tile": [
+            2,
+            11
+          ],
+          "unitId": "unit_06_knight",
+          "x": -192,
+          "y": 512
+        },
+        {
+          "hp": 18,
+          "team": "red",
+          "tile": [
+            24,
+            2
+          ],
+          "unitId": "e1_soldier",
+          "x": 1216,
+          "y": -64
+        },
+        {
+          "hp": 18,
+          "team": "red",
+          "tile": [
+            28,
+            7
+          ],
+          "unitId": "e2_mage",
+          "x": 1472,
+          "y": 256
+        },
+        {
+          "hp": 19,
+          "team": "red",
+          "tile": [
+            23,
+            11
+          ],
+          "unitId": "e3_cavalier",
+          "x": 1152,
+          "y": 512
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            27,
+            15
+          ],
+          "unitId": "e4_knight",
+          "x": 1408,
+          "y": 768
+        },
+        {
+          "hp": 18,
+          "team": "red",
+          "tile": [
+            35,
+            8
+          ],
+          "unitId": "e5_archer",
+          "x": 1920,
+          "y": 320
+        },
+        {
+          "hp": 19,
+          "team": "red",
+          "tile": [
+            30,
+            18
+          ],
+          "unitId": "e6_soldier",
+          "x": 1600,
+          "y": 960
+        },
+        {
+          "hp": 23,
+          "team": "red",
+          "tile": [
+            38,
+            9
+          ],
+          "unitId": "e7_knight_sub",
+          "x": 2112,
+          "y": 384
+        },
+        {
+          "hp": 23,
+          "team": "red",
+          "tile": [
+            39,
+            12
+          ],
+          "unitId": "e8_knight_boss",
+          "x": 2176,
+          "y": 576
+        }
+      ]
+    },
+    "rects": {
+      "VBox": {
+        "h": 144,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 100,
+        "x": 970,
+        "y": 526
+      },
+      "VBox/BtnAttack": {
+        "h": 33,
+        "text": "Attack",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 40,
+          "minimumHeight": 33,
+          "minimumWidth": 68,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 970,
+        "y": 526
+      },
+      "VBox/BtnEquip": {
+        "h": 33,
+        "text": "Equip",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 38,
+          "minimumHeight": 33,
+          "minimumWidth": 66,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 970,
+        "y": 600
+      },
+      "VBox/BtnItem": {
+        "h": 33,
+        "text": "Item",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 27,
+          "minimumHeight": 33,
+          "minimumWidth": 55,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 970,
+        "y": 563
+      },
+      "VBox/BtnWait": {
+        "h": 33,
+        "text": "Wait",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 30,
+          "minimumHeight": 33,
+          "minimumWidth": 58,
+          "overrunBehavior": 0
+        },
+        "w": 100,
+        "x": 970,
+        "y": 637
+      }
+    },
+    "frame": null
+  },
+  "value": null
+}

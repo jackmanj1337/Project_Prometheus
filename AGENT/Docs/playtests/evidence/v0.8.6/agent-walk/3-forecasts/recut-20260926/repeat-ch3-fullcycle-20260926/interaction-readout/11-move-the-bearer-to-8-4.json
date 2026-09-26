@@ -1,0 +1,323 @@
+{
+  "index": 11,
+  "label": "move the bearer to 8,4",
+  "screenshot": "11-move-the-bearer-to-8-4.png",
+  "state": "11-move-the-bearer-to-8-4.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 80,
+    "engineFrame": 2177,
+    "publishedAtMsec": 43084,
+    "screen": "action-menu",
+    "modal": "action-menu",
+    "modalStack": [
+      {
+        "id": "action-menu",
+        "path": "/root/GameMap/HUDLayer/ActionMenu"
+      }
+    ],
+    "focus": {
+      "path": "VBox/BtnAttack",
+      "text": "Attack"
+    },
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "",
+      "VBox/BtnAttack"
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 360,
+      "w": 640
+    },
+    "scales": {
+      "content": 2,
+      "contentPreference": 2,
+      "effectiveMenu": 1,
+      "menu": 2,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "VBox/BtnAttack",
+      "VBox/BtnItem",
+      "VBox/BtnWait"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_03_boss",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [
+        "node_00_drill",
+        "node_01_rout",
+        "node_02_seize"
+      ],
+      "currentNodeId": "node_03_boss",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "unit-moved",
+      "cursorTile": [
+        8,
+        4
+      ],
+      "origin": {
+        "x": -128,
+        "y": -128
+      },
+      "step": {
+        "x": 128,
+        "y": 128
+      },
+      "units": [
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            1,
+            7
+          ],
+          "unitId": "unit_01_cavalier",
+          "x": 0,
+          "y": 768
+        },
+        {
+          "hp": 18,
+          "team": "blue",
+          "tile": [
+            1,
+            8
+          ],
+          "unitId": "unit_02_mercenary",
+          "x": 0,
+          "y": 896
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            1,
+            9
+          ],
+          "unitId": "unit_03_archer",
+          "x": 0,
+          "y": 1024
+        },
+        {
+          "hp": 15,
+          "team": "blue",
+          "tile": [
+            2,
+            7
+          ],
+          "unitId": "unit_04_mage",
+          "x": 128,
+          "y": 768
+        },
+        {
+          "hp": 16,
+          "team": "blue",
+          "tile": [
+            2,
+            8
+          ],
+          "unitId": "unit_05_cleric",
+          "x": 128,
+          "y": 896
+        },
+        {
+          "hp": 21,
+          "team": "blue",
+          "tile": [
+            8,
+            4
+          ],
+          "unitId": "unit_06_knight",
+          "x": 896,
+          "y": 384
+        },
+        {
+          "hp": 21,
+          "team": "red",
+          "tile": [
+            9,
+            4
+          ],
+          "unitId": "m003_fighter_1",
+          "x": 1024,
+          "y": 384
+        },
+        {
+          "hp": 18,
+          "team": "red",
+          "tile": [
+            11,
+            2
+          ],
+          "unitId": "m003_archer_1",
+          "x": 1280,
+          "y": 128
+        },
+        {
+          "hp": 20,
+          "team": "red",
+          "tile": [
+            12,
+            6
+          ],
+          "unitId": "m003_merc_1",
+          "x": 1408,
+          "y": 640
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            14,
+            4
+          ],
+          "unitId": "m003_knight_1",
+          "x": 1664,
+          "y": 384
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            12,
+            8
+          ],
+          "unitId": "m003_bishop_1",
+          "x": 1408,
+          "y": 896
+        },
+        {
+          "hp": 24,
+          "team": "red",
+          "tile": [
+            15,
+            4
+          ],
+          "unitId": "m003_boss",
+          "x": 1792,
+          "y": 384
+        }
+      ]
+    },
+    "rects": {
+      "VBox": {
+        "h": 214,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "w": 200,
+        "x": 660,
+        "y": 412
+      },
+      "VBox/BtnAttack": {
+        "h": 66,
+        "text": "Attack",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 40,
+          "minimumHeight": 33,
+          "minimumWidth": 68,
+          "overrunBehavior": 0
+        },
+        "w": 200,
+        "x": 660,
+        "y": 412
+      },
+      "VBox/BtnItem": {
+        "h": 66,
+        "text": "Item",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 27,
+          "minimumHeight": 33,
+          "minimumWidth": 55,
+          "overrunBehavior": 0
+        },
+        "w": 200,
+        "x": 660,
+        "y": 486
+      },
+      "VBox/BtnWait": {
+        "h": 66,
+        "text": "Wait",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/ActionMenu",
+          "resource": "<embedded>",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 33,
+          "availableWidth": 100,
+          "fits": true,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 30,
+          "minimumHeight": 33,
+          "minimumWidth": 58,
+          "overrunBehavior": 0
+        },
+        "w": 200,
+        "x": 660,
+        "y": 560
+      }
+    },
+    "frame": null
+  },
+  "value": null
+}

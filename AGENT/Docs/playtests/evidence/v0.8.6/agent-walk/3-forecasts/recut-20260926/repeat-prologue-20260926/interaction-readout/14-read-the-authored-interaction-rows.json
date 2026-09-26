@@ -1,0 +1,536 @@
+{
+  "index": 14,
+  "label": "read the authored interaction rows",
+  "screenshot": "14-read-the-authored-interaction-rows.png",
+  "state": "14-read-the-authored-interaction-rows.json",
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 74,
+    "engineFrame": 2072,
+    "publishedAtMsec": 39551,
+    "screen": "attack-preview",
+    "modal": "attack-preview",
+    "modalStack": [
+      {
+        "id": "attack-preview",
+        "path": "/root/GameMap/HUDLayer/AttackPreview"
+      }
+    ],
+    "focus": null,
+    "focusHistory": [
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "",
+      "VBox/BtnAttack",
+      ""
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 720,
+      "w": 1280
+    },
+    "scales": {
+      "content": 1,
+      "contentPreference": 1,
+      "effectiveMenu": 1,
+      "menu": 1,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkName",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHP",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkDmg",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHit",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkCrit",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2431",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefName",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefWeapon",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHP",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefDmg",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHit",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefCrit",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2434",
+      "Panel/ForecastScroll/HBox/InfoBox/InfoDescription"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_00_drill",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [],
+      "currentNodeId": "node_00_drill",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "targeting",
+      "cursorTile": [
+        8,
+        4
+      ],
+      "origin": {
+        "x": 256,
+        "y": 72
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            1,
+            3
+          ],
+          "unitId": "unit_01_cavalier",
+          "x": 320,
+          "y": 264
+        },
+        {
+          "hp": 18,
+          "team": "blue",
+          "tile": [
+            7,
+            4
+          ],
+          "unitId": "unit_02_mercenary",
+          "x": 704,
+          "y": 328
+        },
+        {
+          "hp": 17,
+          "team": "blue",
+          "tile": [
+            1,
+            5
+          ],
+          "unitId": "unit_03_archer",
+          "x": 320,
+          "y": 392
+        },
+        {
+          "hp": 15,
+          "team": "blue",
+          "tile": [
+            2,
+            3
+          ],
+          "unitId": "unit_04_mage",
+          "x": 384,
+          "y": 264
+        },
+        {
+          "hp": 16,
+          "team": "blue",
+          "tile": [
+            2,
+            4
+          ],
+          "unitId": "unit_05_cleric",
+          "x": 384,
+          "y": 328
+        },
+        {
+          "hp": 21,
+          "team": "blue",
+          "tile": [
+            2,
+            5
+          ],
+          "unitId": "unit_06_knight",
+          "x": 384,
+          "y": 392
+        },
+        {
+          "hp": 1,
+          "team": "red",
+          "tile": [
+            8,
+            4
+          ],
+          "unitId": "e0_training_dummy",
+          "x": 768,
+          "y": 328
+        }
+      ]
+    },
+    "rects": {
+      "Panel": {
+        "h": 244,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 976,
+        "x": 288,
+        "y": 68
+      },
+      "Panel/ForecastScroll": {
+        "h": 216,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 948,
+        "x": 302,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox": {
+        "h": 216,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 948,
+        "x": 302,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox": {
+        "h": 216,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkCrit": {
+        "h": 23,
+        "text": "Crit 4%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 217
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkDmg": {
+        "h": 23,
+        "text": "Dmg  15×2",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 163
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHP": {
+        "h": 23,
+        "text": "HP 18 / 18",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 136
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHit": {
+        "h": 23,
+        "text": "Hit  100%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 190
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions": {
+        "h": 19,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 244
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2431": {
+        "h": 19,
+        "text": "▼ Weapon Triangle  -10 Hit, -2 Dmg",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 244
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkName": {
+        "h": 23,
+        "text": "Unit_02",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon": {
+        "h": 23,
+        "text": "Iron Sword",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 109
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox": {
+        "h": 216,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefCrit": {
+        "h": 23,
+        "text": "Crit 0%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 217
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefDmg": {
+        "h": 23,
+        "text": "Dmg  5×1",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 163
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHP": {
+        "h": 23,
+        "text": "HP 1 / 1",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 136
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHit": {
+        "h": 23,
+        "text": "Hit  72%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 190
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions": {
+        "h": 19,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 244
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2434": {
+        "h": 19,
+        "text": "▲ Weapon Triangle  +10 Hit, +2 Dmg",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 244
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefName": {
+        "h": 23,
+        "text": "Training Dummy",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefWeapon": {
+        "h": 23,
+        "text": "Iron Lance",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 109
+      },
+      "Panel/ForecastScroll/HBox/InfoBox": {
+        "h": 216,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 950,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoDescription": {
+        "h": 144,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 950,
+        "y": 154
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoHint": {
+        "h": 41,
+        "text": "Click any value, or press F, for details. Enter attacks.",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 41,
+          "availableWidth": 300,
+          "fits": false,
+          "lineCount": 2,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 368,
+          "minimumHeight": 41,
+          "minimumWidth": 1,
+          "overrunBehavior": 0,
+          "visibleLineCount": 2
+        },
+        "w": 300,
+        "x": 950,
+        "y": 107
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoTitle": {
+        "h": 19,
+        "text": "More Info",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 67,
+          "minimumHeight": 19,
+          "minimumWidth": 67,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 950,
+        "y": 82
+      }
+    },
+    "frame": {
+      "path": "Panel",
+      "rect": {
+        "h": 244,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 976,
+        "x": 288,
+        "y": 68
+      }
+    }
+  },
+  "value": [
+    {
+      "control": "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2431",
+      "side": "attacker",
+      "text": "▼ Weapon Triangle  -10 Hit, -2 Dmg"
+    },
+    {
+      "control": "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2434",
+      "side": "defender",
+      "text": "▲ Weapon Triangle  +10 Hit, +2 Dmg"
+    }
+  ]
+}
