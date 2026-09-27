@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-10-ROADMAP
-Last verified: 2026-09-25
+Last verified: 2026-09-27
 ---
 
 # GDD_10 - Build Guide And Roadmap
 
 **Status:** Active - build guide.
-**Last verified:** 2026-09-25
+**Last verified:** 2026-09-27
 
 This document is the human-readable build guide. It explains build order,
 near-term focus, release/validation queues, and where to find detail.
@@ -499,6 +499,12 @@ commit through one coordinator and transaction, with the FE proving-grounds `map
 reward as the selected-campaign adopter. Session 11 starts from the residual-path
 inventory in `GDD_01_Architecture.md`; its first likely migration is the start-of-turn
 skill path that still heals and spends durable use counters without a transaction.
+
+**Standalone map pack rules Implemented 2026-09-27:** activation gives a registry
+map the active pack's authored rule defaults before any campaign starts. A sole
+campaign supplies the default; a multi-campaign pack can choose one in its manifest. Campaign start
+overlays its authored rules on that baseline. The FE proving-grounds Chapter 6
+route exercises the standalone interaction profiles in the headless playthrough.
 
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package

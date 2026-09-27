@@ -33,6 +33,7 @@ class Result:
 	var content_schema_version := 0
 	var content_fingerprint := ""
 	var campaigns: Dictionary = {}
+	var standalone_rules: Dictionary = {}
 	var map_registry: Dictionary = {}
 	var maps: Dictionary = {}
 	var rosters: Dictionary = {}
@@ -131,6 +132,20 @@ static func load(
 	_build_maps(catalogue, result)
 	_build_map_registry(catalogue, result)
 	_build_campaigns(catalogue, result)
+	var rules_campaign_id := manifest.standalone_rules_campaign_id
+	if rules_campaign_id.is_empty() and result.campaigns.size() == 1:
+		rules_campaign_id = String(result.campaigns.keys()[0])
+	if not rules_campaign_id.is_empty():
+		if not result.campaigns.has(rules_campaign_id):
+			result.errors.append(
+				(
+					"Tier-2 runtime source standalone_rules_campaign_id '%s' is not a campaign"
+					% rules_campaign_id
+				)
+			)
+		else:
+			var rules_campaign: CampaignData = result.campaigns[rules_campaign_id]
+			result.standalone_rules = rules_campaign.rule_overrides.duplicate(true)
 	result.valid = result.errors.is_empty()
 	return result
 

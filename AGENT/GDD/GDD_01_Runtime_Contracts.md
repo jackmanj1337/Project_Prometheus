@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-09-15
+Last verified: 2026-09-27
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-09-15
+**Last verified:** 2026-09-27
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -25,7 +25,7 @@ Status: **Split** — the live per-save `CampaignRules` object is **Implemented*
 (2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
 **Implemented** (2026-07-15); authored rule-profile registries remain
 **Target design**
-Last verified: 2026-07-22
+Last verified: 2026-09-27
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
@@ -84,6 +84,16 @@ editable `default` or locked `mandate`. Campaign start seeds the normalized
 values and mandate ids; New Game disables mandated controls, applies player
 choices only to defaults, and the rules codec persists `mandated_rules[]` in
 between-map and mid-map saves.
+
+**Standalone pack rules (Implemented 2026-09-27).** Activating a pack applies
+its rules to maps launched directly from its registry. A pack with one campaign
+uses that campaign's authored defaults. A pack with several campaigns may name
+`standalone_rules_campaign_id` in its manifest; without a choice, it supplies
+no pack defaults. Starting a campaign applies its declared values over
+the active rules, taking precedence over pack defaults. Deactivating the pack
+restores engine defaults for the fields the pack authored while preserving
+unrelated player and save choices. The FE proving-grounds pack's Chapter 6 registry route
+proves its authored interaction profiles are in scope without a campaign run.
 
 **Mutable rule layers (Implemented 2026-07-15, `B6-PER-MAP-OVERRIDES`).**
 `GameState.get_effective_campaign_rule(rule_id)` resolves, highest first,

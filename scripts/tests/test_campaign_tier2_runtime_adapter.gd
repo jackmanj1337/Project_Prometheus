@@ -31,6 +31,49 @@ func _init() -> void:
 	else:
 		print("FAIL runtime graph: %s" % [adapted.errors])
 		failed += 1
+	if adapted.standalone_rules.get("hit_formula") == "single_roll":
+		print("OK  a sole campaign supplies the pack's standalone rule defaults")
+		passed += 1
+	else:
+		print("FAIL sole-campaign standalone rules: %s" % [adapted.standalone_rules])
+		failed += 1
+	var multi := scratch.path_join("multi-campaign")
+	_write_pack(multi)
+	var catalogue_path := multi.path_join("data/catalogue.json")
+	var catalogue: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(catalogue_path))
+	catalogue["entries"].append(
+		{"kind": "campaign", "id": "second", "path": "data/second_campaign.json"}
+	)
+	_write_bytes(catalogue_path, JSON.stringify(catalogue).to_utf8_buffer())
+	var second: Dictionary = JSON.parse_string(
+		FileAccess.get_file_as_string(multi.path_join("data/campaign.json"))
+	)
+	second["id"] = "second"
+	second["campaign_id"] = "second"
+	second["rules"] = {"hit_formula": "two_roll"}
+	_write_bytes(
+		multi.path_join("data/second_campaign.json"), JSON.stringify(second).to_utf8_buffer()
+	)
+	var manifest_path := multi.path_join("manifest.json")
+	var manifest: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(manifest_path))
+	manifest["standalone_rules_campaign_id"] = "second"
+	_write_bytes(manifest_path, JSON.stringify(manifest).to_utf8_buffer())
+	var selected = Adapter.load(multi, ROOT, "1.0")
+	if selected.valid and selected.standalone_rules.get("hit_formula") == "two_roll":
+		print("OK  a multi-campaign pack selects standalone rules by manifest id")
+		passed += 1
+	else:
+		print("FAIL selected standalone rules: %s" % [selected.errors])
+		failed += 1
+	manifest["standalone_rules_campaign_id"] = "missing"
+	_write_bytes(manifest_path, JSON.stringify(manifest).to_utf8_buffer())
+	var missing = Adapter.load(multi, ROOT, "1.0")
+	if not missing.valid and "standalone_rules_campaign_id" in "\n".join(missing.errors):
+		print("OK  an unknown standalone rules campaign fails activation")
+		passed += 1
+	else:
+		print("FAIL missing standalone rules campaign: %s" % [missing.errors])
+		failed += 1
 	if (
 		adapted.registry_entries.size() == 6
 		and adapted.registry_overrides == ["action_primitives/apply_active_modifier"]
@@ -749,6 +792,7 @@ func _write_pack(root: String, base_hp: int = 20) -> void:
 			"campaign_id": "fixture",
 			"label": "Fixture",
 			"start_node_id": "start",
+			"rules": {"hit_formula": "single_roll"},
 			"nodes": [{"node_id": "start", "label": "Start", "map_id": "map_01", "next": []}],
 		},
 		"data/map_registry.json":

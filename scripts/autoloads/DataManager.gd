@@ -47,6 +47,7 @@ var _pair_up_bonus_table: Resource = null
 # per [CST-3], so they load through their own directory pass rather than
 # _load_directory's resource loader.
 var _campaigns: Dictionary = {}
+var _standalone_rules: Dictionary = {}
 # Immutable discovery snapshot of the shipped campaigns. New Game must be able
 # to list these while an installed package owns the live runtime catalogue.
 var _shipped_campaigns: Dictionary = {}
@@ -163,6 +164,7 @@ func _clear_content() -> void:
 	_skills.clear()
 	_pair_up_bonus_table = null
 	_campaigns.clear()
+	_standalone_rules.clear()
 	_map_registry.clear()
 	_battle_maps.clear()
 	_battle_encounters.clear()
@@ -185,6 +187,7 @@ func _clear_content() -> void:
 	# typography must not outlive its content, or the main menu keeps a campaign's letters
 	# after the campaign is gone.
 	UiFontStackScript.apply()
+	_sync_standalone_rules()
 
 
 func _commit_session(session: ContentSession) -> void:
@@ -194,6 +197,7 @@ func _commit_session(session: ContentSession) -> void:
 	_skills = session.skills
 	_pair_up_bonus_table = session.pair_up_bonus_table
 	_campaigns = session.campaigns
+	_standalone_rules = session.standalone_rules.duplicate(true)
 	_map_registry = session.map_registry
 	_battle_maps = session.battle_maps
 	_battle_encounters = session.battle_encounters
@@ -221,6 +225,7 @@ func _commit_session(session: ContentSession) -> void:
 	# instruction to restore the engine's own. Running it only when a pack declared a font
 	# would leave the PREVIOUS pack's letters standing over the new pack's content.
 	UiFontStackScript.apply(session.package_path, session.ui_font)
+	_sync_standalone_rules()
 
 
 # Captures the complete committed content boundary for an outer transaction such
@@ -234,6 +239,7 @@ func capture_content_session() -> ContentSession:
 	session.skills = _skills.duplicate()
 	session.pair_up_bonus_table = _pair_up_bonus_table
 	session.campaigns = _campaigns.duplicate()
+	session.standalone_rules = _standalone_rules.duplicate(true)
 	session.map_registry = _map_registry.duplicate(true)
 	session.battle_maps = _battle_maps.duplicate(true)
 	session.battle_encounters = _battle_encounters.duplicate(true)
@@ -265,6 +271,7 @@ func restore_content_session(session: ContentSession) -> void:
 	_skills = session.skills
 	_pair_up_bonus_table = session.pair_up_bonus_table
 	_campaigns = session.campaigns
+	_standalone_rules = session.standalone_rules.duplicate(true)
 	_map_registry = session.map_registry
 	_battle_maps = session.battle_maps
 	_battle_encounters = session.battle_encounters
@@ -290,6 +297,19 @@ func restore_content_session(session: ContentSession) -> void:
 	# transaction (campaign resume) can put back the exact live session, and the face is
 	# part of what was live.
 	UiFontStackScript.apply(session.package_path, session.ui_font)
+	_sync_standalone_rules()
+
+
+func standalone_rules() -> Dictionary:
+	return _standalone_rules.duplicate(true)
+
+
+func _sync_standalone_rules() -> void:
+	if not is_inside_tree():
+		return
+	var gs := get_node_or_null("/root/GameState")
+	if gs != null and gs.has_method("apply_content_rule_defaults"):
+		gs.call("apply_content_rule_defaults", _standalone_rules)
 
 
 func _sync_pair_up_bonus_resolver() -> void:
@@ -561,6 +581,7 @@ func select_tier2_campaign_source(
 	session.pair_up_bonus_table = adapted.pair_up_bonus_table
 	session.registry_entries = adapted.registry_entries
 	session.campaigns = adapted.campaigns
+	session.standalone_rules = adapted.standalone_rules
 	session.map_registry = adapted.map_registry
 	session.pack_maps = adapted.maps
 	session.pack_rosters = adapted.rosters

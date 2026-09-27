@@ -49,6 +49,7 @@
 0b1668a6b250835208e3eb1422c0f7eafe1173cc	Add stable record screen restoration state
 0bb965dda4a1e23572fac7dfa88455cdbfe4221f	Record compendium and run status rulings
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
+0bffd46b40cf1ccf87289ea735474c455616c384	Apply pack rules to standalone map launches
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation
@@ -465,6 +466,7 @@
 7d9042b648f97f9f69e56a4f0588a2f4973e4d63	Sweep the [UITH-7] row id after renaming it
 7dc6e8575a756ce963545db597237b84fee8a881	Fence design sources and decision registers on docs line
 7e5cc8ecbb53631151941eb9aacbc7d04354925e	Open the campaign library MainMenu already embeds, instead of adding a second one
+7eb1a623a02deb9d801a2c4cb7d554e29275d38f	Verify standalone ruleset docs and record claim
 7ff46e1c0a543b91acdd9ead05e16085b5cbb57e	Scope the release-source check to release builds
 8020baa268f6a6e637d04a67d33c23fed0103200	Triage v0.6.0 Windows playtest return
 808103e4595f455aead98529ac4748934037492c	preserve AI scorer planning handoff updates
