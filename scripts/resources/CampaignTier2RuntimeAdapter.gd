@@ -46,6 +46,7 @@ class Result:
 	var registry_overrides: Array[String] = []
 	var advancement_edges: Dictionary = {}
 	var advancement_routes: Dictionary = {}
+	var reclass_targets: Dictionary = {}
 	# Validated terrain documents, kept as documents rather than adapted here: the
 	# runtime object is a TerrainRegistry built by merging them over the engine set,
 	# and that merge belongs to the registry that owns the rules, not to this adapter.
@@ -122,6 +123,7 @@ static func load(
 	_build_terrain_variants(catalogue, result)
 	_build_classes(catalogue, result)
 	_build_advancement_documents(catalogue, result)
+	_project_advancement_targets(catalogue, result)
 	_build_items(catalogue, result)
 	_build_weapons(catalogue, result)
 	_build_skills(catalogue, result)
@@ -161,6 +163,40 @@ static func _build_advancement_documents(catalogue: Tier2Catalogue, result: Resu
 			result.advancement_routes[entry["id"]] = (
 				catalogue.get_document(kind, entry["id"]).duplicate(true)
 			)
+
+
+# The trial documents are the authored class graph. The current live class-change
+# path reads ClassData/UnitData, so project that graph once during activation.
+static func _project_advancement_targets(catalogue: Tier2Catalogue, result: Result) -> void:
+	for entry in catalogue.entries:
+		if entry["kind"] != "class":
+			continue
+		var class_id := String(entry["id"])
+		var raw: Dictionary = catalogue.get_document("class", class_id)
+		var source: ClassData = result.classes[class_id]
+		for edge_id in raw.get("advancement_edge_refs", []):
+			var edge: Dictionary = result.advancement_edges.get(String(edge_id), {})
+			if edge.is_empty() or String(edge.get("source_class_ref", "")) != class_id:
+				continue
+			for route_id in edge.get("route_refs", []):
+				var route: Dictionary = result.advancement_routes.get(String(route_id), {})
+				var trigger: Dictionary = route.get("trigger", {})
+				var mode := String((trigger.get("parameters", {}) as Dictionary).get("mode", ""))
+				for destination_id in edge.get("destination_class_refs", []):
+					var target_id := String(destination_id)
+					if not result.classes.has(target_id):
+						continue
+					if mode == "promotion":
+						if not source.promotes_to.has(target_id):
+							source.promotes_to.append(target_id)
+						var target: ClassData = result.classes[target_id]
+						if not target.promotes_from.has(class_id):
+							target.promotes_from.append(class_id)
+					elif mode == "reclass":
+						if not result.reclass_targets.has(class_id):
+							result.reclass_targets[class_id] = []
+						if not result.reclass_targets[class_id].has(target_id):
+							result.reclass_targets[class_id].append(target_id)
 
 
 # Resolves each validated media record to a loadable path. Whole-pack validation has
@@ -453,6 +489,9 @@ static func _build_rosters(catalogue: Tier2Catalogue, result: Result) -> void:
 			var unit := UnitData.new()
 			_apply_class_bases(unit, class_data)
 			_apply_unit_properties(unit, unit_raw)
+			for target_id in result.reclass_targets.get(class_id, []):
+				if not unit.reclass_options.has(String(target_id)):
+					unit.reclass_options.append(String(target_id))
 			unit.unit_id = String(unit_raw.get("unit_id", ""))
 			unit.unit_name = String(unit_raw.get("unit_name", unit.unit_id))
 			unit.class_id = class_id

@@ -209,14 +209,12 @@ func _init() -> void:
 	var promoted: bool = String(attacker.data.class_id) != class_before
 	_check(
 		(
-			(promotion.get("ok", false) and promoted and seal_uses_after < seal_uses_before)
-			or (
-				not promotion.get("ok", false)
-				and not promoted
-				and seal_uses_after == seal_uses_before
-			)
+			promotion.get("ok", false)
+			and promoted
+			and String(attacker.data.class_id) == "hero"
+			and seal_uses_after < seal_uses_before
 		),
-		"the authored master seal and the class change either both land or neither does"
+		"the authored master seal promotes the mercenary to hero and is spent"
 	)
 	print(
 		(
@@ -229,6 +227,20 @@ func _init() -> void:
 				seal_uses_after
 			]
 		)
+	)
+	var second_seal = _entry_for(defender, "second_seal")
+	var second_uses_before: int = second_seal.uses_remaining if second_seal != null else -1
+	var reclass: Dictionary = coordinator.commit_reclass(
+		defender, "soldier", "soldier", second_seal
+	)
+	var second_after = _entry_for(defender, "second_seal")
+	_check(
+		(
+			reclass.get("ok", false)
+			and String(defender.data.class_id) == "soldier"
+			and (second_after.uses_remaining if second_after != null else -1) < second_uses_before
+		),
+		"the authored second seal reclasses the cavalier to soldier and is spent"
 	)
 
 	print("\nResults: %d passed, %d failed" % [_passed, _failed])
