@@ -168,6 +168,19 @@ func _route_checks() -> void:
 		standalone_ids.has("hallowed_rites") and standalone_ids.has("undead_frailty"),
 		"route A: the pack puts interaction profiles in scope: %s" % str(standalone_ids)
 	)
+	var launch_error := change_scene_to_file(GAME_MAP_SCENE)
+	await _settle()
+	_check(
+		(
+			launch_error == OK
+			and current_scene != null
+			and current_scene.scene_file_path == GAME_MAP_SCENE
+			and not bool(_cm.call("is_campaign_active"))
+			and _find_unit("m006_hallowed_bearer") != null
+			and _profile_ids().has("hallowed_rites")
+		),
+		"route A: the authored map opens with its bearer and rules, without a campaign run"
+	)
 	_gs.call("apply_campaign_rule_overrides", {"interaction_profiles": []})
 	_check(
 		_profile_ids().is_empty(),
