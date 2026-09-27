@@ -23,6 +23,9 @@ var save_migrations: Array[Dictionary] = []
 ## `raw_font` handler), so a font named here has been through the same load check as the
 ## pack's art -- what was missing until now was any way to SAY which one to use.
 var ui_font: String = ""
+# Optional campaign whose authored rules also govern maps launched directly from
+# this pack's map registry. A one-campaign pack needs no extra declaration.
+var standalone_rules_campaign_id: String = ""
 
 
 static func parse(raw: Variant, source_path: String, errors: Array[String]) -> PackManifest:
@@ -106,6 +109,9 @@ static func parse(raw: Variant, source_path: String, errors: Array[String]) -> P
 				)
 
 	manifest.ui_font = _string_field(data, "ui_font", prefix, errors, false)
+	manifest.standalone_rules_campaign_id = _string_field(
+		data, "standalone_rules_campaign_id", prefix, errors, false
+	)
 	if not manifest.ui_font.is_empty() and not _valid_pack_asset_path(manifest.ui_font):
 		errors.append(
 			"%s: ui_font must be a pack-relative path under assets/ ending in .ttf or .otf" % prefix

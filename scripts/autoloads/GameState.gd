@@ -70,6 +70,7 @@ var mutable_campaign_state: MutableCampaignState = MutableCampaignStateScript.ne
 var per_map_rule_overrides: Dictionary = {}
 var active_mid_map_rule_overrides: Dictionary = {}
 var _authored_campaign_rule_values: Dictionary = {}
+var _content_rule_ids: Array[String] = []
 
 # ── DEBUG TESTING AIDS (#10 / #11) ───────────────────────────────────────────
 # Temporary playtest aids — both are honoured ONLY in debug builds (callers gate
@@ -629,6 +630,25 @@ func apply_campaign_rule_overrides(overrides: Variant, mandated_rules: Variant =
 		for key in overrides:
 			merged[key] = overrides[key]
 		_apply_campaign_rules_dict(merged)
+
+
+# Content activation owns only the rules the pack actually authored. Other
+# values may already be player choices or restored save policy, so changing a
+# pack cannot reset the entire per-save rules resource.
+func apply_content_rule_defaults(defaults: Variant) -> void:
+	var merged := _campaign_rules_to_dict()
+	var engine_defaults := CampaignRuleSchema.defaults()
+	for rule_id in _content_rule_ids:
+		if engine_defaults.has(rule_id):
+			merged[rule_id] = engine_defaults[rule_id]
+		else:
+			merged.erase(rule_id)
+	_content_rule_ids.clear()
+	if defaults is Dictionary:
+		for rule_id in defaults:
+			merged[rule_id] = defaults[rule_id]
+			_content_rule_ids.append(String(rule_id))
+	_apply_campaign_rules_dict(merged)
 
 
 func is_campaign_rule_mandated(rule_id: String) -> bool:

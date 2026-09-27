@@ -28,11 +28,9 @@ extends SceneTree
 # content proof below runs on chapter 6's OWN board, reached by playing the campaign, with
 # nothing forced into scope.
 #
-# ROUTE A IS STILL HALF-OPEN and this file still holds it open. Launching the map from its
-# registry row fields the bearer but starts no campaign, so no ruleset is in scope at all
-# and the authored relationship cannot fire. That half is ruled separately and owned by
-# `STANDALONE-MAP-RULESET-2026-09-20`; the check below fails the day it lands, which is the
-# point. `[ITR-1..7]`
+# ROUTE A now carries the pack's standalone defaults. This one-campaign pack can
+# launch its registry map with both the bearer and interaction profiles in scope,
+# without starting a campaign run. `[ITR-1..7]`
 
 const AdopterPack = preload("res://scripts/tests/support/adopter_pack.gd")
 const PackExporter = preload("res://scripts/resources/CampaignPackExporter.gd")
@@ -144,6 +142,9 @@ func _run() -> void:
 
 	await _route_checks()
 	await _play_the_campaign()
+	_cm.call("end_campaign")
+	_dm.call("deactivate_campaign_package")
+	_check(_profile_ids().is_empty(), "pack deactivation restores engine rule defaults")
 	_reached_the_end = true
 	_finish()
 
@@ -152,9 +153,9 @@ func _run() -> void:
 # Asserted rather than written in a comment, because a comment does not fail when someone
 # changes the roster policy and forgets this file.
 func _route_checks() -> void:
-	# ROUTE A -- the map's own registry row. Its authored roster loads, so the bearer is
-	# on the field, but nothing has started a campaign, so no profile is in scope and the
-	# relationship cannot fire at all. This half of the gap is STILL OPEN.
+	# ROUTE A -- the map's own registry row. The pack's sole campaign supplies
+	# standalone rule defaults, so its authored roster and profiles are both in scope
+	# without starting a campaign run.
 	var entry: Dictionary = _dm.call("get_map_registry_entry", ACCEPTANCE_MAP)
 	_check(not entry.is_empty(), "%s is registered as a standalone map" % ACCEPTANCE_MAP)
 	_load_pack_roster(entry)
@@ -162,19 +163,15 @@ func _route_checks() -> void:
 		_party_has_weapon("hallowed_scythe"),
 		"route A (standalone map): the authored roster fields the hallowed_scythe bearer"
 	)
-	# STILL AN OPEN GAP, held open on purpose. A standalone launch carries no ruleset at
-	# all, so this passes today and MUST fail the day STANDALONE-MAP-RULESET-2026-09-20
-	# lands -- at which point route A becomes the better home for this measurement bench
-	# and this file is the thing to revisit.
+	var standalone_ids := _profile_ids()
+	_check(
+		standalone_ids.has("hallowed_rites") and standalone_ids.has("undead_frailty"),
+		"route A: the pack puts interaction profiles in scope: %s" % str(standalone_ids)
+	)
+	_gs.call("apply_campaign_rule_overrides", {"interaction_profiles": []})
 	_check(
 		_profile_ids().is_empty(),
-		(
-			(
-				"route gap A (open, STANDALONE-MAP-RULESET-2026-09-20): no campaign started, "
-				+ "so interaction_profiles is empty: %s"
-			)
-			% str(_profile_ids())
-		)
+		"a campaign can shadow the pack's standalone interaction profiles"
 	)
 
 	# ROUTE B -- the campaign, and it is now WHOLE. The profiles arrive from the campaign

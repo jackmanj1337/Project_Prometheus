@@ -85,6 +85,16 @@ values and mandate ids; New Game disables mandated controls, applies player
 choices only to defaults, and the rules codec persists `mandated_rules[]` in
 between-map and mid-map saves.
 
+**Standalone pack rules (Implemented 2026-09-27).** Activating a pack applies
+its rules to maps launched directly from its registry. A pack with one campaign
+uses that campaign's authored defaults. A pack with several campaigns may name
+`standalone_rules_campaign_id` in its manifest; without a choice, it supplies
+no pack defaults. Starting a campaign applies its declared values over
+the active rules, taking precedence over pack defaults. Deactivating the pack
+restores engine defaults for the fields the pack authored while preserving
+unrelated player and save choices. The FE proving-grounds pack's Chapter 6 registry route
+proves its authored interaction profiles are in scope without a campaign run.
+
 **Mutable rule layers (Implemented 2026-07-15, `B6-PER-MAP-OVERRIDES`).**
 `GameState.get_effective_campaign_rule(rule_id)` resolves, highest first,
 active mid-map override → node `rule_overrides` → effective campaign default.

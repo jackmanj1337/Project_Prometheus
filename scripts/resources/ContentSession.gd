@@ -10,6 +10,7 @@ var skills: Dictionary = {}
 var pair_up_bonus_table: Resource = null
 var registry_entries: Array[Resource] = []
 var campaigns: Dictionary = {}
+var standalone_rules: Dictionary = {}
 var map_registry: Dictionary = {}
 var battle_maps: Dictionary = {}
 var battle_encounters: Dictionary = {}

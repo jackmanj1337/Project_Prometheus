@@ -500,6 +500,12 @@ reward as the selected-campaign adopter. Session 11 starts from the residual-pat
 inventory in `GDD_01_Architecture.md`; its first likely migration is the start-of-turn
 skill path that still heals and spends durable use counters without a transaction.
 
+**Standalone map pack rules Implemented 2026-09-27:** activation gives a registry
+map the active pack's authored rule defaults before any campaign starts. A sole
+campaign supplies the default; a multi-campaign pack can choose one in its manifest. Campaign start
+overlays its authored rules on that baseline. The FE proving-grounds Chapter 6
+route exercises the standalone interaction profiles in the headless playthrough.
+
 **Zero-content export gate Implemented 2026-08-09; first-run pack route repaired
 2026-08-10:** inactive headless boot, atomic Tier-2 session replacement, package
 deactivation, and the Main Menu no-data-packs state are covered by focused
