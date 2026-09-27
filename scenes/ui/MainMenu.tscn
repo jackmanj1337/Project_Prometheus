@@ -46,6 +46,7 @@ layout_mode = 2
 [node name="Scroll" type="ScrollContainer" parent="MenuFrame/Panel"]
 layout_mode = 2
 horizontal_scroll_mode = 0
+follow_focus = true
 
 [node name="VBox" type="VBoxContainer" parent="MenuFrame/Panel/Scroll"]
 layout_mode = 2

@@ -137,6 +137,14 @@ func _apply_responsive_tokens() -> void:
 	var gutter := _responsive_token(responsive, "gutter", 16.0)
 	var header := _responsive_token(responsive, "header", 72.0)
 	var footer := _responsive_token(responsive, "footer", 64.0)
+	# A short landscape viewport needs the same controls, with less decorative space.
+	# Keep the list scrollable if a larger font or input density still needs it.
+	var short_landscape := get_viewport_rect().size.y <= 400.0
+	if short_landscape:
+		row_height = minf(row_height, 34.0)
+		row_gap = minf(row_gap, 3.0)
+		header = minf(header, 32.0)
+		footer = minf(footer, 20.0)
 
 	_button_list.add_theme_constant_override("separation", roundi(row_gap))
 	# Every button in the list, not a subset. The two campaign buttons were missing here,
@@ -157,14 +165,17 @@ func _apply_responsive_tokens() -> void:
 
 	_title_label.offset_top = gutter
 	_title_label.offset_bottom = gutter + header
+	var title_font := body_font * float(_TITLE_FONT_MULTIPLIERS.get(size_class, 4.0))
 	_title_label.add_theme_font_size_override(
-		"font_size", roundi(body_font * float(_TITLE_FONT_MULTIPLIERS.get(size_class, 4.0)))
+		"font_size", roundi(minf(title_font, 28.0) if short_landscape else title_font)
 	)
 	_version_label.offset_left = -(body_font * 10.0)
 	_version_label.offset_top = -(footer + gutter)
 	_version_label.offset_right = -gutter
 	_version_label.offset_bottom = -gutter
-	_version_label.add_theme_font_size_override("font_size", roundi(body_font))
+	_version_label.add_theme_font_size_override(
+		"font_size", roundi(minf(body_font, 12.0) if short_landscape else body_font)
+	)
 
 
 func _on_responsive_layout_changed(_new_class: String, _previous_class: String) -> void:
