@@ -44,6 +44,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 2
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
+follow_focus = true
 
 [node name="VBox" type="VBoxContainer" parent="Panel/Scroll"]
 layout_mode = 2
@@ -67,6 +68,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptRun" type="OptionButton" parent="Panel/Scroll/VBox/HBoxRun"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HBoxPermadeath" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -79,6 +82,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptPermadeath" type="OptionButton" parent="Panel/Scroll/VBox/HBoxPermadeath"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HBoxAutoPromote" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -91,6 +96,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptAutoPromote" type="OptionButton" parent="Panel/Scroll/VBox/HBoxAutoPromote"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HBoxLeveling" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -103,6 +110,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptLeveling" type="OptionButton" parent="Panel/Scroll/VBox/HBoxLeveling"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HBoxPairUp" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -115,6 +124,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptPairUp" type="OptionButton" parent="Panel/Scroll/VBox/HBoxPairUp"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HBoxStatus" type="HBoxContainer" parent="Panel/Scroll/VBox"]
 layout_mode = 2
@@ -127,6 +138,8 @@ custom_minimum_size = Vector2(160, 0)
 [node name="OptStatus" type="OptionButton" parent="Panel/Scroll/VBox/HBoxStatus"]
 layout_mode = 2
 size_flags_horizontal = 3
+fit_to_longest_item = false
+clip_text = true
 
 [node name="HSep" type="HSeparator" parent="Panel/Scroll/VBox"]
 layout_mode = 2
