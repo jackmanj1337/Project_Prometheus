@@ -335,6 +335,7 @@
 54963defe9aa7ebbe196a8eb47a5e783b82af2ad	Reduce web bridge snapshot overhead
 54ae1dc78fc57e703339af3ebcaf5b1c737ddce1	Apply reviewed v0.5.3 playtest repairs
 54b90f92b1543ec6ed130e86d5cbd8d5ebbe36c6	Audit: establish the 2026-08 shared baseline
+55de62ba425d174ada613bf9e3e43623c827ddae	Reveal New Game start action when modal opens
 55ef43ff1d208b60135f4d772d5074d03f5e2138	Recover curated campaign research
 560ad0ea62dc2a6cf0a864f56e3bb95c8cbc64fc	Preserve bridge diagnostics in focused snapshots
 56c7183815dd1f724f0137357305168e14312346	Tell the v0.7.8 tester to do sections 1-2 before installing the pack
