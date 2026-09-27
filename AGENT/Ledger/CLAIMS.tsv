@@ -49,6 +49,7 @@
 0b1668a6b250835208e3eb1422c0f7eafe1173cc	Add stable record screen restoration state
 0bb965dda4a1e23572fac7dfa88455cdbfe4221f	Record compendium and run status rulings
 0bcb161f0bdef6cc28c8756828b653a3199722de	record v0.5.2 playtest artifact identity
+0bffd46b40cf1ccf87289ea735474c455616c384	Apply pack rules to standalone map launches
 0c02a5b4f922e0816944a2203a4a341bc4e7ec00	Point next-session work at the tracker queue instead of restating it
 0c3b8abef7d2e3eccbec4490271364f0d56c3098	Add v0.6.0 fix-goal handoff
 0ca44480322a267185676b308c9745d8220f48c2	Verify pack skills documentation

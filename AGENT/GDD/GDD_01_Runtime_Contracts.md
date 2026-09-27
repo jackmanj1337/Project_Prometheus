@@ -1,13 +1,13 @@
 ---
 Role: topic
 Topic ID: GDD-01-RUNTIME-CONTRACTS
-Last verified: 2026-09-15
+Last verified: 2026-09-27
 ---
 
 # GDD_01 — Runtime Contracts
 
 **Status:** Active runtime contract — split status per section.
-**Last verified:** 2026-09-15
+**Last verified:** 2026-09-27
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -25,7 +25,7 @@ Status: **Split** — the live per-save `CampaignRules` object is **Implemented*
 (2026-07-06, `B1-CST` kickoff) and campaign mandate/default seeding is
 **Implemented** (2026-07-15); authored rule-profile registries remain
 **Target design**
-Last verified: 2026-07-22
+Last verified: 2026-09-27
 
 ### Summary
 `CampaignRules` is the per-save bundle of gameplay rules chosen at New Game and carried by
