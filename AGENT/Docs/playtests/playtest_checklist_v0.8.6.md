@@ -184,10 +184,11 @@ one not.
 - [ ] With `free-roam.zip` active, its font is used on Settings, the HUD, the Map
   Menu, Prep and the attack forecast. No text is clipped or overlapping, and no
   letters are replaced by boxes.
-- [ ] With `free-roam.zip` active, Campaign Editor still uses the game's own
-  standard font, not the campaign's.
-- [ ] Switch back to no campaign pack. The standard font comes back everywhere,
-  and the HUD, Map Menu and Prep have no clipped or overlapping text.
+- [ ] With `free-roam.zip` installed, Campaign Editor still uses the game's own
+  standard font, not the campaign's. The editor opens outside the live campaign.
+- [ ] Quit the live campaign to the Main Menu, leaving no pack active. The
+  standard font comes back everywhere, and the HUD, Map Menu and Prep have no
+  clipped or overlapping text.
 
 ## 3 — Attack forecast and weapon relationships
 
@@ -245,16 +246,23 @@ public, and delete your copy when this round closes.
   is loadable, press Retry on one of them first.
 - [ ] Then press **Retry** on the `campaign_backup_v2.zip` row. Its save loads
   back to the right campaign and Prep screen.
-- [ ] Import `migration-v1.zip` and `migration-v2.zip` and use their saves. When a
-  save is refused, the message names the missing or mismatched content in plain
-  language, not only an internal id.
+- [ ] Import `migration-v1.zip` and `migration-v2.zip`. These archives contain
+  campaigns, not pre-made saves. Start a v1 map and use **Suspend & Quit** to
+  create a save; export that save before trying the v2 migration. In a clean
+  profile with only v2 installed, import the v1 save, choose **Import into
+  2.0.0**, and check that a new migrated slot is loadable while the source
+  save remains unchanged. When a save is refused, the message names the missing
+  or mismatched content in plain language, not only an internal id.
 - [ ] Import `collision-a.zip` and `collision-b.zip`. They share an id and a
   version number but have different content. Where both appear, the rows tell
-  them apart with a short fingerprint. A save made with one is not silently
-  loaded with the other.
+  them apart with a short fingerprint. Create and export a save while A is
+  active, then import it into a clean profile with only B installed. It must
+  stay unavailable, including after **Retry**.
 - [ ] Check all four confirmation dialogs: **End Turn**, **Suspend & Quit**,
   **Quit to Menu** (when it would lose progress) and **replace a save**. Each one
-  says what Enter will do and starts with the safe choice selected.
+  says what Enter will do. End Turn and Suspend & Quit default to confirming the
+  requested action; Quit to Menu and replace a save default to keeping the
+  current progress.
 - [ ] Settings is usable below 600 px wide, and at 0.5× and 2×. It is one long
   scrolling list: reach the bottom rows with the mouse wheel, the scroll bar or the
   arrow keys, and say which of those worked.
