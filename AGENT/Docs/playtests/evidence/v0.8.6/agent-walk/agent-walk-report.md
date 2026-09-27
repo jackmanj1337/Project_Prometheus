@@ -1,10 +1,12 @@
 ---
 Role: dated
 Type: playtest
-Status: Section 3 browser pass; Sections 1B, 2 and 5 have further browser evidence; migration verdict awaits a newer build; native acceptance remains pending
+Status: Section 3 browser pass; Sections 1B, 2 and 5 have further browser evidence; migration PASS (browser) on 997caa93; native acceptance remains pending
 ---
 
 # v0.8.6 agent browser walk report
+
+**MIGRATION RERUN — 2026-09-27, source `997caa93` (corrected in place; the pending verdict below is superseded).** The v1-save migration failure found on `0e5882d8` was a product bug: Load Game resolved the v1 save to v2 in memory, and "Import into 2.0.0" then migrated that resolved copy as though it were v1. Fixed by `19fc4622` (reads the stored save source for explicit migrations, with a regression test) and merged into the recut. On the exact `997caa93` web release with only migration-v2 installed, importing the v1 save and choosing "Import into 2.0.0" reported "Migrated a copy as 'imported_01_migrated'. The original was preserved." and Load Game listed both the original (still offering Import) and the migrated row. Evidence: `browser-runs/2026-09-27/migration-v1-save-997caa93/`.
 
 **RECUT SECTION 3 RETEST — 2026-09-26.** Repeated against the exact current web release, source SHA `0e5882d80dcbeb8847ca8bd66b32f715f08960b8` (BUILD STAMP `0e5882d8`, Godot 4.6.3). At 1280×720 with Content Scale and Menu Scale both 2×, the Chapter 3 Unit_06 Knight vs Bridge Fighter forecast passes: panel `(200,32,664,656)` fits within the viewport, all three expected rows publish, and after scrolling both defender rows, More Info and the Enter hint are visible. The blocker did not recur.
 
@@ -56,7 +58,6 @@ also still needs the native readability judgment.
 
 ## Remaining work
 
-- Rerun the v1 save migration cases on the next product build. The attempt against `0e5882d8` exposed a migration failure and is under product fix; the final migration verdict is pending that rerun.
 - Finish Section 4's matched-stat Hit/Dmg/Crit comparison and landed-hit Resistance breakdown.
 - Complete native Windows verification: display/GPU/DPI and BUILD STAMP identity, representative 1A layouts, 1B countdown, 1C readability, editor at 1920×1080 and 125% scaling, controller navigation, Diagnostics ZIP, and Section 7 player judgments.
 - Verify the editor Rules hover text and dense list readability natively; test forecast pad button 2 on native hardware.
@@ -95,7 +96,7 @@ also still needs the native readability judgment.
 | 2 | PARTIAL | Rules six-line ellipsis, dirty → saved, and scale restore passed. The 2026-09-27 browser captures cover free-roam font on Prep/HUD/Map Menu/Settings, restoration after pack removal, and the standard editor font. Full hover text did not appear in headless Chromium; native verification remains pending. |
 | 3 | PASS (browser; native pad pending) | Recut retest covers all matchups, requested viewports, panel geometry/scrolling, mouse row access, F cycle, Enter confirmation and damage arithmetic. Pad button 2 remains native-only. See `3-forecasts/recut-20260926/`. |
 | 4 | PARTIAL | Chapter 6 browser fixtures confirmed Bearer `Hallowed Rites +5 Dmg`, Axeman `Undead Frailty +1 Dmg`, and More Info suppression sentence. No hit/condition expiry or full stats/Hit/Dmg/Crit comparison. |
-| 5 | PARTIAL | 1C mixed save-list and Retry→Prep succeeded; Settings scrolling, confirmation dialogs, duplicate-version fingerprints and wrong-build save protection passed in the 2026-09-27 browser run. Migration verdict awaits a newer build; native Diagnostics export remains pending. |
+| 5 | PARTIAL | 1C mixed save-list and Retry→Prep succeeded; Settings scrolling, confirmation dialogs, duplicate-version fingerprints and wrong-build save protection passed in the 2026-09-27 browser run. v1 migration passed on `997caa93` (`migration-v1-save-997caa93/`); native Diagnostics export remains pending. |
 | 6 | PASS (skim) | v0.8.6 supplemental receipt passed (40 cases, zero errors); pack-gate receipt passed. Visually skimmed all 40 album images and all 46 pack screenshots; contact sheets at `section6-skim/`. |
 | 7 | PARTIAL | Browser evidence supports row labels/readability only; native and subjective judgments remain pending. |
 
@@ -107,7 +108,7 @@ initial 1B timeout was a harness error: End Turn had already advanced to BLUE tu
 with a free cursor; the extra Enter selected the Bearer. The corrected and repeated
 runs passed the expiry check. Separately, the v1 save migration attempt on
 `0e5882d8` failed to establish the required migration behavior and is under product
-fix. Its final verdict is pending a rerun on the newer build.
+fix. It passed on the `997caa93` rerun (see the top of this report).
 
 ## 4. Per-section detail
 
@@ -233,8 +234,8 @@ build B was installed. This confirms browser wrong-build protection. Evidence
 is under `browser-runs/2026-09-27/{settings-scroll,settings-scroll-half,confirm-dialogs,collision-labels-final,collision-a-export,collision-a-save-on-b}/`.
 
 The v1 migration flow was attempted on old recut source `0e5882d8` and failed to
-establish the expected migration/refusal result. It is under product fix, so the
-final checklist verdict remains pending a newer build. Captures from that attempt
+establish the expected migration/refusal result. It is under product fix, and the
+rerun on `997caa93` passed (`migration-v1-save-997caa93/`). Captures from that attempt
 are preserved under `browser-runs/2026-09-27/migration-v1-save/`,
 `migration-v1-save-rerun/`, and `migration-v1-save-on-v2/`. Native Diagnostics ZIP
 and Windows display/input checks remain pending.
