@@ -673,7 +673,7 @@ func migrate_save_into_slot(
 	declaration: Dictionary,
 	destination_exists: Callable = Callable()
 ) -> Dictionary:
-	var source: SaveData = load_slot(source_slot_id) as SaveData
+	var source: SaveData = _stored_source_for_migration(source_slot_id)
 	return migrate_save_document_into_slot(
 		source, destination_slot_id, destination_package_id, declaration, destination_exists
 	)
@@ -685,10 +685,28 @@ func preview_save_migration(
 	declaration: Dictionary,
 	destination_exists: Callable = Callable()
 ) -> Dictionary:
-	var source: SaveData = load_slot(source_slot_id) as SaveData
+	var source: SaveData = _stored_source_for_migration(source_slot_id)
 	return SaveMigrationServiceScript.preview(
 		source, destination_package_id, declaration, destination_exists
 	)
+
+
+# A normal load may resolve a v1 document through an installed v2 migration in
+# memory. The explicit "Import into v2" action must instead start from the stored
+# v1 document, or its preview tries to migrate an already-converted v2 identity.
+# SaveMigrationService validates the raw source before producing a new copy.
+func _stored_source_for_migration(slot_id: String) -> SaveData:
+	if not has_slot(slot_id):
+		return null
+	var path := get_slot_path(slot_id)
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return null
+	var parsed := _parse_json_dict(file.get_as_text(), path)
+	file.close()
+	if parsed.is_empty():
+		return null
+	return SaveDataScript.from_dict(parsed) as SaveData
 
 
 func migrate_save_document_into_slot(
