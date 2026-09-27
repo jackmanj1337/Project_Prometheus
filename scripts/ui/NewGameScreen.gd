@@ -111,6 +111,9 @@ func open() -> void:
 	_select_preferred_run()
 	_on_run_selected(_opt_run.selected)
 	show()
+	# Start is the initial focus target; reveal it even when a short viewport puts
+	# it below the first page of rule controls.
+	($Panel/Scroll as ScrollContainer).scroll_vertical = 1_000_000
 	_btn_start.grab_focus()
 
 
