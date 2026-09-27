@@ -72,6 +72,7 @@
 11d18df2758e6f79e178047e663bd028e96d36a7	Triage the accepted v0.7.19 return diagnostics
 125313f0a50b8f42a80bffe5d5929e7b0bbf2a08	State the claim model once, so it cannot be inferred from disagreeing hooks
 13350cbeb0f57d123dbafff5a7d3dd27f31b445a	Keep extractor valid after closing family gaps
+13b349477dc965537a6d58d317dfdf1ad55d588d	Record v0.8.6 Section 4 browser pass on 997caa93
 14506bdc91f090f8c803f984e1cf95b634bb0d43	Bump tester release metadata to v0.6.1
 14564e58da2beb1108cc8cb2c7edc65f8270bf65	Implement accepted campaign library navigation
 15297c980ff1930373e3abb7371fa053cf15e863	port v0.4 release fixes to integration architecture
