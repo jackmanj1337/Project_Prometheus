@@ -148,6 +148,34 @@ func _run() -> void:
 			not Migration._validate_candidate_payload(bad_identity, declaration, exists).is_empty(),
 			"candidate validation rejects a mismatched campaign mirror"
 		)
+	# With only v2 installed, an ordinary load resolves this v1 slot to v2 in
+	# memory. The explicit migration action still needs the untouched v1 bytes.
+	Installer._remove_tree(pack1)
+	var resolved_successor: RefCounted = sm.load_slot("returned")
+	_check(
+		resolved_successor != null and resolved_successor.source.package_version == "2.0.0",
+		"ordinary load resolves v1 to the installed successor"
+	)
+	var successor_preview: Dictionary = sm.preview_save_migration(
+		"returned", PACK_ID, declaration, exists
+	)
+	_check(
+		successor_preview.ok,
+		"explicit preview reads the stored v1 source",
+		successor_preview.errors
+	)
+	var successor_copy: Dictionary = sm.migrate_save_into_slot(
+		"returned", "successor_only", PACK_ID, declaration, exists
+	)
+	_check(
+		successor_copy.ok, "explicit migration works with only v2 installed", successor_copy.errors
+	)
+	_check(
+		FileAccess.get_file_as_string(sm.get_slot_path("returned")) == source_bytes,
+		"successor-only migration preserves the v1 source bytes"
+	)
+	sm.delete_slot("successor_only")
+	_copy_tree(WORK.path_join("fixtures/src-v1").path_join(PACK_ID), pack1)
 	# A different, real content session must survive both success and rejection.
 	dm.select_campaign_source("res://data")
 	var previous: RefCounted = dm.capture_content_session()
