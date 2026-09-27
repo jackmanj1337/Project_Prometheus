@@ -1,0 +1,171 @@
+{
+  "attacker": "m006_plain_axeman",
+  "target": "m006_revenant_1",
+  "board": [
+    {
+      "hp": 24,
+      "team": "blue",
+      "tile": [
+        2,
+        3
+      ],
+      "unitId": "m006_hallowed_bearer",
+      "x": 320,
+      "y": 264
+    },
+    {
+      "hp": 24,
+      "team": "blue",
+      "tile": [
+        6,
+        3
+      ],
+      "unitId": "m006_plain_axeman",
+      "x": 576,
+      "y": 264
+    },
+    {
+      "hp": 17,
+      "team": "blue",
+      "tile": [
+        2,
+        5
+      ],
+      "unitId": "unit_01_cavalier",
+      "x": 320,
+      "y": 392
+    },
+    {
+      "hp": 18,
+      "team": "blue",
+      "tile": [
+        3,
+        3
+      ],
+      "unitId": "unit_02_mercenary",
+      "x": 384,
+      "y": 264
+    },
+    {
+      "hp": 17,
+      "team": "blue",
+      "tile": [
+        3,
+        4
+      ],
+      "unitId": "unit_03_archer",
+      "x": 384,
+      "y": 328
+    },
+    {
+      "hp": 15,
+      "team": "blue",
+      "tile": [
+        3,
+        5
+      ],
+      "unitId": "unit_04_mage",
+      "x": 384,
+      "y": 392
+    },
+    {
+      "hp": 22,
+      "team": "red",
+      "tile": [
+        8,
+        3
+      ],
+      "unitId": "m006_revenant_1",
+      "x": 704,
+      "y": 264
+    },
+    {
+      "hp": 22,
+      "team": "red",
+      "tile": [
+        8,
+        5
+      ],
+      "unitId": "m006_revenant_2",
+      "x": 704,
+      "y": 392
+    },
+    {
+      "hp": 24,
+      "team": "red",
+      "tile": [
+        10,
+        4
+      ],
+      "unitId": "m006_barrow_lord",
+      "x": 832,
+      "y": 328
+    }
+  ],
+  "m006_hallowed_bearer_present": true,
+  "m006_plain_axeman_present": true,
+  "forecastText": [
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkCrit = \"Crit 3%\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkDmg = \"Dmg  12×1\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkHP = \"HP 24 / 24\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkHit = \"Hit  84%\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2433 = \"▲ Undead Frailty  +1 Dmg\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkName = \"Free Company Axeman\"",
+    "Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon = \"Iron Axe\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefCrit = \"Crit 0%\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefDmg = \"Dmg  11×1\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefHP = \"HP 22 / 22\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefHit = \"Hit  72%\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefName = \"Revenant\"",
+    "Panel/ForecastScroll/HBox/DefenderBox/DefWeapon = \"Iron Axe\"",
+    "Panel/ForecastScroll/HBox/InfoBox/InfoHint = \"Click any value, or press F, for details. Enter attacks.\"",
+    "Panel/ForecastScroll/HBox/InfoBox/InfoTitle = \"More Info\""
+  ],
+  "browser": {
+    "console": [
+      "[log] Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org",
+      "[log] OpenGL API OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) - Compatibility - Using Device: WebKit - WebKit WebGL",
+      "[log] Build configuration: Emscripten 4.0.20, single-threaded, no GDExtension support.",
+      "[log] === BUILD STAMP ===",
+      "[log] version=0.8.6  commit=997caa93  built_at=2026-09-27T00:34:13Z",
+      "[log] started_at=2026-09-27T02:31:29Z",
+      "[log] exe=index",
+      "[log] user_data_dir=/userfs/godot/app_userdata/Project Prometheus",
+      "[log] log=/userfs/godot/app_userdata/Project Prometheus/logs/godot.log",
+      "[log] === END BUILD STAMP ===",
+      "[log] === RUNTIME ENVIRONMENT ===",
+      "[log] os_name=Web",
+      "[log] os_version=",
+      "[log] os_distribution=",
+      "[log] device_model=GenericDevice",
+      "[log] cpu=",
+      "[log] cpu_threads=2",
+      "[log] locale=en_US",
+      "[log] timezone=UTC-0000 bias_minutes=0",
+      "[log] display_server=web",
+      "[log] rendering_api=OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+      "[log] gpu_name=WebKit WebGL",
+      "[log] gpu_vendor=WebKit",
+      "[log] gpu_type=0",
+      "[log] window_mode=0 window_size=(1280, 720) screen_size=(1280, 720)",
+      "[log] === END RUNTIME ENVIRONMENT ===",
+      "[error] warning: unsupported syscall: __syscall_prlimit64",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"\",\"campaign_id\":\"proving_grounds\",\"event\":\"campaign_restored\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"node_06_hallowed\",\"campaign_id\":\"proving_grounds\",\"event\":\"node_resumed\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"\",\"campaign_id\":\"proving_grounds\",\"event\":\"campaign_restaged\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[log] PLAYTEST CONTEXT {\"active_node_id\":\"node_06_hallowed\",\"campaign_id\":\"proving_grounds\",\"event\":\"node_resumed\",\"node_id\":\"node_06_hallowed\",\"package_id\":\"prometheus-proving-grounds-internal-fe\",\"package_path\":\"user://campaign_packs/installed/prometheus-proving-grounds-internal-fe/0.1.0/08ddad2357ecc3e4\",\"package_version\":\"0.1.0\"}",
+      "[error] WARNING: layer 'shadow' could not resolve asset 'cavalier_shadow': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[error] WARNING: layer 'body' could not resolve asset 'cavalier_unit': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[error] WARNING: layer 'badge' could not resolve asset 'cavalier_badge': missing_asset",
+      "[error]    at: push_warning (core/variant/variant_utility.cpp:1034)",
+      "[warning] [.WebGL-0x185c02b7ce00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x185c02b7ce00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x185c02b7ce00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels",
+      "[warning] [.WebGL-0x185c02b7ce00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    ],
+    "pageErrors": [],
+    "requestFailures": []
+  }
+}

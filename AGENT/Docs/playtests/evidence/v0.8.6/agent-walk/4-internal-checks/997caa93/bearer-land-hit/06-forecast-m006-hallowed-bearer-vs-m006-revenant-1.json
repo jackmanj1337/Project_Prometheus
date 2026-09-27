@@ -1,0 +1,463 @@
+{
+  "label": "forecast m006_hallowed_bearer vs m006_revenant_1",
+  "extra": null,
+  "observed": {
+    "version": 5,
+    "supported": true,
+    "sequence": 225,
+    "engineFrame": 5823,
+    "publishedAtMsec": 116601,
+    "screen": "attack-preview",
+    "modal": "attack-preview",
+    "modalStack": [
+      {
+        "id": "attack-preview",
+        "path": "/root/GameMap/HUDLayer/AttackPreview"
+      }
+    ],
+    "focus": null,
+    "focusHistory": [
+      "Panel/ScrollContainer/Margin/VBox/BtnBack",
+      "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+      "Panel/VBox/BtnImport",
+      "Panel/VBox/HBoxBackup/BtnRestore",
+      "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+      "Panel/VBox/HBoxActions/BtnNewGame",
+      "Panel/VBox/Scroll/Rows/Row_resume_battle/ManageCampaignsButton",
+      "",
+      "/root/GameMap/UnitDetailsLayer/UnitDetailsScreen/Panel/HBox/MainScroll/VBox/BtnBack",
+      "",
+      "VBox/BtnAttack",
+      ""
+    ],
+    "inputMode": {
+      "active": "mouse_keyboard",
+      "lastDetected": "mouse_keyboard"
+    },
+    "viewport": {
+      "h": 720,
+      "w": 1280
+    },
+    "scales": {
+      "content": 1,
+      "contentPreference": 1,
+      "effectiveMenu": 1,
+      "menu": 1,
+      "safe": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      }
+    },
+    "controls": [
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkName",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHP",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkDmg",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHit",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkCrit",
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2479",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefName",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefWeapon",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHP",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefDmg",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHit",
+      "Panel/ForecastScroll/HBox/DefenderBox/DefCrit",
+      "Panel/ForecastScroll/HBox/InfoBox/InfoDescription"
+    ],
+    "textEntry": {
+      "active": false,
+      "consumer": "",
+      "generation": 0,
+      "mode": "",
+      "presenterRect": null,
+      "semanticTransitions": 0,
+      "targetPath": "",
+      "targetRect": null,
+      "targetText": "",
+      "text": ""
+    },
+    "activePackage": {
+      "packageId": "prometheus-proving-grounds-internal-fe",
+      "packageVersion": "0.1.0"
+    },
+    "newGameEntries": {
+      "offered": [],
+      "selected": -1
+    },
+    "activeCampaign": {
+      "activeNodeId": "node_06_hallowed",
+      "campaignId": "proving_grounds",
+      "clearedNodeIds": [
+        "node_01_rout",
+        "node_02_seize",
+        "node_03_boss",
+        "node_04_escape",
+        "node_05_defend"
+      ],
+      "currentNodeId": "node_06_hallowed",
+      "mapLive": true
+    },
+    "importResult": {},
+    "importDiagnostics": [],
+    "map": {
+      "cursorState": "targeting",
+      "cursorTile": [
+        8,
+        3
+      ],
+      "origin": {
+        "x": 192,
+        "y": 72
+      },
+      "step": {
+        "x": 64,
+        "y": 64
+      },
+      "units": [
+        {
+          "hp": 24,
+          "team": "blue",
+          "tile": [
+            7,
+            3
+          ],
+          "unitId": "m006_hallowed_bearer",
+          "x": 640,
+          "y": 264
+        },
+        {
+          "hp": 22,
+          "team": "red",
+          "tile": [
+            8,
+            3
+          ],
+          "unitId": "m006_revenant_1",
+          "x": 704,
+          "y": 264
+        }
+      ]
+    },
+    "rects": {
+      "Panel": {
+        "h": 230,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 976,
+        "x": 288,
+        "y": 18
+      },
+      "Panel/ForecastScroll": {
+        "h": 202,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 948,
+        "x": 302,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox": {
+        "h": 194,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 948,
+        "x": 302,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox": {
+        "h": 194,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkCrit": {
+        "h": 23,
+        "text": "Crit 3%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 167
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkDmg": {
+        "h": 23,
+        "text": "Dmg  15×1",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 113
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHP": {
+        "h": 23,
+        "text": "HP 24 / 24",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 86
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkHit": {
+        "h": 23,
+        "text": "Hit  89%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 140
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions": {
+        "h": 21,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 194
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2479": {
+        "h": 21,
+        "text": "▲ Hallowed Rites  +5 Dmg",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 194
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkName": {
+        "h": 23,
+        "text": "Hallowed Bearer",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/AttackerBox/AtkWeapon": {
+        "h": 23,
+        "text": "Hallowed Scythe",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 302,
+        "y": 59
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox": {
+        "h": 194,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefCrit": {
+        "h": 23,
+        "text": "Crit 0%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 167
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefDmg": {
+        "h": 23,
+        "text": "Dmg  11×1",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 113
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHP": {
+        "h": 23,
+        "text": "HP 22 / 22",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 86
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefHit": {
+        "h": 23,
+        "text": "Hit  70%",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 140
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions": {
+        "h": 0,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 194
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefName": {
+        "h": 23,
+        "text": "Revenant",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/DefenderBox/DefWeapon": {
+        "h": 23,
+        "text": "Iron Axe",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 626,
+        "y": 59
+      },
+      "Panel/ForecastScroll/HBox/InfoBox": {
+        "h": 194,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 950,
+        "y": 32
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoDescription": {
+        "h": 144,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 300,
+        "x": 950,
+        "y": 82
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoHint": {
+        "h": 19,
+        "text": "Click any value, or press F, for details. Enter attacks.",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 293,
+          "minimumHeight": 19,
+          "minimumWidth": 1,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 950,
+        "y": 57
+      },
+      "Panel/ForecastScroll/HBox/InfoBox/InfoTitle": {
+        "h": 19,
+        "text": "More Info",
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "truncation": {
+          "availableHeight": 19,
+          "availableWidth": 300,
+          "fits": true,
+          "lineCount": 1,
+          "measuredTextHeight": 17,
+          "measuredTextWidth": 49,
+          "minimumHeight": 19,
+          "minimumWidth": 49,
+          "overrunBehavior": 0,
+          "visibleLineCount": 1
+        },
+        "w": 300,
+        "x": 950,
+        "y": 32
+      }
+    },
+    "frame": {
+      "path": "Panel",
+      "rect": {
+        "h": 230,
+        "theme": {
+          "owner": "/root/GameMap/HUDLayer/AttackPreview",
+          "resource": "res://assets/themes/manasoul_ui.tres",
+          "source": "control"
+        },
+        "w": 976,
+        "x": 288,
+        "y": 18
+      }
+    }
+  }
+}
