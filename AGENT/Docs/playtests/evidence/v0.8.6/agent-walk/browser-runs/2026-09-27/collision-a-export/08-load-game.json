@@ -1,0 +1,436 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 119,
+  "engineFrame": 2391,
+  "publishedAtMsec": 63722,
+  "screen": "load-game",
+  "modal": "load-game",
+  "modalStack": [
+    {
+      "id": "load-game",
+      "path": "/root/MainMenu/LoadGameScreen"
+    }
+  ],
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+    "text": "Resume battle\nResume battle — Turn 1\n6 units · 0G · 2026-09-27 00:09"
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "Panel/Scroll/VBox/BtnStart",
+    "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900",
+    "",
+    "Panel/VBox/EndTurnButton",
+    "",
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 1,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton",
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton",
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton",
+    "Panel/VBox/BtnImport",
+    "Panel/VBox/BtnBack"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [
+      {
+        "author_id": "project_prometheus",
+        "campaign_id": "proving_grounds",
+        "campaign_version": "1.0.0",
+        "index": 0,
+        "label": "The Proving Grounds — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_000_drill",
+        "campaign_version": "1.0.0",
+        "index": 1,
+        "label": "Map 000 - Drill Yard — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001",
+        "campaign_version": "1.0.0",
+        "index": 2,
+        "label": "Map 001 - Rout — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001_c3_factions",
+        "campaign_version": "1.0.0",
+        "index": 3,
+        "label": "Map 001 - Faction Demo — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_002_seize",
+        "campaign_version": "1.0.0",
+        "index": 4,
+        "label": "Map 002 - Seize — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_003_defeat_boss",
+        "campaign_version": "1.0.0",
+        "index": 5,
+        "label": "Map 003 - Defeat Boss — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_004_escape",
+        "campaign_version": "1.0.0",
+        "index": 6,
+        "label": "Map 004 - Escape — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_005_defend",
+        "campaign_version": "1.0.0",
+        "index": 7,
+        "label": "Map 005 - Defend — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_900_hotseat_validation",
+        "campaign_version": "1.0.0",
+        "index": 8,
+        "label": "Map 900 - Hotseat Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_950_promotion_validation",
+        "campaign_version": "1.0.0",
+        "index": 9,
+        "label": "Map 950 - Promotion Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      }
+    ],
+    "popup": {
+      "visible": false
+    },
+    "selected": 0
+  },
+  "activeCampaign": {
+    "activeNodeId": "node_00_drill",
+    "campaignId": "proving_grounds",
+    "clearedNodeIds": [],
+    "currentNodeId": "node_00_drill",
+    "mapLive": false
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Dimmer": {
+      "h": 720,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Panel": {
+      "h": 360,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 480,
+      "x": 400,
+      "y": 180
+    },
+    "Panel/VBox": {
+      "h": 328,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 444,
+      "x": 418,
+      "y": 196
+    },
+    "Panel/VBox/BtnBack": {
+      "h": 33,
+      "text": "Back",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 444,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 52,
+        "overrunBehavior": 0
+      },
+      "w": 444,
+      "x": 418,
+      "y": 491
+    },
+    "Panel/VBox/BtnImport": {
+      "h": 33,
+      "semanticId": "campaign.import",
+      "text": "Import Save...",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 444,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 72,
+        "minimumHeight": 33,
+        "minimumWidth": 100,
+        "overrunBehavior": 0
+      },
+      "w": 444,
+      "x": 418,
+      "y": 446
+    },
+    "Panel/VBox/HSep": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 444,
+      "x": 418,
+      "y": 430
+    },
+    "Panel/VBox/Scroll": {
+      "h": 181,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 444,
+      "x": 418,
+      "y": 237
+    },
+    "Panel/VBox/Scroll/Rows": {
+      "h": 104,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 444,
+      "x": 418,
+      "y": 237
+    },
+    "Panel/VBox/Scroll/Rows/Row_resume_battle": {
+      "h": 73,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 444,
+      "x": 418,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/DeleteButton": {
+      "h": 73,
+      "text": "Delete",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 33,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      },
+      "w": 60,
+      "x": 737,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/ExportButton": {
+      "h": 73,
+      "text": "Export",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      },
+      "w": 61,
+      "x": 801,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_resume_battle/LoadButton": {
+      "h": 73,
+      "text": "Resume battle\nResume battle — Turn 1\n6 units · 0G · 2026-09-27 00:09",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 315,
+        "fits": true,
+        "measuredTextHeight": 59,
+        "measuredTextWidth": 231,
+        "minimumHeight": 73,
+        "minimumWidth": 259,
+        "overrunBehavior": 0
+      },
+      "w": 315,
+      "x": 418,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/SaveGroupLabel": {
+      "h": 23,
+      "text": "prometheus-proving-grounds v0.1.0 — proving_grounds",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 23,
+        "availableWidth": 444,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 23,
+        "measuredTextWidth": 332,
+        "minimumHeight": 23,
+        "minimumWidth": 332,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 444,
+      "x": 418,
+      "y": 237
+    },
+    "Panel/VBox/TitleLabel": {
+      "h": 29,
+      "text": "Load Game",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 29,
+        "availableWidth": 444,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 24,
+        "measuredTextWidth": 86,
+        "minimumHeight": 29,
+        "minimumWidth": 86,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 444,
+      "x": 418,
+      "y": 196
+    }
+  },
+  "frame": {
+    "path": "Panel",
+    "rect": {
+      "h": 360,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 480,
+      "x": 400,
+      "y": 180
+    }
+  }
+}

@@ -1,0 +1,532 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 76,
+  "engineFrame": 1346,
+  "publishedAtMsec": 40662,
+  "screen": "prep",
+  "modal": "prep",
+  "modalStack": [
+    {
+      "id": "prep",
+      "path": "/root/PrepScreen"
+    }
+  ],
+  "focus": {
+    "path": "Margin/VBox/Scroll/Rows/Unit_alden/@CheckButton@1900",
+    "text": "Alden"
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "Panel/Scroll/VBox/BtnStart",
+    "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "Margin/VBox/Scroll/Rows/Unit_alden/@CheckButton@1900"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 1,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "Margin/VBox/Scroll/Rows/Unit_alden/@CheckButton@1900",
+    "Margin/VBox/Scroll/Rows/Unit_alden/@Button@1902",
+    "Margin/VBox/Scroll/Rows/Unit_alden/@Button@1903",
+    "Margin/VBox/Scroll/Rows/Unit_mira/@CheckButton@1904",
+    "Margin/VBox/Scroll/Rows/Unit_mira/@Button@1906",
+    "Margin/VBox/Scroll/Rows/Unit_mira/@Button@1907",
+    "Margin/VBox/SaveBox/SaveButton",
+    "Margin/VBox/Actions/BeginButton"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "v076_migration_fixture",
+    "packageVersion": "1.0.0"
+  },
+  "newGameEntries": {
+    "offered": [],
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "crossroads",
+    "campaignId": "two_map_skirmish",
+    "clearedNodeIds": [],
+    "currentNodeId": "crossroads",
+    "mapLive": false
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 720,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Margin": {
+      "h": 624,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox": {
+      "h": 624,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox/Actions": {
+      "h": 44,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 628
+    },
+    "Margin/VBox/Actions/BeginButton": {
+      "h": 44,
+      "text": "Begin Battle",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 44,
+        "availableWidth": 240,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 66,
+        "minimumHeight": 44,
+        "minimumWidth": 240,
+        "overrunBehavior": 0
+      },
+      "w": 240,
+      "x": 520,
+      "y": 628
+    },
+    "Margin/VBox/HSeparator": {
+      "h": 4,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 542
+    },
+    "Margin/VBox/RulesSummary": {
+      "h": 93,
+      "text": "Rules (read only): Auto Promote At Max Level: false · Autosave Rules: 1 · Battle Result Actions: 2 · Death Mode: casual · Exp Gaining Factions: 2 · Exposed Tunables: none · Hit Formula: two_roll · Interaction Profiles: none · Leveling Method: growth_random · Max Inventory: 8 · Max Skills: 5 · Pair Up Enabled: true · Profile Selections: none · Pxp Profiles: none · Requirement Depth Budget: 16 · Requirement Node Budget: 128 · Rewind Charges Per Map: 4 · Rewind Cost Mode: full_history · Save Slot Classes: 2 · Undo Activations: -1 · Undo Rounds: 0 · Value Term Depth Budget: 16 · Value Term Node Budget: 128",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 93,
+        "availableWidth": 960,
+        "fits": false,
+        "lineCount": 4,
+        "measuredTextHeight": 21,
+        "measuredTextWidth": 3443,
+        "minimumHeight": 93,
+        "minimumWidth": 1,
+        "overrunBehavior": 0,
+        "visibleLineCount": 4
+      },
+      "w": 960,
+      "x": 160,
+      "y": 127
+    },
+    "Margin/VBox/SaveBox": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 558
+    },
+    "Margin/VBox/SaveBox/SaveButton": {
+      "h": 27,
+      "text": "Save",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 960,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 27,
+        "minimumWidth": 32,
+        "overrunBehavior": 0
+      },
+      "w": 960,
+      "x": 160,
+      "y": 558
+    },
+    "Margin/VBox/SaveStatus": {
+      "h": 19,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 597
+    },
+    "Margin/VBox/Scroll": {
+      "h": 267,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows": {
+      "h": 60,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows/Unit_alden": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows/Unit_alden/@Button@1902": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 21,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 13,
+        "minimumHeight": 27,
+        "minimumWidth": 21,
+        "overrunBehavior": 0
+      },
+      "w": 21,
+      "x": 1060,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows/Unit_alden/@Button@1903": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 35,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 27,
+        "minimumWidth": 35,
+        "overrunBehavior": 0
+      },
+      "w": 35,
+      "x": 1085,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows/Unit_alden/@CheckButton@1900": {
+      "h": 27,
+      "text": "Alden",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 747,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 27,
+        "minimumWidth": 75,
+        "overrunBehavior": 0
+      },
+      "w": 747,
+      "x": 160,
+      "y": 232
+    },
+    "Margin/VBox/Scroll/Rows/Unit_alden/@Label@1901": {
+      "h": 19,
+      "text": "Start 1  (1, 7)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 96,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 911,
+      "y": 236
+    },
+    "Margin/VBox/Scroll/Rows/Unit_mira": {
+      "h": 27,
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "w": 960,
+      "x": 160,
+      "y": 265
+    },
+    "Margin/VBox/Scroll/Rows/Unit_mira/@Button@1906": {
+      "h": 27,
+      "text": "Up",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 21,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 13,
+        "minimumHeight": 27,
+        "minimumWidth": 21,
+        "overrunBehavior": 0
+      },
+      "w": 21,
+      "x": 1060,
+      "y": 265
+    },
+    "Margin/VBox/Scroll/Rows/Unit_mira/@Button@1907": {
+      "h": 27,
+      "text": "Down",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 35,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 27,
+        "minimumWidth": 35,
+        "overrunBehavior": 0
+      },
+      "w": 35,
+      "x": 1085,
+      "y": 265
+    },
+    "Margin/VBox/Scroll/Rows/Unit_mira/@CheckButton@1904": {
+      "h": 27,
+      "text": "Mira",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 747,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 27,
+        "minimumWidth": 69,
+        "overrunBehavior": 0
+      },
+      "w": 747,
+      "x": 160,
+      "y": 265
+    },
+    "Margin/VBox/Scroll/Rows/Unit_mira/@Label@1905": {
+      "h": 19,
+      "text": "Start 2  (2, 7)",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 145,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 102,
+        "minimumHeight": 19,
+        "minimumWidth": 145,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 145,
+      "x": 911,
+      "y": 269
+    },
+    "Margin/VBox/Summary": {
+      "h": 19,
+      "text": "Choose up to 2 units. Deployment order maps to the numbered start tiles.",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 401,
+        "minimumHeight": 19,
+        "minimumWidth": 401,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 96
+    },
+    "Margin/VBox/Title": {
+      "h": 36,
+      "text": "Chapter 1 - The Crossroads",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 36,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 30,
+        "measuredTextWidth": 291,
+        "minimumHeight": 36,
+        "minimumWidth": 291,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 48
+    },
+    "Margin/VBox/Validation": {
+      "h": 19,
+      "text": "Ready to begin.",
+      "theme": {
+        "owner": "ThemeDB",
+        "resource": "<built-in>",
+        "source": "theme-db-default"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 960,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 78,
+        "minimumHeight": 19,
+        "minimumWidth": 78,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 960,
+      "x": 160,
+      "y": 511
+    }
+  },
+  "frame": null
+}

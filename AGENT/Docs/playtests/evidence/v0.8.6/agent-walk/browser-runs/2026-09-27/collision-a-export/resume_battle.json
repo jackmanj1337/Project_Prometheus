@@ -1,0 +1,4207 @@
+{
+	"_warning": "This is a human-readable campaign save. Editing may cause invalid or unintended game state.",
+	"campaign": {
+		"active_mid_map_overrides": {
+
+		},
+		"cadence": {
+			"active": {
+
+			},
+			"counters": {
+				"deployments_total": 1.0
+			},
+			"last_fired": {
+
+			},
+			"latched": {
+
+			},
+			"ticks": {
+
+			}
+		},
+		"campaign_id": "proving_grounds",
+		"cleared_nodes": [],
+		"content_fingerprint": "sha256:44ec1e37a2aae777afce6f1ca9ee7e0af9a3283aefa109581cf3aac609d12956",
+		"content_schema_version": 1,
+		"flags": [],
+		"key_item_custody": {
+
+		},
+		"mutable_state": {
+			"carry_forward_facts": {
+
+			},
+			"imported_record_ref": {
+
+			},
+			"rule_patches": []
+		},
+		"node_id": "node_00_drill",
+		"package_id": "prometheus-proving-grounds",
+		"package_version": "0.1.0",
+		"per_map_overrides": {
+
+		},
+		"protected_fields": [],
+		"pvp": null,
+		"recruited_flags": [],
+		"relationship_graph": {
+
+		},
+		"rules": {
+			"auto_promote_at_max_level": false,
+			"autosave_rules": [
+				{
+					"consumed_on_load": false,
+					"keep": 1,
+					"label": "Campaign Autosave",
+					"rule_id": "campaign_progress",
+					"trigger": "battle_end"
+				}
+			],
+			"battle_result_actions": {
+				"defeat": {
+					"load": true,
+					"quit": true,
+					"reload": true,
+					"retry": true,
+					"rewind": true
+				},
+				"victory": {
+					"continue": true,
+					"quit": true,
+					"retry": true,
+					"save": true
+				}
+			},
+			"death_mode": "casual",
+			"exp_gaining_factions": [
+				"blue",
+				"green"
+			],
+			"exposed_tunables": {
+
+			},
+			"hit_formula": "two_roll",
+			"interaction_profiles": [
+				{
+					"context": "combat",
+					"presentation": {
+						"display_order": 10.0,
+						"label_key": "interaction.weapon_triangle"
+					},
+					"priority": 100.0,
+					"profile_id": "weapon_triangle",
+					"rules": [
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "axe_vs_lance",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "axe"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "lance"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "axe_vs_sword",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "axe"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "sword"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "dark_vs_fire",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "fire"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "dark_vs_light",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "dark_vs_thunder",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "thunder"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "dark_vs_wind",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "wind"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "fire_vs_dark",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "fire"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "fire_vs_light",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "fire"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "lance_vs_axe",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "lance"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "axe"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "lance_vs_sword",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "lance"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "sword"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "light_vs_dark",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "light_vs_fire",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "fire"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "light_vs_thunder",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "thunder"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "light_vs_wind",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "wind"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "sword_vs_axe",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "sword"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "axe"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "sword_vs_lance",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "sword"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "lance"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "thunder_vs_dark",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "thunder"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "thunder_vs_light",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "thunder"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 10.0
+											}
+										]
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"op": "neg",
+										"operands": [
+											{
+												"literal": 2.0
+											}
+										]
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "wind_vs_dark",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "wind"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "dark"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_accuracy_modifier",
+									"magnitude": {
+										"literal": 10.0
+									},
+									"target": "source"
+								},
+								{
+									"composition_id": "combat_damage_modifier",
+									"magnitude": {
+										"literal": 2.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "wind_vs_light",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "wind"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_source"
+										}
+									},
+									{
+										"params": {
+											"id": "light"
+										},
+										"predicate_id": "has_trait",
+										"subject": {
+											"kind": "equipped_target"
+										}
+									}
+								],
+								"op": "all"
+							}
+						}
+					],
+					"stack_group": "weapon_triangle",
+					"stack_policy": "highest",
+					"stops_below": false,
+					"subjects": [
+						"source",
+						"target",
+						"equipped_source",
+						"equipped_target"
+					]
+				},
+				{
+					"context": "combat",
+					"presentation": {
+						"display_order": 20.0,
+						"label_key": "interaction.weapon_effectiveness"
+					},
+					"priority": 200.0,
+					"profile_id": "weapon_effectiveness",
+					"rules": [
+						{
+							"effects": [
+								{
+									"composition_id": "combat_might_multiplier",
+									"magnitude": {
+										"literal": 300.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "effective_weapon",
+							"when": {
+								"children": [
+									{
+										"children": [
+											{
+												"params": {
+													"id": "effective_flying"
+												},
+												"predicate_id": "has_trait",
+												"subject": {
+													"kind": "equipped_source"
+												}
+											},
+											{
+												"params": {
+													"id": "flying"
+												},
+												"predicate_id": "has_vulnerability",
+												"subject": {
+													"kind": "target"
+												}
+											}
+										],
+										"op": "all"
+									},
+									{
+										"children": [
+											{
+												"params": {
+													"id": "effective_armoured"
+												},
+												"predicate_id": "has_trait",
+												"subject": {
+													"kind": "equipped_source"
+												}
+											},
+											{
+												"params": {
+													"id": "armoured"
+												},
+												"predicate_id": "has_vulnerability",
+												"subject": {
+													"kind": "target"
+												}
+											}
+										],
+										"op": "all"
+									},
+									{
+										"children": [
+											{
+												"params": {
+													"id": "effective_mounted"
+												},
+												"predicate_id": "has_trait",
+												"subject": {
+													"kind": "equipped_source"
+												}
+											},
+											{
+												"params": {
+													"id": "mounted"
+												},
+												"predicate_id": "has_vulnerability",
+												"subject": {
+													"kind": "target"
+												}
+											}
+										],
+										"op": "all"
+									},
+									{
+										"children": [
+											{
+												"params": {
+													"id": "effective_dragon"
+												},
+												"predicate_id": "has_trait",
+												"subject": {
+													"kind": "equipped_source"
+												}
+											},
+											{
+												"params": {
+													"id": "dragon"
+												},
+												"predicate_id": "has_vulnerability",
+												"subject": {
+													"kind": "target"
+												}
+											}
+										],
+										"op": "all"
+									},
+									{
+										"children": [
+											{
+												"params": {
+													"id": "effective_beast"
+												},
+												"predicate_id": "has_trait",
+												"subject": {
+													"kind": "equipped_source"
+												}
+											},
+											{
+												"params": {
+													"id": "beast"
+												},
+												"predicate_id": "has_vulnerability",
+												"subject": {
+													"kind": "target"
+												}
+											}
+										],
+										"op": "all"
+									}
+								],
+								"op": "any"
+							}
+						},
+						{
+							"effects": [
+								{
+									"composition_id": "combat_might_multiplier",
+									"magnitude": {
+										"literal": 400.0
+									},
+									"target": "source"
+								}
+							],
+							"rule_id": "giantkiller",
+							"when": {
+								"children": [
+									{
+										"params": {
+											"id": "giantkiller"
+										},
+										"predicate_id": "has_skill",
+										"subject": {
+											"kind": "source"
+										}
+									},
+									{
+										"children": [
+											{
+												"children": [
+													{
+														"params": {
+															"id": "effective_flying"
+														},
+														"predicate_id": "has_trait",
+														"subject": {
+															"kind": "equipped_source"
+														}
+													},
+													{
+														"params": {
+															"id": "flying"
+														},
+														"predicate_id": "has_vulnerability",
+														"subject": {
+															"kind": "target"
+														}
+													}
+												],
+												"op": "all"
+											},
+											{
+												"children": [
+													{
+														"params": {
+															"id": "effective_armoured"
+														},
+														"predicate_id": "has_trait",
+														"subject": {
+															"kind": "equipped_source"
+														}
+													},
+													{
+														"params": {
+															"id": "armoured"
+														},
+														"predicate_id": "has_vulnerability",
+														"subject": {
+															"kind": "target"
+														}
+													}
+												],
+												"op": "all"
+											},
+											{
+												"children": [
+													{
+														"params": {
+															"id": "effective_mounted"
+														},
+														"predicate_id": "has_trait",
+														"subject": {
+															"kind": "equipped_source"
+														}
+													},
+													{
+														"params": {
+															"id": "mounted"
+														},
+														"predicate_id": "has_vulnerability",
+														"subject": {
+															"kind": "target"
+														}
+													}
+												],
+												"op": "all"
+											},
+											{
+												"children": [
+													{
+														"params": {
+															"id": "effective_dragon"
+														},
+														"predicate_id": "has_trait",
+														"subject": {
+															"kind": "equipped_source"
+														}
+													},
+													{
+														"params": {
+															"id": "dragon"
+														},
+														"predicate_id": "has_vulnerability",
+														"subject": {
+															"kind": "target"
+														}
+													}
+												],
+												"op": "all"
+											},
+											{
+												"children": [
+													{
+														"params": {
+															"id": "effective_beast"
+														},
+														"predicate_id": "has_trait",
+														"subject": {
+															"kind": "equipped_source"
+														}
+													},
+													{
+														"params": {
+															"id": "beast"
+														},
+														"predicate_id": "has_vulnerability",
+														"subject": {
+															"kind": "target"
+														}
+													}
+												],
+												"op": "all"
+											}
+										],
+										"op": "any"
+									}
+								],
+								"op": "all"
+							}
+						}
+					],
+					"stack_group": "weapon_effectiveness",
+					"stack_policy": "highest",
+					"stops_below": false,
+					"subjects": [
+						"source",
+						"target",
+						"equipped_source",
+						"equipped_target"
+					]
+				}
+			],
+			"leveling_method": "growth_random",
+			"mandated_rules": [],
+			"max_inventory": 8,
+			"max_skills": 5,
+			"pair_up_enabled": true,
+			"profile_selections": {
+
+			},
+			"pxp_profiles": {
+
+			},
+			"requirement_depth_budget": 16,
+			"requirement_node_budget": 128,
+			"rewind_charges_per_map": 4,
+			"rewind_cost_mode": "per_activation",
+			"save_slot_classes": [
+				{
+					"accepts": "between_map",
+					"consumed_on_load": false,
+					"count": 3,
+					"label": "Campaign Save"
+				},
+				{
+					"accepts": "mid_map",
+					"consumed_on_load": true,
+					"count": 1,
+					"label": "Suspend"
+				}
+			],
+			"undo_activations": 0,
+			"undo_rounds": 0,
+			"value_term_depth_budget": 16,
+			"value_term_node_budget": 128
+		},
+		"vars": {
+			"_runtime_map_casualties": []
+		}
+	},
+	"format_version": 2,
+	"header": {
+		"badges": [],
+		"campaign_id": "proving_grounds",
+		"campaign_state": "in_progress",
+		"chapter_name": "",
+		"last_saved": "",
+		"map_id": "campaign-pack://prometheus-proving-grounds/0.1.0/map_000_drill",
+		"map_name": "",
+		"node_id": "node_00_drill",
+		"package_id": "prometheus-proving-grounds",
+		"package_version": "0.1.0",
+		"party": {
+			"count": 6,
+			"gold": 0,
+			"lord": ""
+		},
+		"playtime_seconds": 0.0,
+		"progress": "",
+		"save_kind": "mid_map",
+		"turn_number": 1
+	},
+	"integrity": {
+		"payload_hash": "54238b4db96f2afaa5d01c7d8b770411b0def53a43ab8f2f90f4e7eb6079a5b0",
+		"schema_hash": "d12f17c1f60e49f821b5e158c14ae401df76e51794799281a90c5d76b469f94c"
+	},
+	"ledger": [
+		{
+			"entry": {
+				"campaign_rules_state": {
+					"active_mid_map_overrides": {
+
+					},
+					"mutable_state": {
+						"carry_forward_facts": {
+
+						},
+						"imported_record_ref": {
+
+						},
+						"rule_patches": []
+					},
+					"per_map_overrides": {
+
+					}
+				},
+				"map_runtime": {
+					"battalion_charges": {
+
+					},
+					"discovered_units": [],
+					"dropped_items": [],
+					"events_fired": [],
+					"flags": [],
+					"key_item_custody": {
+
+					},
+					"map_id": "campaign-pack://prometheus-proving-grounds/0.1.0/map_000_drill",
+					"map_path": "campaign-pack://prometheus-proving-grounds/0.1.0/map_000_drill",
+					"objective_latches": {
+
+					},
+					"objects": {
+
+					},
+					"pair_carry": {
+						"pair_up": {
+
+						}
+					},
+					"relationship_gain_counters": {
+
+					},
+					"relationship_overrides": {
+
+					},
+					"rewind_charges_left": 4.0,
+					"rng": {
+						"history_hash": "0",
+						"map_seed": "-315011459279940106"
+					},
+					"turn": {
+						"activation_mode": "WHOLE_PHASE",
+						"active_faction": "",
+						"active_faction_idx": 0,
+						"escape_records": [],
+						"group_eliminated_round": {
+
+						},
+						"phase": "player",
+						"seize_records": [],
+						"turn_number": 1,
+						"turn_order": [],
+						"unit_states": {
+
+						}
+					},
+					"units": [
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": true,
+							"class_id": "cavalier",
+							"class_line_id": "cavalier",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 8.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 6.0,
+							"earned_skills": [
+								"discipline"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 25.0,
+								"hp": 50.0,
+								"luck": 40.0,
+								"magic": 0.0,
+								"resistance": 15.0,
+								"skill": 35.0,
+								"speed": 35.0,
+								"strength": 40.0
+							},
+							"hp": 17.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "iron_lance",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "horseslayer",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": -1.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 6.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 17.0,
+							"movement": 7.0,
+							"reclass_options": [
+								"cavalier",
+								"knight",
+								"mercenary"
+							],
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 6.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"discipline"
+							],
+							"speed": 6.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 3.0
+							},
+							"unit_id": "unit_01_cavalier",
+							"unit_name": "Unit_01",
+							"weapon_wexp": {
+								"lance": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "mercenary",
+							"class_line_id": "mercenary",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 8.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 5.0,
+							"earned_skills": [
+								"vantage",
+								"swordfaire",
+								"armsthrift"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 20.0,
+								"hp": 55.0,
+								"luck": 35.0,
+								"magic": 0.0,
+								"resistance": 15.0,
+								"skill": 45.0,
+								"speed": 45.0,
+								"strength": 45.0
+							},
+							"hp": 18.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_sword",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 4.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 18.0,
+							"movement": 6.0,
+							"reclass_options": [
+								"mercenary",
+								"cavalier",
+								"archer"
+							],
+							"resistance": 2.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"vantage",
+								"swordfaire",
+								"armsthrift"
+							],
+							"speed": 7.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 4.0
+							},
+							"unit_id": "unit_02_mercenary",
+							"unit_name": "Unit_02",
+							"weapon_wexp": {
+								"sword": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "archer",
+							"class_line_id": "archer",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 6.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 4.0,
+							"earned_skills": [
+								"bowfaire",
+								"skill_plus_2"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 20.0,
+								"hp": 50.0,
+								"luck": 35.0,
+								"magic": 0.0,
+								"resistance": 20.0,
+								"skill": 50.0,
+								"speed": 40.0,
+								"strength": 45.0
+							},
+							"hp": 17.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_bow",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 17.0,
+							"movement": 6.0,
+							"reclass_options": [
+								"archer",
+								"mercenary",
+								"mage"
+							],
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 9.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"bowfaire",
+								"skill_plus_2"
+							],
+							"speed": 7.0,
+							"strength": 6.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 5.0
+							},
+							"unit_id": "unit_03_archer",
+							"unit_name": "Unit_03",
+							"weapon_wexp": {
+								"bow": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "mage",
+							"class_line_id": "mage",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 5.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 1.0,
+							"earned_skills": [
+								"wrath",
+								"magic_plus_2"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 15.0,
+								"hp": 45.0,
+								"luck": 40.0,
+								"magic": 50.0,
+								"resistance": 35.0,
+								"skill": 40.0,
+								"speed": 40.0,
+								"strength": 0.0
+							},
+							"hp": 15.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 40.0,
+									"weapon_id": "fire",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 5.0,
+							"magic": 7.0,
+							"mastery_skills": [],
+							"max_hp": 15.0,
+							"movement": 6.0,
+							"reclass_options": [
+								"mage",
+								"archer",
+								"cleric"
+							],
+							"resistance": 8.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"wrath",
+								"magic_plus_2"
+							],
+							"speed": 6.0,
+							"strength": 1.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 3.0
+							},
+							"unit_id": "unit_04_mage",
+							"unit_name": "Unit_04",
+							"weapon_wexp": {
+								"elemental_magic": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "cleric",
+							"class_line_id": "cleric",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 6.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 3.0,
+							"earned_skills": [
+								"renewal",
+								"miracle"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 15.0,
+								"hp": 45.0,
+								"luck": 50.0,
+								"magic": 45.0,
+								"resistance": 40.0,
+								"skill": 35.0,
+								"speed": 35.0,
+								"strength": 0.0
+							},
+							"hp": 16.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 40.0,
+									"weapon_id": "heal_staff",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 6.0,
+							"magic": 5.0,
+							"mastery_skills": [],
+							"max_hp": 16.0,
+							"movement": 6.0,
+							"reclass_options": [
+								"cleric",
+								"mage",
+								"knight"
+							],
+							"resistance": 9.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"renewal",
+								"miracle"
+							],
+							"speed": 6.0,
+							"strength": 1.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 4.0
+							},
+							"unit_id": "unit_05_cleric",
+							"unit_name": "Unit_05",
+							"weapon_wexp": {
+								"light": 0.0,
+								"staff": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "knight",
+							"class_line_id": "knight",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 15.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 12.0,
+							"earned_skills": [
+								"resolve",
+								"defense_plus_2"
+							],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+								"defense": 45.0,
+								"hp": 65.0,
+								"luck": 30.0,
+								"magic": 0.0,
+								"resistance": 15.0,
+								"skill": 30.0,
+								"speed": 20.0,
+								"strength": 45.0
+							},
+							"hp": 21.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_lance",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 2.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 21.0,
+							"movement": 5.0,
+							"reclass_options": [
+								"knight",
+								"cavalier",
+								"cleric"
+							],
+							"resistance": 0.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"resolve",
+								"defense_plus_2"
+							],
+							"speed": 3.0,
+							"strength": 9.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 5.0
+							},
+							"unit_id": "unit_06_knight",
+							"unit_name": "Unit_06",
+							"weapon_wexp": {
+								"lance": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "soldier",
+							"class_line_id": "soldier",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 8.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 0.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "red",
+							"gold": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 1.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_lance",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 4.0,
+							"luck": 0.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 1.0,
+							"movement": 4.0,
+							"reclass_options": [],
+							"resistance": 0.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 1.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 1.0,
+							"strength": 1.0,
+							"tile_position": {
+								"x": 8.0,
+								"y": 4.0
+							},
+							"unit_id": "e0_training_dummy",
+							"unit_name": "Training Dummy",
+							"weapon_wexp": {
+								"lance": 100.0
+							}
+						}
+					],
+					"vars": {
+
+					}
+				},
+				"party": {
+					"gold": 0.0,
+					"items": [],
+					"roster": [
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "cavalier",
+							"class_line_id": "cavalier",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 6.0,
+							"earned_skills": [
+								"discipline"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 17.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "iron_lance",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "horseslayer",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": -1.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 6.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 17.0,
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"skill": 6.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"discipline"
+							],
+							"speed": 6.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 3.0
+							},
+							"weapon_wexp": {
+								"lance": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "mercenary",
+							"class_line_id": "mercenary",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 5.0,
+							"earned_skills": [
+								"vantage",
+								"swordfaire",
+								"armsthrift"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 18.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_sword",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 4.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 18.0,
+							"resistance": 2.0,
+							"shift_gauge": 0.0,
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"vantage",
+								"swordfaire",
+								"armsthrift"
+							],
+							"speed": 7.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 4.0
+							},
+							"weapon_wexp": {
+								"sword": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "archer",
+							"class_line_id": "archer",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 4.0,
+							"earned_skills": [
+								"bowfaire",
+								"skill_plus_2"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 17.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_bow",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 17.0,
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"skill": 9.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"bowfaire",
+								"skill_plus_2"
+							],
+							"speed": 7.0,
+							"strength": 6.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 5.0
+							},
+							"weapon_wexp": {
+								"bow": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "mage",
+							"class_line_id": "mage",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 1.0,
+							"earned_skills": [
+								"wrath",
+								"magic_plus_2"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 15.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 40.0,
+									"weapon_id": "fire",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 5.0,
+							"magic": 7.0,
+							"mastery_skills": [],
+							"max_hp": 15.0,
+							"resistance": 8.0,
+							"shift_gauge": 0.0,
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"wrath",
+								"magic_plus_2"
+							],
+							"speed": 6.0,
+							"strength": 1.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 3.0
+							},
+							"weapon_wexp": {
+								"elemental_magic": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "cleric",
+							"class_line_id": "cleric",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 3.0,
+							"earned_skills": [
+								"renewal",
+								"miracle"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 16.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 40.0,
+									"weapon_id": "heal_staff",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 6.0,
+							"magic": 5.0,
+							"mastery_skills": [],
+							"max_hp": 16.0,
+							"resistance": 9.0,
+							"shift_gauge": 0.0,
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"renewal",
+								"miracle"
+							],
+							"speed": 6.0,
+							"strength": 1.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 4.0
+							},
+							"weapon_wexp": {
+								"light": 0.0,
+								"staff": 100.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "knight",
+							"class_line_id": "knight",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 12.0,
+							"earned_skills": [
+								"resolve",
+								"defense_plus_2"
+							],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 21.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": 45.0,
+									"weapon_id": "iron_lance",
+									"weapon_variant_id": ""
+								},
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "item",
+									"forged_mods": {
+
+									},
+									"item_id": "vulnerary",
+									"uses_remaining": 3.0,
+									"weapon_id": "",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"luck": 2.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 21.0,
+							"resistance": 0.0,
+							"shift_gauge": 0.0,
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [
+								"resolve",
+								"defense_plus_2"
+							],
+							"speed": 3.0,
+							"strength": 9.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 5.0
+							},
+							"weapon_wexp": {
+								"lance": 100.0
+							}
+						}
+					]
+				},
+				"suspend": {
+					"conversation_resume": null,
+					"cursor_tile": null,
+					"danger_mode": "none",
+					"kind": "map",
+					"mode": "free",
+					"pending_action": {
+						"source_id": null,
+						"style_id": null
+					},
+					"threat_views_by_faction": {
+
+					},
+					"threat_views_version": 1,
+					"watch_set": []
+				}
+			},
+			"metadata": {
+
+			},
+			"reason": "round_start"
+		}
+	],
+	"map_runtime": {
+		"battalion_charges": {
+
+		},
+		"discovered_units": [],
+		"dropped_items": [],
+		"events_fired": [],
+		"flags": [],
+		"key_item_custody": {
+
+		},
+		"map_id": "campaign-pack://prometheus-proving-grounds/0.1.0/map_000_drill",
+		"map_path": "campaign-pack://prometheus-proving-grounds/0.1.0/map_000_drill",
+		"objective_latches": {
+
+		},
+		"objects": {
+
+		},
+		"pair_carry": {
+			"pair_up": {
+
+			}
+		},
+		"relationship_gain_counters": {
+
+		},
+		"relationship_overrides": {
+
+		},
+		"rewind_charges_left": 4.0,
+		"rng": {
+			"history_hash": "0",
+			"map_seed": "-315011459279940106"
+		},
+		"turn": {
+			"activation_mode": "WHOLE_PHASE",
+			"active_faction": "blue",
+			"active_faction_idx": 0,
+			"controller_boundary": "",
+			"escape_records": [],
+			"group_eliminated_round": {
+
+			},
+			"phase": "player",
+			"seize_records": [],
+			"turn_number": 1,
+			"turn_order": [
+				"blue",
+				"green",
+				"red",
+				"yellow"
+			],
+			"unit_states": {
+				"e0_training_dummy": 0,
+				"unit_01_cavalier": 0,
+				"unit_02_mercenary": 0,
+				"unit_03_archer": 0,
+				"unit_04_mage": 0,
+				"unit_05_cleric": 0,
+				"unit_06_knight": 0
+			}
+		},
+		"units": [
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": true,
+				"class_id": "cavalier",
+				"class_line_id": "cavalier",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 6.0,
+				"earned_skills": [
+					"discipline"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 25.0,
+					"hp": 50.0,
+					"luck": 40.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 35.0,
+					"speed": 35.0,
+					"strength": 40.0
+				},
+				"hp": 17.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "iron_lance",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "horseslayer",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": -1.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 6.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 17.0,
+				"movement": 7.0,
+				"reclass_options": [
+					"cavalier",
+					"knight",
+					"mercenary"
+				],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 6.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"discipline"
+				],
+				"speed": 6.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 3.0
+				},
+				"unit_id": "unit_01_cavalier",
+				"unit_name": "Unit_01",
+				"weapon_wexp": {
+					"lance": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "mercenary",
+				"class_line_id": "mercenary",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 5.0,
+				"earned_skills": [
+					"vantage",
+					"swordfaire",
+					"armsthrift"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 20.0,
+					"hp": 55.0,
+					"luck": 35.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 45.0,
+					"speed": 45.0,
+					"strength": 45.0
+				},
+				"hp": 18.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_sword",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 4.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 18.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"mercenary",
+					"cavalier",
+					"archer"
+				],
+				"resistance": 2.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"vantage",
+					"swordfaire",
+					"armsthrift"
+				],
+				"speed": 7.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 4.0
+				},
+				"unit_id": "unit_02_mercenary",
+				"unit_name": "Unit_02",
+				"weapon_wexp": {
+					"sword": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "archer",
+				"class_line_id": "archer",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 6.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 4.0,
+				"earned_skills": [
+					"bowfaire",
+					"skill_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 20.0,
+					"hp": 50.0,
+					"luck": 35.0,
+					"magic": 0.0,
+					"resistance": 20.0,
+					"skill": 50.0,
+					"speed": 40.0,
+					"strength": 45.0
+				},
+				"hp": 17.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_bow",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 17.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"archer",
+					"mercenary",
+					"mage"
+				],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 9.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"bowfaire",
+					"skill_plus_2"
+				],
+				"speed": 7.0,
+				"strength": 6.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 5.0
+				},
+				"unit_id": "unit_03_archer",
+				"unit_name": "Unit_03",
+				"weapon_wexp": {
+					"bow": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "mage",
+				"class_line_id": "mage",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 5.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 1.0,
+				"earned_skills": [
+					"wrath",
+					"magic_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 15.0,
+					"hp": 45.0,
+					"luck": 40.0,
+					"magic": 50.0,
+					"resistance": 35.0,
+					"skill": 40.0,
+					"speed": 40.0,
+					"strength": 0.0
+				},
+				"hp": 15.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 40.0,
+						"weapon_id": "fire",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 5.0,
+				"magic": 7.0,
+				"mastery_skills": [],
+				"max_hp": 15.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"mage",
+					"archer",
+					"cleric"
+				],
+				"resistance": 8.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"wrath",
+					"magic_plus_2"
+				],
+				"speed": 6.0,
+				"strength": 1.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 3.0
+				},
+				"unit_id": "unit_04_mage",
+				"unit_name": "Unit_04",
+				"weapon_wexp": {
+					"elemental_magic": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "cleric",
+				"class_line_id": "cleric",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 6.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 3.0,
+				"earned_skills": [
+					"renewal",
+					"miracle"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 15.0,
+					"hp": 45.0,
+					"luck": 50.0,
+					"magic": 45.0,
+					"resistance": 40.0,
+					"skill": 35.0,
+					"speed": 35.0,
+					"strength": 0.0
+				},
+				"hp": 16.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 40.0,
+						"weapon_id": "heal_staff",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 6.0,
+				"magic": 5.0,
+				"mastery_skills": [],
+				"max_hp": 16.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"cleric",
+					"mage",
+					"knight"
+				],
+				"resistance": 9.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"renewal",
+					"miracle"
+				],
+				"speed": 6.0,
+				"strength": 1.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 4.0
+				},
+				"unit_id": "unit_05_cleric",
+				"unit_name": "Unit_05",
+				"weapon_wexp": {
+					"light": 0.0,
+					"staff": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "knight",
+				"class_line_id": "knight",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 15.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 12.0,
+				"earned_skills": [
+					"resolve",
+					"defense_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 45.0,
+					"hp": 65.0,
+					"luck": 30.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 30.0,
+					"speed": 20.0,
+					"strength": 45.0
+				},
+				"hp": 21.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_lance",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 2.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 21.0,
+				"movement": 5.0,
+				"reclass_options": [
+					"knight",
+					"cavalier",
+					"cleric"
+				],
+				"resistance": 0.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"resolve",
+					"defense_plus_2"
+				],
+				"speed": 3.0,
+				"strength": 9.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 5.0
+				},
+				"unit_id": "unit_06_knight",
+				"unit_name": "Unit_06",
+				"weapon_wexp": {
+					"lance": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "soldier",
+				"class_line_id": "soldier",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 0.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "red",
+				"gold": 0.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 1.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_lance",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 0.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 1.0,
+				"movement": 4.0,
+				"reclass_options": [],
+				"resistance": 0.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 1.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 1.0,
+				"strength": 1.0,
+				"tile_position": {
+					"x": 8.0,
+					"y": 4.0
+				},
+				"unit_id": "e0_training_dummy",
+				"unit_name": "Training Dummy",
+				"weapon_wexp": {
+					"lance": 100.0
+				}
+			}
+		],
+		"vars": {
+
+		}
+	},
+	"origin": "manual",
+	"party": {
+		"bonus_exp": 0,
+		"convoy": {
+			"entries": []
+		},
+		"resources": {
+			"party_gold": 0.0
+		},
+		"training_purchase_counts": {
+
+		}
+	},
+	"roster": {
+		"units": [
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": true,
+				"class_id": "cavalier",
+				"class_line_id": "cavalier",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 6.0,
+				"earned_skills": [
+					"discipline"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 25.0,
+					"hp": 50.0,
+					"luck": 40.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 35.0,
+					"speed": 35.0,
+					"strength": 40.0
+				},
+				"hp": 17.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "iron_lance",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "horseslayer",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": -1.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 6.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 17.0,
+				"movement": 7.0,
+				"reclass_options": [
+					"cavalier",
+					"knight",
+					"mercenary"
+				],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 6.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"discipline"
+				],
+				"speed": 6.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 3.0
+				},
+				"unit_id": "unit_01_cavalier",
+				"unit_name": "Unit_01",
+				"weapon_wexp": {
+					"lance": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "mercenary",
+				"class_line_id": "mercenary",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 5.0,
+				"earned_skills": [
+					"vantage",
+					"swordfaire",
+					"armsthrift"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 20.0,
+					"hp": 55.0,
+					"luck": 35.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 45.0,
+					"speed": 45.0,
+					"strength": 45.0
+				},
+				"hp": 18.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_sword",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 4.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 18.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"mercenary",
+					"cavalier",
+					"archer"
+				],
+				"resistance": 2.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"vantage",
+					"swordfaire",
+					"armsthrift"
+				],
+				"speed": 7.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 4.0
+				},
+				"unit_id": "unit_02_mercenary",
+				"unit_name": "Unit_02",
+				"weapon_wexp": {
+					"sword": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "archer",
+				"class_line_id": "archer",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 6.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 4.0,
+				"earned_skills": [
+					"bowfaire",
+					"skill_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 20.0,
+					"hp": 50.0,
+					"luck": 35.0,
+					"magic": 0.0,
+					"resistance": 20.0,
+					"skill": 50.0,
+					"speed": 40.0,
+					"strength": 45.0
+				},
+				"hp": 17.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_bow",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 17.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"archer",
+					"mercenary",
+					"mage"
+				],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 9.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"bowfaire",
+					"skill_plus_2"
+				],
+				"speed": 7.0,
+				"strength": 6.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 5.0
+				},
+				"unit_id": "unit_03_archer",
+				"unit_name": "Unit_03",
+				"weapon_wexp": {
+					"bow": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "mage",
+				"class_line_id": "mage",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 5.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 1.0,
+				"earned_skills": [
+					"wrath",
+					"magic_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 15.0,
+					"hp": 45.0,
+					"luck": 40.0,
+					"magic": 50.0,
+					"resistance": 35.0,
+					"skill": 40.0,
+					"speed": 40.0,
+					"strength": 0.0
+				},
+				"hp": 15.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 40.0,
+						"weapon_id": "fire",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 5.0,
+				"magic": 7.0,
+				"mastery_skills": [],
+				"max_hp": 15.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"mage",
+					"archer",
+					"cleric"
+				],
+				"resistance": 8.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"wrath",
+					"magic_plus_2"
+				],
+				"speed": 6.0,
+				"strength": 1.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 3.0
+				},
+				"unit_id": "unit_04_mage",
+				"unit_name": "Unit_04",
+				"weapon_wexp": {
+					"elemental_magic": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "cleric",
+				"class_line_id": "cleric",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 6.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 3.0,
+				"earned_skills": [
+					"renewal",
+					"miracle"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 15.0,
+					"hp": 45.0,
+					"luck": 50.0,
+					"magic": 45.0,
+					"resistance": 40.0,
+					"skill": 35.0,
+					"speed": 35.0,
+					"strength": 0.0
+				},
+				"hp": 16.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 40.0,
+						"weapon_id": "heal_staff",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 6.0,
+				"magic": 5.0,
+				"mastery_skills": [],
+				"max_hp": 16.0,
+				"movement": 6.0,
+				"reclass_options": [
+					"cleric",
+					"mage",
+					"knight"
+				],
+				"resistance": 9.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"renewal",
+					"miracle"
+				],
+				"speed": 6.0,
+				"strength": 1.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 4.0
+				},
+				"unit_id": "unit_05_cleric",
+				"unit_name": "Unit_05",
+				"weapon_wexp": {
+					"light": 0.0,
+					"staff": 100.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "knight",
+				"class_line_id": "knight",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 15.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 12.0,
+				"earned_skills": [
+					"resolve",
+					"defense_plus_2"
+				],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+					"defense": 45.0,
+					"hp": 65.0,
+					"luck": 30.0,
+					"magic": 0.0,
+					"resistance": 15.0,
+					"skill": 30.0,
+					"speed": 20.0,
+					"strength": 45.0
+				},
+				"hp": 21.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": 45.0,
+						"weapon_id": "iron_lance",
+						"weapon_variant_id": ""
+					},
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "item",
+						"forged_mods": {
+
+						},
+						"item_id": "vulnerary",
+						"uses_remaining": 3.0,
+						"weapon_id": "",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 4.0,
+				"luck": 2.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 21.0,
+				"movement": 5.0,
+				"reclass_options": [
+					"knight",
+					"cavalier",
+					"cleric"
+				],
+				"resistance": 0.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [
+					"resolve",
+					"defense_plus_2"
+				],
+				"speed": 3.0,
+				"strength": 9.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 5.0
+				},
+				"unit_id": "unit_06_knight",
+				"unit_name": "Unit_06",
+				"weapon_wexp": {
+					"lance": 100.0
+				}
+			}
+		]
+	},
+	"rule_id": "",
+	"save_label": "Resume battle",
+	"source": {
+		"campaign_id": "proving_grounds",
+		"content_fingerprint": "sha256:44ec1e37a2aae777afce6f1ca9ee7e0af9a3283aefa109581cf3aac609d12956",
+		"content_schema_version": 1,
+		"package_id": "prometheus-proving-grounds",
+		"package_version": "0.1.0"
+	},
+	"suspend": {
+		"conversation_resume": null,
+		"cursor_tile": {
+			"x": 1,
+			"y": 3
+		},
+		"danger_mode": "none",
+		"kind": "map",
+		"mode": "free",
+		"pending_action": {
+			"source_id": null,
+			"style_id": null
+		},
+		"threat_views_by_faction": {
+			"blue": {
+				"danger_mode": "none",
+				"watch_set": []
+			}
+		},
+		"threat_views_version": 1,
+		"watch_set": []
+	}
+}

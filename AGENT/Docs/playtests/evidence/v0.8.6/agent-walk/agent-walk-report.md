@@ -1,12 +1,14 @@
 ---
 Role: dated
 Type: playtest
-Status: recut Section 3 browser pass; native acceptance and other checklist sections remain pending
+Status: Section 3 browser pass; Sections 1B, 2 and 5 have further browser evidence; migration verdict awaits a newer build; native acceptance remains pending
 ---
 
 # v0.8.6 agent browser walk report
 
 **RECUT SECTION 3 RETEST — 2026-09-26.** Repeated against the exact current web release, source SHA `0e5882d80dcbeb8847ca8bd66b32f715f08960b8` (BUILD STAMP `0e5882d8`, Godot 4.6.3). At 1280×720 with Content Scale and Menu Scale both 2×, the Chapter 3 Unit_06 Knight vs Bridge Fighter forecast passes: panel `(200,32,664,656)` fits within the viewport, all three expected rows publish, and after scrolling both defender rows, More Info and the Enter hint are visible. The blocker did not recur.
+
+**BROWSER CONTINUATION — 2026-09-27.** The continuation captures use the same release build, source SHA `0e5882d80dcbeb8847ca8bd66b32f715f08960b8` (BUILD STAMP `0e5882d8`). The repeated Section 1B journey reached BLUE turn 3: Hallowed Sear expired and Resistance returned to 4; the attack, suspend/continue state, and HP/tile checks also passed. Section 2 visually captured the free-roam font on Prep, HUD, Map Menu and Settings, then captured the standard menu and editor after quitting and removing the pack. Section 5 captured End Turn and backup/replace confirmations, wheel scrolling to the lower Settings controls at 0.5× and 2×, duplicate-version package fingerprints, and wrong-build save protection. These are browser findings only. The v1-save migration attempt on `0e5882d8` did not produce a conclusive acceptance result; a product fix is in progress, so the migration verdict is deliberately pending a newer build. Selected screenshots and bridge states are under `browser-runs/2026-09-27/`.
 
 The rest of browser Section 3 passed: 1280×720 at 0.5×, 1× and 2×; 1920×1080/1×; 900×760/1× (two columns with More Info below) and fresh-profile default 0.5× (three columns); 560×900/1× (stacked); final-row scrolling at 560×900 and 1280×720/2×; all requested Prologue, Chapter 1 neutral, Chapter 3 Bishop and Horseslayer matchups. Horseslayer displayed `Dmg 29×1` and `×3 Might`; Unit_01 Strength 7, Horseslayer Mt 9 and E3_Cavalier Defense 5 give normal damage 11 plus 18 effectiveness damage = 29. Mouse clicks opened More Info for all three Chapter 3 rows; a 30-press F cycle reached all three distinct descriptions; the hint `Enter attacks.` was checked and Enter opened the forecast. Pad button 2 remains native-only.
 
@@ -25,12 +27,14 @@ the 1280×720 window. At 560×900/1×, 900×760/1×, 1920×1080/1× and
 expected relationship rows and fit inside the window. That original candidate used source `36686b0a`; its finding led to the focused panel-height/scroll fix. The recut retest uses source `0e5882d80dcbeb8847ca8bd66b32f715f08960b8`, documented under Section 3 below.
 
 Session 2 also captured the active free-roam font on Prep, HUD, Map Menu and Settings
-at 1280×720/1× (`2-session2-font-surfaces/`). Settings opened from the live Map Menu;
-the bridge reported `hud` while Settings was visibly on top, so its screen label is a
-bridge ordering limitation. At 560×900/0.5× and 2×, mouse-wheel scrolling reached
-the bottom of Settings, including Export Diagnostics and Back
-(`2-session2-settings-560-*/`). Keyboard and scroll-bar access, font restoration after
-pack deactivation, the four dialogs and the native readability judgment remain open.
+at 1280×720/1× (`2-session2-font-surfaces/`). The 2026-09-27 continuation repeated
+these surfaces, then quit the campaign, confirmed the pack was no longer active, and
+captured the standard-font main menu and Campaign Editor
+(`browser-runs/2026-09-27/font-restoration-final/`). Settings opened over the live
+Map Menu; the bridge still reports `hud` while Settings is visibly on top, a bridge
+ordering limitation. At 560×900/0.5× and 2×, wheel scrolling reached Export Diagnostics
+and Back (`browser-runs/2026-09-27/settings-scroll/` and `settings-scroll-half/`).
+Native font/readability and editor hover checks remain open.
 
 **SESSION 1 RETEST COMPLETE (2026-09-26) — the turn-3 timeout was a harness error; native Windows acceptance remains pending.**
 
@@ -50,35 +54,23 @@ did not appear in the headless browser after a five-second hover; native visual
 verification of the full hover text remains open. The populated list's dense text
 also still needs the native readability judgment.
 
-## Focused retest plan — next sessions
+## Remaining work
 
-Use this sequence against source commit `36686b0a` and the v0.8.6 bundle. Carry
-forward the passing evidence above; repeat a passed case only when a finding or a
-new candidate changes it. At the end of each session, add the exact build identity,
-result, screenshot or state path, and next action to this report and the
-`V086-CANDIDATE-CUT-2026-09-25` tracker row. A confirmed product failure stops
-acceptance and gets a focused fix/recut task. A harness failure stays explicitly
-unverified until the behavior is observed through another route.
-
-| Session | Focus and order | Evidence needed to finish |
-|---|---|---|
-| 1 — Resolve current blockers | **Done 2026-09-26**, except native hover/readability checks. The step-35 timeout was caused by the driver's extra Enter; turn-3 expiry passed. Both mixed Load Game rows can be exposed by scrolling. Rules wrap, edit/save, and scale restoration passed; hover text did not appear in headless Chromium. | `1B-retest-20260926/`, `1C-retest-scroll-20260926/`, `2-editor-retest-commit-20260926/`; native hover/readability remains in Session 4. |
-| 2 — UI and viewport pass | **Stopped on product failure 2026-09-26.** The 1280×720/2× forecast extends below the window. Four other requested forecast layouts passed their browser journey. Prep, HUD, Map Menu and Settings with free-roam active were captured; the Settings wheel reached the bottom at 560×900/0.5× and 2×. | Fix and recut the forecast, then rerun all requested sizes including 1280×720/1×. Pack deactivation/font restoration, dialogs, keyboard/scroll-bar Settings access and native readability remain. |
-| 3 — Content and save rules | Section 3 browser retest is complete on the recut. In Chapter 6 compare Bearer and Axeman Hit/Dmg/Crit against one Revenant, confirm Bearer has no Undead Frailty row, land a Hallowed hit and capture the Resistance breakdown. Test migration-v1/v2 refusal text and collision-a/b fingerprints and wrong-pack save protection. | Chapter 6 condition/breakdown; migration error text and collision save identity. Note any checks that require a fresh save or pack state. |
-| 4 — Native Windows acceptance | Run the remaining checklist on the shipped release executable: BUILD STAMP/SHA identity, clean profile, representative 1A layouts on the actual GPU/DPI, the full 1B countdown, populated 1C list, editor at 1920×1080 and Windows 125% scaling, controller navigation, Diagnostics ZIP, and the Section 7 player judgments. Return the checklist, diagnostics, failed-check screenshots, display/GPU/DPI details, and any reproducer save. | Human Windows return reviewed against Sections 0–7. Accept only if all required items pass; otherwise record the finding and recut decision in the tracker. |
-
-The next session starts with Session 2 or 3. Session 4 uses the exact candidate
-that survives those checks.
+- Rerun the v1 save migration cases on the next product build. The attempt against `0e5882d8` exposed a migration failure and is under product fix; the final migration verdict is pending that rerun.
+- Finish Section 4's matched-stat Hit/Dmg/Crit comparison and landed-hit Resistance breakdown.
+- Complete native Windows verification: display/GPU/DPI and BUILD STAMP identity, representative 1A layouts, 1B countdown, 1C readability, editor at 1920×1080 and 125% scaling, controller navigation, Diagnostics ZIP, and Section 7 player judgments.
+- Verify the editor Rules hover text and dense list readability natively; test forecast pad button 2 on native hardware.
 
 ## 1. Header
 
-- Build identity: `artifact-manifest.json` in `builds/web/Project_Prometheus` reports
-  `source_sha=36686b0a07677b130e80f64045376877c3ca9898`, `commit=36686b0a`,
-  `version=0.8.6`, `build_type=release`, `godot_version=4.6.3.stable.official.7d41c59c4`.
-  This matches the commit required for this round. The tester bundle's
-  `bundle-pack-gate-receipt.json` and `playwright-supplemental-gate-receipt.json` both
-  also name `36686b0a07677b130e80f64045376877c3ca9898` for the same tree.
-- Date: 2026-09-25 (harness run date).
+- Build identity is mixed across this report. Initial tester-bundle captures use
+  `36686b0a07677b130e80f64045376877c3ca9898` (BUILD STAMP `36686b0a`); the Section 3
+  recut and 2026-09-27 continuation use
+  `0e5882d80dcbeb8847ca8bd66b32f715f08960b8` (BUILD STAMP `0e5882d8`). The local
+  `builds/web/Project_Prometheus/artifact-manifest.json` records the latter, version
+  `0.8.6`, release build, Godot `4.6.3.stable.official.7d41c59c4`. Do not treat the
+  earlier tester receipts as receipts for the recut build.
+- Dates: initial walk 2026-09-25; recut and continuation captures 2026-09-26–27.
 - Harness: Playwright 1.63.0, Chrome Headless Shell (SwiftShader software renderer),
   Node v24.21.0, Linux x86_64. `tools/playwright/lib/bridge.mjs` (WebTestBridge v5),
   `bridge_rects=all` used throughout so container/label rects are visible, not just
@@ -93,27 +85,29 @@ that survives those checks.
 
 | Item | Verdict | Note |
 |---|---|---|
-| 0 — Build identity | PASS | manifest + both receipts agree on 36686b0a |
+| 0 — Build identity | PASS per run; mixed builds | Initial tester receipts are for `36686b0a`; Section 3 recut and 2026-09-27 continuation use `0e5882d8`. Evidence identities are stated alongside each run. |
 | 0 — Clean profile empty states | PASS | Fresh browser contexts: Load Game says “No campaign saves yet”; New Game reports 0 compatible records. Evidence: `0-clean-load/`, `0-clean-new-game/`. |
 | 0 — Import free-roam.zip | PASS | done during 1A/1B/3 runs, unmodified zip via file chooser |
 | 1A — 12 live-map cases | PASS (12/12) | zero panel-to-panel overlaps measured; see detail |
 | 1A — three "on purpose" behaviours | PASS (all 3) | Objectives collapse/restore, 2x(1x) cap, unit-above-terrain |
-| 1B | PASS (browser) | Corrected driver reached BLUE turn 3: condition gone, Resistance 4 restored, HP/tiles unchanged. Native release check remains. |
+| 1B | PASS (browser) | Repeat on `0e5882d8` reached BLUE turn 3: condition gone, Resistance 4 restored, HP/tiles unchanged. Native release check remains. See `browser-runs/2026-09-27/1b-recut/`. |
 | 1C | PASS for scrolling; native readability pending | The lower row becomes fully visible when the list is scrolled; row text fits its control. |
-| 2 | PARTIAL | Rules six-line ellipsis, dirty → saved, and scale restore passed. Full hover text did not appear in headless Chromium; other font surfaces remain pending. |
+| 2 | PARTIAL | Rules six-line ellipsis, dirty → saved, and scale restore passed. The 2026-09-27 browser captures cover free-roam font on Prep/HUD/Map Menu/Settings, restoration after pack removal, and the standard editor font. Full hover text did not appear in headless Chromium; native verification remains pending. |
 | 3 | PASS (browser; native pad pending) | Recut retest covers all matchups, requested viewports, panel geometry/scrolling, mouse row access, F cycle, Enter confirmation and damage arithmetic. Pad button 2 remains native-only. See `3-forecasts/recut-20260926/`. |
 | 4 | PARTIAL | Chapter 6 browser fixtures confirmed Bearer `Hallowed Rites +5 Dmg`, Axeman `Undead Frailty +1 Dmg`, and More Info suppression sentence. No hit/condition expiry or full stats/Hit/Dmg/Crit comparison. |
-| 5 | PARTIAL | 1C mixed save-list and Retry→Prep succeeded; small Settings screens captured at 0.5×/2×, but scroll behavior not verified. Migration/collision, confirmation-dialog, and Diagnostics checks remain. |
+| 5 | PARTIAL | 1C mixed save-list and Retry→Prep succeeded; Settings scrolling, confirmation dialogs, duplicate-version fingerprints and wrong-build save protection passed in the 2026-09-27 browser run. Migration verdict awaits a newer build; native Diagnostics export remains pending. |
 | 6 | PASS (skim) | v0.8.6 supplemental receipt passed (40 cases, zero errors); pack-gate receipt passed. Visually skimmed all 40 album images and all 46 pack screenshots; contact sheets at `section6-skim/`. |
 | 7 | PARTIAL | Browser evidence supports row labels/readability only; native and subjective judgments remain pending. |
 
 ## 3. Defects found
 
-The 1280×720/2× forecast extends below the window, hiding the defender's
-relationship rows. This is a confirmed product failure in Session 2, so v0.8.6
-acceptance is stopped pending a focused fix and recut. The original 1B timeout was
-a harness error: End Turn had already advanced to BLUE turn 3 with a free cursor;
-the extra Enter selected the Bearer. The corrected run passed the expiry check.
+The first candidate (`36686b0a`) had a confirmed 1280×720/2× forecast overflow;
+the focused recut browser checks on `0e5882d8` pass, as recorded in Section 3. The
+initial 1B timeout was a harness error: End Turn had already advanced to BLUE turn 3
+with a free cursor; the extra Enter selected the Bearer. The corrected and repeated
+runs passed the expiry check. Separately, the v1 save migration attempt on
+`0e5882d8` failed to establish the required migration behavior and is under product
+fix. Its final verdict is pending a rerun on the newer build.
 
 ## 4. Per-section detail
 
@@ -163,7 +157,10 @@ diagnostic captured BLUE turn 3 and a free cursor *before* the driver's extra En
 after Enter, the cursor was `unit-selected`. The corrected run in
 `1B-retest-20260926/` completed steps 35–37. Unit Details no longer listed Hallowed
 Sear, Resistance was 4 again (1 while affected), and the two units retained their
-HP and tiles. The native Windows countdown and human digit judgment remain open.
+HP and tiles. The 2026-09-27 repeat on source `0e5882d8` also completed the full
+journey and matched the starting board, hit result, expiry and suspend/continue
+state (`browser-runs/2026-09-27/1b-recut/`). The native Windows countdown and human
+digit judgment remain open.
 
 ### Section 2 — Campaign Editor (initial walk and 2026-09-26 retest)
 
@@ -180,7 +177,11 @@ Display Name, showing an unsaved marker; Ctrl+S cleared it and retained the valu
 Escape returned to the library with Menu Scale 1 unchanged. The Rules hover tooltip
 did not appear after five seconds in headless Chromium, so native hover verification
 remains. Campaign Editor is using its own UI surface; this does not certify
-campaign-font use elsewhere.
+campaign-font use elsewhere. On 2026-09-27, after affirmative Quit deactivated the
+pack, the main menu showed the standard pixel font and the editor used its normal
+editor typography; captures are in `browser-runs/2026-09-27/font-restoration-final/`.
+This is a browser-only visual result; native font verification and the Rules hover
+tooltip remain pending.
 
 ### Sections 3–5 and 7 — Item-level disposition
 
@@ -220,12 +221,23 @@ The v0.8.6 script first ran 1C without the interaction backup and exposed a harn
 navigation bug; after correcting that call it loaded the restored campaign backup
 into Prep. A later run explicitly requested 1.0× and restored both save families in
 the same context. The mixed row state was captured before Retry, then the campaign
-backup row retried and loaded into Prep. See Section 1C above. Settings was also
-opened at 560×900 with Menu/Content Scale set to 0.5× and 2×. Both browser snapshots
-rendered the Settings screen with a scrollbar, but lower controls extended beyond the
-visible area; no wheel, scrollbar, or keyboard scroll-to-bottom check was completed.
-See `5-settings-560x900-0.5/` and `5-settings-560x900-2.0/`. Migration/collision
-saves, confirmation dialogs, and native Diagnostics export remain pending.
+backup row retried and loaded into Prep. See Section 1C above. On 2026-09-27,
+wheel scrolling at 560×900 reached Export Diagnostics and Back at both 0.5× and 2×.
+End Turn, restore-result and replace-save dialogs were captured; Enter on the replace
+prompt kept the existing save. Two same-ID/version builds displayed distinct
+fingerprint suffixes. A save exported under build A, then imported while build B was
+installed, was labeled incompatible; the dialog named the saved and installed
+fingerprints, said the save was unchanged, and directed installation of the
+originating build before Retry. The row remained unavailable after Retry while
+build B was installed. This confirms browser wrong-build protection. Evidence
+is under `browser-runs/2026-09-27/{settings-scroll,settings-scroll-half,confirm-dialogs,collision-labels-final,collision-a-export,collision-a-save-on-b}/`.
+
+The v1 migration flow was attempted on old recut source `0e5882d8` and failed to
+establish the expected migration/refusal result. It is under product fix, so the
+final checklist verdict remains pending a newer build. Captures from that attempt
+are preserved under `browser-runs/2026-09-27/migration-v1-save/`,
+`migration-v1-save-rerun/`, and `migration-v1-save-on-v2/`. Native Diagnostics ZIP
+and Windows display/input checks remain pending.
 
 ### Checklist disposition
 
@@ -244,9 +256,9 @@ saves, confirmation dialogs, and native Diagnostics export remain pending.
 | 1C — Installed packs and font | PARTIAL | Two package headings observed; no native/visual font judgment. |
 | 2 — Edit a Copy; default Campaign/Rules layout | PARTIAL | Campaign record selected; six-line Rules preview and ellipsis fit inside inspector. Full hover tooltip did not appear in headless Chromium; native check remains. |
 | 2 — Edit/save value and restore Menu Scale | PASS (browser) | Enter committed Display Name, tab marked unsaved, Ctrl+S cleared the marker while retaining the value; Escape returned to library with Menu Scale 1 unchanged. |
-| 2 — Free-roam font on Settings/HUD/Map Menu/Prep/forecast | NOT RUN | 1A covers only live map; other surfaces not driven. |
-| 2 — Campaign Editor uses standard font | NOT RUN | Not checked. |
-| 2 — Standard font after pack removal | NOT RUN | Not checked. |
+| 2 — Free-roam font on Settings/HUD/Map Menu/Prep | PASS (browser) | Visual captures at 1280×720/1× on `0e5882d8`; Settings bridge screen label remains `hud` because the overlay is above it. `browser-runs/2026-09-27/font-restoration-final/`. |
+| 2 — Campaign Editor uses standard font | PASS (browser) | 1920×1080 editor capture after pack removal; native verification remains pending. Same evidence directory. |
+| 2 — Standard font after pack removal | PASS (browser) | Affirmative Quit returned to the standard-font main menu after the pack was deactivated; native verification remains pending. Same evidence directory. |
 | 3 — Ch3 Knight vs Bridge Fighter relationship rows | PASS (recut rerun) | Three rows and contained panel at 1280×720/2×; scroll exposes both defender rows and More Info. `3-forecasts/recut-20260926/repeat-ch3-1280x720-2-20260926/`. |
 | 3 — Forecast layout at requested sizes/scales | PASS (browser) | 1280×720 at 0.5×/1×/2×; 1920×1080/1×; 900×760/1× and fresh default 0.5×; 560×900/1×. Three/two/stacked layouts contained. `3-forecasts/recut-20260926/recut-ch3-*`. |
 | 3 — Prologue weapon triangle cases | PASS | Unit_02 sword vs lance dummy shows attacker disadvantage and defender advantage. `repeat-prologue-20260926/`. |
@@ -259,10 +271,10 @@ saves, confirmation dialogs, and native Diagnostics export remain pending.
 | 4 — Bearer suppression and More Info wording | PASS (browser) | More Info names Undead Frailty; no programmer-style identifier in captured text. |
 | 4 — Land Hallowed hit; condition/Resistance breakdown | NOT RUN | No hit or Unit Details countdown in this Section 4 continuation. |
 | 5 — campaign_backup restore and Retry→Prep | PASS | Restored row loaded into Prep. |
-| 5 — Migration save rejection messages | NOT RUN | Not driven. |
-| 5 — Collision fingerprints and wrong-pack protection | NOT RUN | Not driven. |
-| 5 — End Turn / Suspend / Quit / replace-save dialogs | NOT RUN | Dialogs were not captured before confirmation. |
-| 5 — Settings under 600px at 0.5×/2× and scrolling | PARTIAL | 560×900 screenshots captured at 0.5× and 2×; scrollbars visible, but reaching lower controls was not verified. |
+| 5 — Migration save rejection messages | PENDING NEWER BUILD | The v1 migration attempt on old recut source `0e5882d8` failed to establish the required migration outcome and is under product fix. Do not treat the final verdict as recorded until rerun on the newer build. Old-run evidence: `browser-runs/2026-09-27/migration-v1-save/`, `migration-v1-save-rerun/`, and `migration-v1-save-on-v2/`. |
+| 5 — Collision fingerprints and wrong-pack protection | PASS (browser) | Two builds sharing package ID/version appear with distinct fingerprint labels. Exporting under build A and importing with build B showed a fingerprint mismatch and kept the save unchanged; the row remained unavailable until the matching build is installed. `browser-runs/2026-09-27/collision-labels-final/`, `collision-a-export/`, `collision-a-save-on-b/`. |
+| 5 — End Turn / backup restore / replace-save dialogs | PASS (browser) | Captured End Turn prompt, restore result, replace prompt, and Enter preserving the existing save. Suspend/quit confirmation was captured in the Section 1B run. `browser-runs/2026-09-27/confirm-dialogs/`. |
+| 5 — Settings under 600px at 0.5×/2× and scrolling | PASS (browser) | 560×900 at 0.5× and 2×; wheel scrolling reached the lower controls, Export Diagnostics and Back. Native scrolling/readability remains pending. `browser-runs/2026-09-27/settings-scroll/` and `settings-scroll-half/`. |
 | 5 — Diagnostics ZIP | NATIVE-ONLY | Linux web export cannot certify the native Windows archive. |
 | 6 — Supplemental and pack-gate prepass | PASS (reference) | Receipts report 40/40 and pack-gate success, same source SHA. |
 | 6 — Screenshot folder visual skim | PASS (skim) | All 40 + 46 images viewed via `section6-skim/`; no unexpected clipping/box glyphs stood out. |

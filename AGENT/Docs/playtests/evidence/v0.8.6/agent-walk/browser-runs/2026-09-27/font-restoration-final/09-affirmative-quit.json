@@ -1,0 +1,408 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 108,
+  "engineFrame": 2179,
+  "publishedAtMsec": 57889,
+  "screen": "main-menu",
+  "modal": null,
+  "modalStack": [],
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  },
+  "focusHistory": [
+    "Panel/Scroll/VBox/BtnStart",
+    "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900",
+    "",
+    "Panel/VBox/EndTurnButton",
+    "/root/GameMap/SettingsLayer/SettingsScreen/Panel/ScrollContainer/Margin/VBox/BtnBack",
+    "",
+    "Panel/VBox/EndTurnButton",
+    "",
+    "Panel/VBox/EndTurnButton",
+    "",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 1,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+    "MenuFrame/Panel/Scroll/VBox/QuitButton"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "",
+    "packageVersion": ""
+  },
+  "newGameEntries": {
+    "offered": [
+      {
+        "author_id": "project_prometheus",
+        "campaign_id": "proving_grounds",
+        "campaign_version": "1.0.0",
+        "index": 0,
+        "label": "The Proving Grounds — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_000_drill",
+        "campaign_version": "1.0.0",
+        "index": 1,
+        "label": "Map 000 - Drill Yard — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001",
+        "campaign_version": "1.0.0",
+        "index": 2,
+        "label": "Map 001 - Rout — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001_c3_factions",
+        "campaign_version": "1.0.0",
+        "index": 3,
+        "label": "Map 001 - Faction Demo — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_002_seize",
+        "campaign_version": "1.0.0",
+        "index": 4,
+        "label": "Map 002 - Seize — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_003_defeat_boss",
+        "campaign_version": "1.0.0",
+        "index": 5,
+        "label": "Map 003 - Defeat Boss — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_004_escape",
+        "campaign_version": "1.0.0",
+        "index": 6,
+        "label": "Map 004 - Escape — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_005_defend",
+        "campaign_version": "1.0.0",
+        "index": 7,
+        "label": "Map 005 - Defend — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_900_hotseat_validation",
+        "campaign_version": "1.0.0",
+        "index": 8,
+        "label": "Map 900 - Hotseat Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_950_promotion_validation",
+        "campaign_version": "1.0.0",
+        "index": 9,
+        "label": "Map 950 - Promotion Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      }
+    ],
+    "popup": {
+      "visible": false
+    },
+    "selected": 0
+  },
+  "activeCampaign": {
+    "activeNodeId": "node_00_drill",
+    "campaignId": "proving_grounds",
+    "clearedNodeIds": [],
+    "currentNodeId": "node_00_drill",
+    "mapLive": false
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {},
+  "rects": {
+    "Background": {
+      "h": 720,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "MenuFrame": {
+      "h": 516,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1248,
+      "x": 16,
+      "y": 108
+    },
+    "MenuFrame/Panel": {
+      "h": 464.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 524.159973144531,
+      "x": 377,
+      "y": 133
+    },
+    "MenuFrame/Panel/Scroll": {
+      "h": 436.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 496.159973144531,
+      "x": 391,
+      "y": 147
+    },
+    "MenuFrame/Panel/Scroll/VBox": {
+      "h": 272,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 496.159973144531,
+      "x": 391,
+      "y": 147
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton": {
+      "h": 48,
+      "text": "Campaign Editor",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 82,
+        "minimumHeight": 48,
+        "minimumWidth": 110,
+        "overrunBehavior": 0
+      },
+      "w": 496,
+      "x": 391,
+      "y": 259
+    },
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton": {
+      "h": 48,
+      "text": "Manage Library",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 79,
+        "minimumHeight": 48,
+        "minimumWidth": 107,
+        "overrunBehavior": 0
+      },
+      "w": 496,
+      "x": 391,
+      "y": 203
+    },
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton": {
+      "h": 48,
+      "text": "Continue",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 496,
+      "x": 391,
+      "y": 147
+    },
+    "MenuFrame/Panel/Scroll/VBox/QuitButton": {
+      "h": 48,
+      "text": "Quit",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 48,
+        "minimumWidth": 49,
+        "overrunBehavior": 0
+      },
+      "w": 496,
+      "x": 391,
+      "y": 371
+    },
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton": {
+      "h": 48,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 48,
+        "availableWidth": 496,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 48,
+        "minimumWidth": 71,
+        "overrunBehavior": 0
+      },
+      "w": 496,
+      "x": 391,
+      "y": 315
+    },
+    "TitleLabel": {
+      "h": 76,
+      "text": "Project Prometheus",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 76,
+        "availableWidth": 1280,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 65,
+        "measuredTextWidth": 411,
+        "minimumHeight": 76,
+        "minimumWidth": 411,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 16
+    },
+    "VersionLabel": {
+      "h": 64,
+      "text": "v0.8.6",
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 64,
+        "availableWidth": 144,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 39,
+        "minimumHeight": 19,
+        "minimumWidth": 39,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 144,
+      "x": 1120,
+      "y": 640
+    }
+  },
+  "frame": {
+    "path": "MenuFrame/Panel",
+    "rect": {
+      "h": 464.400024414062,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 524.159973144531,
+      "x": 377,
+      "y": 133
+    }
+  }
+}
