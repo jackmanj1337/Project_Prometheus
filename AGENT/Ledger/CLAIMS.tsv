@@ -515,6 +515,7 @@
 8cb1767177c42ef9a2def611a3ebed667d30d661	Preserve unreachable campaign graph nodes
 8d6a4fc2d4d3b0a6d1002263332c4c63abffb50c	Define authored sprite composition schema
 8d96fd3e5167063e1a28d07d113710d983bd49ca	Correct registry layering and Renewal gate status in the living GDD
+8da8092abacd57193bed6fba634a402bd86b8ac8	Record v0.8.6 migration pass on 997caa93
 8dcafdbd8ad579a1e4de00ff0ee35491d61fd237	Tighten dialogue review handoff
 8dd6b39197100a0b76eb70dc28c677b21191123a	Trace viewport and screen responses
 8ddfbde5a44d8916a7d20abb8c2561fd2c44e331	UUI-18/19: reachability-risk confirm-or-revert, and Settings paged by section
