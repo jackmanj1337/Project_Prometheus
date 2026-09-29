@@ -1,0 +1,8 @@
+{
+  "label": "read imported row (expect a plain-language mismatch message)",
+  "result": {
+    "path": "Panel/VBox/Scroll/Rows/Row_imported_01/LoadButton",
+    "text": "[Needs campaign] Resume battle\nThe installed campaign package does not match this save.\n6 units · 0G · 2026-09-29 21:32"
+  },
+  "screen": "load-game"
+}

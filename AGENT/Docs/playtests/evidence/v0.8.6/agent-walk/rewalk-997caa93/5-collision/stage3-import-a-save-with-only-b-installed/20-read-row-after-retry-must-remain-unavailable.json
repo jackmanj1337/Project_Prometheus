@@ -1,0 +1,26 @@
+{
+  "label": "read row after Retry (must remain unavailable)",
+  "result": {
+    "h": 69,
+    "text": "[Needs campaign] Resume battle\nThe installed campaign package does not match this save.\n6 units · 0G · 2026-09-29 21:32",
+    "theme": {
+      "owner": "/root/MainMenu/LoadGameScreen/Panel",
+      "resource": "<embedded>",
+      "source": "control"
+    },
+    "truncation": {
+      "availableHeight": 69,
+      "availableWidth": 330,
+      "fits": true,
+      "measuredTextHeight": 55,
+      "measuredTextWidth": 302,
+      "minimumHeight": 69,
+      "minimumWidth": 330,
+      "overrunBehavior": 0
+    },
+    "w": 330,
+    "x": 318.5,
+    "y": 268
+  },
+  "screen": "load-game"
+}

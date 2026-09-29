@@ -1,0 +1,10 @@
+{
+  "label": "press Enter on Suspend and Quit dialog",
+  "result": null,
+  "screen": "main-menu",
+  "modal": null,
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "text": "Continue"
+  }
+}

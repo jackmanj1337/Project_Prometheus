@@ -1,0 +1,10 @@
+{
+  "label": "reopen Map Menu for Suspend and Quit",
+  "result": null,
+  "screen": "map-menu",
+  "modal": "map-menu",
+  "focus": {
+    "path": "Panel/VBox/EndTurnButton",
+    "text": "End Turn"
+  }
+}

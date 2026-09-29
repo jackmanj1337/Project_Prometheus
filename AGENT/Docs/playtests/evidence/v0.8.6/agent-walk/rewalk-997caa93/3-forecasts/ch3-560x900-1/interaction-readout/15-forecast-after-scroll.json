@@ -1,0 +1,56 @@
+{
+  "viewport": {
+    "width": 560,
+    "height": 900
+  },
+  "panel": {
+    "h": 649,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 328,
+    "x": 216,
+    "y": 29.5
+  },
+  "scrollBefore": {
+    "h": 621,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 300,
+    "x": 230,
+    "y": 43.5
+  },
+  "scrollAfter": {
+    "h": 621.000030517578,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 300.000030517578,
+    "x": 229.999969482422,
+    "y": 67.4999694824219
+  },
+  "lastRow": [
+    "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2442",
+    {
+      "h": 19,
+      "text": "▲ Weapon Effectiveness  ×3 Might",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/AttackPreview",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 300.000030517578,
+      "x": 229.999969482422,
+      "y": 441.499969482422
+    }
+  ],
+  "noScrollableRows": false,
+  "source": null
+}

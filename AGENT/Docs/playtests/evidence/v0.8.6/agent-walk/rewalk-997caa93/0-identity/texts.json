@@ -1,0 +1,30 @@
+[
+  [
+    "MenuFrame/Panel/Scroll/VBox/CampaignEditorButton",
+    "Campaign Editor"
+  ],
+  [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Manage Library"
+  ],
+  [
+    "MenuFrame/Panel/Scroll/VBox/ContinueButton",
+    "Continue"
+  ],
+  [
+    "MenuFrame/Panel/Scroll/VBox/QuitButton",
+    "Quit"
+  ],
+  [
+    "MenuFrame/Panel/Scroll/VBox/SettingsButton",
+    "Settings"
+  ],
+  [
+    "TitleLabel",
+    "Project Prometheus"
+  ],
+  [
+    "VersionLabel",
+    "v0.8.6"
+  ]
+]

@@ -1,0 +1,5 @@
+  equipped weapon: "Horseslayer" dmg: "Dmg  29×1"
+  interaction rows: [attacker] ▲ Weapon Effectiveness  ×3 Might
+[PASS] stateful ch1-equip (16 actions)
+
+1/1 stateful journeys passed

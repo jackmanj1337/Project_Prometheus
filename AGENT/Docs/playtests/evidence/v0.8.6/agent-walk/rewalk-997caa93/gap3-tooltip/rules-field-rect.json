@@ -1,0 +1,27 @@
+{
+  "path": "CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2110/@Label@2108",
+  "rect": {
+    "h": 20,
+    "text": "Rules",
+    "theme": {
+      "owner": "/root/MainMenu/CampaignEditorScreen/Shell",
+      "resource": "<embedded>",
+      "source": "control"
+    },
+    "truncation": {
+      "availableHeight": 20,
+      "availableWidth": 376,
+      "fits": true,
+      "lineCount": 1,
+      "measuredTextHeight": 20,
+      "measuredTextWidth": 37,
+      "minimumHeight": 20,
+      "minimumWidth": 37,
+      "overrunBehavior": 0,
+      "visibleLineCount": 1
+    },
+    "w": 376,
+    "x": 1540,
+    "y": 619
+  }
+}

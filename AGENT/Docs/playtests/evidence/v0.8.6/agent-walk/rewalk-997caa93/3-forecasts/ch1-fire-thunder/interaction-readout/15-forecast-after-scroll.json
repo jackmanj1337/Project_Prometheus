@@ -1,0 +1,42 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "panel": {
+    "h": 244,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 976,
+    "x": 96,
+    "y": 223
+  },
+  "scrollBefore": {
+    "h": 216,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 948,
+    "x": 110,
+    "y": 237
+  },
+  "scrollAfter": {
+    "h": 216,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 948,
+    "x": 110,
+    "y": 237
+  },
+  "lastRow": null,
+  "noScrollableRows": true,
+  "source": null
+}

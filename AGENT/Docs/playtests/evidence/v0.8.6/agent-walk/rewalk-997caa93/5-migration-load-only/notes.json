@@ -1,0 +1,5 @@
+[
+  "Rows after migration: [\n  {\n    \"path\": \"Panel/VBox/Scroll/Rows/Row_imported_01/LoadButton\",\n    \"text\": \"Resume battle\\nResume battle — Turn 1\\n2 units · 0G · 2026-09-29 21:55\"\n  },\n  {\n    \"path\": \"Panel/VBox/Scroll/Rows/Row_imported_01_migrated/LoadButton\",\n    \"text\": \"Resume battle\\nResume battle — Turn 1\\n2 units · 0G · 2026-09-29 21:56\"\n  }\n]",
+  "Original row unchanged: true",
+  "Final screen after clicking LOAD on the migrated slot: {\"screen\":\"load-game\",\"mapLive\":false,\"modal\":\"load-game\"}"
+]

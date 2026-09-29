@@ -4,6 +4,21 @@ Type: playtest
 Status: Sections 3 and 4 browser pass; Sections 1B, 2 and 5 have further browser evidence; migration PASS (browser) on 997caa93; native acceptance remains pending
 ---
 
+**CORRECTED 2026-09-29 — see the full re-walk at
+`rewalk-997caa93/rewalk-report.md` in this same directory.** That re-walk runs
+every section fresh on the single build `997caa93` only (this report mixes
+`36686b0a`, `0e5882d8` and `997caa93`), closes the nine gaps it left open
+(pack font on the live forecast, standard font with no pack active, the Rules
+hover tooltip, actually loading a migrated save slot, the plain-language
+refused-save message, Settings scroll methods tried separately, all four
+confirmation dialogs' Enter defaults verified live, the 1A/Settings 2x cap at
+560x900 via the slider, and the populated Load Game list's font), and reruns
+the rest of Sections 0, 1A, 1B, 1C, 2, 3, 4 and 5 on `997caa93` directly. The
+"Build identity" and "Checklist disposition" rows below that name `36686b0a`
+as the current record are superseded by that document; they are left as
+written here because this file records what was tested and when, not a live
+status.
+
 # v0.8.6 agent browser walk report
 
 **SECTION 4 COMPLETED — 2026-09-27, source `997caa93` (corrected in place; the PARTIAL/NOT RUN Section 4 verdicts below are superseded).** On the unmodified Chapter 6 control fixture, Hallowed Bearer and Free Company Axeman are both Fighter Lv 3 with identical non-weapon stats (HP 24, Str 9, Mag 0, Skl 6, Spd 6, Def 5, Res 2, Lck 3, Mov 5, Con 10, LoS 4); only the weapon differs (Hallowed Scythe vs Iron Axe). Against `m006_revenant_1` from the same tile (7,3), at 1280×720: **Bearer** Hit 89% / Dmg 15×1 / Crit 3%, one attacker row `▲ Hallowed Rites +5 Dmg` and no Undead Frailty row; Revenant back Hit 70% / Dmg 11×1 / Crit 0%. **Axeman** Hit 84% / Dmg 12×1 / Crit 3%, one row `▲ Undead Frailty +1 Dmg`; Revenant back Hit 72% / Dmg 11×1 / Crit 0%. With Auto-End Turn Off the Bearer's hit landed on BLUE turn 1 (Revenant HP 22 → 7). Unit Details then showed Res `1` in red, and the Res More Info breakdown read Personal base 0, Class base +4 (Revenant), Effective 1, Bonuses `Hallowed Sear -3 (2 phases)` — it adds up to the total shown. A first run with Auto-End Turn left On correctly read `(1 phase)`, because RED had already played and it was BLUE turn 2 — the trap the checklist's 1B note warns about. The More Info wording (`Overrides in this fight: Undead Frailty.`, no underscored names) was verified on `0e5882d8`; nothing since touches it. Evidence: `4-internal-checks/997caa93/` (driver `section4.mjs`).
@@ -87,7 +102,7 @@ also still needs the native readability judgment.
 
 | Item | Verdict | Note |
 |---|---|---|
-| 0 — Build identity | PASS per run; mixed builds | Initial tester receipts are for `36686b0a`; Section 3 recut and 2026-09-27 continuation use `0e5882d8`. Evidence identities are stated alongside each run. |
+| 0 — Build identity | PASS per run; mixed builds (CORRECTED 2026-09-29: superseded by `rewalk-997caa93/rewalk-report.md`, which uses `997caa93` throughout) | Initial tester receipts are for `36686b0a`; Section 3 recut and 2026-09-27 continuation use `0e5882d8`. Evidence identities are stated alongside each run. |
 | 0 — Clean profile empty states | PASS | Fresh browser contexts: Load Game says “No campaign saves yet”; New Game reports 0 compatible records. Evidence: `0-clean-load/`, `0-clean-new-game/`. |
 | 0 — Import free-roam.zip | PASS | done during 1A/1B/3 runs, unmodified zip via file chooser |
 | 1A — 12 live-map cases | PASS (12/12) | zero panel-to-panel overlaps measured; see detail |
@@ -245,7 +260,7 @@ and Windows display/input checks remain pending.
 
 | Checklist item | Verdict | Evidence / limitation |
 |---|---|---|
-| 0 — Build identity | PASS | Manifest and receipts agree on release commit 36686b0a. |
+| 0 — Build identity | PASS (CORRECTED 2026-09-29: this row described the FIRST tester bundle's build only; the shipped/current bundle is `997caa93`, confirmed throughout `rewalk-997caa93/rewalk-report.md`) | Manifest and receipts agree on release commit 36686b0a. |
 | 0 — Clean empty states | PASS | Fresh contexts: no saves in Load Game; New Game reports zero compatible records. `0-clean-load/`, `0-clean-new-game/`. |
 | 0 — Import free-roam.zip unchanged | PASS | Imported through the browser file chooser in 1A and Section 2. |
 | 1A — 12 live-map font/panel cases | PASS 12/12 | See 1A matrix above. |

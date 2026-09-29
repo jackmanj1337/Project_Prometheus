@@ -1,0 +1,8 @@
+{
+  "label": "Export resume_battle row, capture browser download",
+  "result": {
+    "suggestedFilename": "resume_battle.json",
+    "savedTo": "builds/v086-rewalk-997caa93/5-collision/stage2-build-save-under-a/exported-a-save.json"
+  },
+  "screen": "load-game"
+}

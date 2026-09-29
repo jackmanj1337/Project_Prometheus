@@ -1,0 +1,258 @@
+{
+  "version": 5,
+  "supported": true,
+  "sequence": 287,
+  "engineFrame": 2389,
+  "publishedAtMsec": 163640,
+  "screen": "action-menu",
+  "modal": "action-menu",
+  "modalStack": [
+    {
+      "id": "action-menu",
+      "path": "/root/GameMap/HUDLayer/ActionMenu"
+    }
+  ],
+  "focus": {
+    "path": "VBox/BtnItem",
+    "text": "Item"
+  },
+  "focusHistory": [
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/BtnImport",
+    "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "Panel/VBox/HBoxActions/BtnNewGame",
+    "Panel/Scroll/VBox/BtnStart",
+    "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "Margin/VBox/Scroll/Rows/Unit_unit_01_cavalier/@CheckButton@1900",
+    "",
+    "VBox/BtnItem"
+  ],
+  "inputMode": {
+    "active": "mouse_keyboard",
+    "lastDetected": "mouse_keyboard"
+  },
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  },
+  "scales": {
+    "content": 1,
+    "contentPreference": 1,
+    "effectiveMenu": 1,
+    "menu": 1,
+    "safe": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0
+    }
+  },
+  "controls": [
+    "VBox/BtnItem",
+    "VBox/BtnEquip",
+    "VBox/BtnWait"
+  ],
+  "textEntry": {
+    "active": false,
+    "consumer": "",
+    "generation": 0,
+    "mode": "",
+    "presenterRect": null,
+    "semanticTransitions": 0,
+    "targetPath": "",
+    "targetRect": null,
+    "targetText": "",
+    "text": ""
+  },
+  "activePackage": {
+    "packageId": "prometheus-proving-grounds",
+    "packageVersion": "0.1.0"
+  },
+  "newGameEntries": {
+    "offered": [],
+    "selected": -1
+  },
+  "activeCampaign": {
+    "activeNodeId": "node_00_drill",
+    "campaignId": "proving_grounds",
+    "clearedNodeIds": [],
+    "currentNodeId": "node_00_drill",
+    "mapLive": true
+  },
+  "importResult": {},
+  "importDiagnostics": [],
+  "map": {
+    "cursorState": "unit-moved",
+    "cursorTile": [
+      1,
+      2
+    ],
+    "origin": {
+      "x": 256,
+      "y": 72
+    },
+    "step": {
+      "x": 64,
+      "y": 64
+    },
+    "units": [
+      {
+        "hp": 17,
+        "team": "blue",
+        "tile": [
+          1,
+          2
+        ],
+        "unitId": "unit_01_cavalier",
+        "x": 320,
+        "y": 200
+      },
+      {
+        "hp": 18,
+        "team": "blue",
+        "tile": [
+          1,
+          4
+        ],
+        "unitId": "unit_02_mercenary",
+        "x": 320,
+        "y": 328
+      },
+      {
+        "hp": 17,
+        "team": "blue",
+        "tile": [
+          1,
+          5
+        ],
+        "unitId": "unit_03_archer",
+        "x": 320,
+        "y": 392
+      },
+      {
+        "hp": 15,
+        "team": "blue",
+        "tile": [
+          2,
+          3
+        ],
+        "unitId": "unit_04_mage",
+        "x": 384,
+        "y": 264
+      },
+      {
+        "hp": 16,
+        "team": "blue",
+        "tile": [
+          2,
+          4
+        ],
+        "unitId": "unit_05_cleric",
+        "x": 384,
+        "y": 328
+      },
+      {
+        "hp": 21,
+        "team": "blue",
+        "tile": [
+          2,
+          5
+        ],
+        "unitId": "unit_06_knight",
+        "x": 384,
+        "y": 392
+      },
+      {
+        "hp": 1,
+        "team": "red",
+        "tile": [
+          8,
+          4
+        ],
+        "unitId": "e0_training_dummy",
+        "x": 768,
+        "y": 328
+      }
+    ]
+  },
+  "rects": {
+    "VBox": {
+      "h": 107,
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/ActionMenu",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 100,
+      "x": 402,
+      "y": 214
+    },
+    "VBox/BtnEquip": {
+      "h": 33,
+      "text": "Equip",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/ActionMenu",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 100,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 25,
+        "minimumHeight": 33,
+        "minimumWidth": 53,
+        "overrunBehavior": 0
+      },
+      "w": 100,
+      "x": 402,
+      "y": 251
+    },
+    "VBox/BtnItem": {
+      "h": 33,
+      "text": "Item",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/ActionMenu",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 100,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 23,
+        "minimumHeight": 33,
+        "minimumWidth": 51,
+        "overrunBehavior": 0
+      },
+      "w": 100,
+      "x": 402,
+      "y": 214
+    },
+    "VBox/BtnWait": {
+      "h": 33,
+      "text": "Wait",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/ActionMenu",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 100,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 21,
+        "minimumHeight": 33,
+        "minimumWidth": 49,
+        "overrunBehavior": 0
+      },
+      "w": 100,
+      "x": 402,
+      "y": 288
+    }
+  },
+  "frame": null
+}

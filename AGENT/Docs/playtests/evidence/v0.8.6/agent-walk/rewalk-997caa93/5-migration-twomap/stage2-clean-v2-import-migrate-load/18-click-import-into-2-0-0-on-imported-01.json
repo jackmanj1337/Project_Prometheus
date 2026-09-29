@@ -1,0 +1,270 @@
+{
+  "label": "click Import into 2.0.0 on imported_01",
+  "result": null,
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/BtnImport",
+    "text": "Import Save..."
+  },
+  "rects": {
+    "Dimmer": {
+      "h": 720,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Panel": {
+      "h": 360,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 550,
+      "x": 365,
+      "y": 180
+    },
+    "Panel/VBox": {
+      "h": 328,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 514,
+      "x": 383,
+      "y": 196
+    },
+    "Panel/VBox/BtnBack": {
+      "h": 33,
+      "text": "Back",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 514,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 52,
+        "overrunBehavior": 0
+      },
+      "w": 514,
+      "x": 383,
+      "y": 491
+    },
+    "Panel/VBox/BtnImport": {
+      "h": 33,
+      "semanticId": "campaign.import",
+      "text": "Import Save...",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 514,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 72,
+        "minimumHeight": 33,
+        "minimumWidth": 100,
+        "overrunBehavior": 0
+      },
+      "w": 514,
+      "x": 383,
+      "y": 446
+    },
+    "Panel/VBox/HSep": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 514,
+      "x": 383,
+      "y": 430
+    },
+    "Panel/VBox/Scroll": {
+      "h": 181,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 514,
+      "x": 383,
+      "y": 237
+    },
+    "Panel/VBox/Scroll/Rows": {
+      "h": 104,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 514,
+      "x": 383,
+      "y": 237
+    },
+    "Panel/VBox/Scroll/Rows/Row_imported_01": {
+      "h": 73,
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 514,
+      "x": 383,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_imported_01/DeleteButton": {
+      "h": 73,
+      "text": "Delete",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 60,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 32,
+        "minimumHeight": 33,
+        "minimumWidth": 60,
+        "overrunBehavior": 0
+      },
+      "w": 60,
+      "x": 642,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_imported_01/ExportButton": {
+      "h": 73,
+      "text": "Export",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 61,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 33,
+        "minimumHeight": 33,
+        "minimumWidth": 61,
+        "overrunBehavior": 0
+      },
+      "w": 61,
+      "x": 706,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_imported_01/LoadButton": {
+      "h": 73,
+      "text": "Resume battle\nResume battle — Turn 1\n2 units · 0G · 2026-09-29 21:40",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 255,
+        "fits": true,
+        "measuredTextHeight": 59,
+        "measuredTextWidth": 227,
+        "minimumHeight": 73,
+        "minimumWidth": 255,
+        "overrunBehavior": 0
+      },
+      "w": 255,
+      "x": 383,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/Row_imported_01/MigrateButton": {
+      "h": 73,
+      "text": "Import into 2.0.0",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 73,
+        "availableWidth": 126,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 98,
+        "minimumHeight": 33,
+        "minimumWidth": 126,
+        "overrunBehavior": 0
+      },
+      "w": 126,
+      "x": 771,
+      "y": 268
+    },
+    "Panel/VBox/Scroll/Rows/SaveGroupLabel": {
+      "h": 23,
+      "text": "v076_migration_fixture v1.0.0 — two_map_skirmish",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 23,
+        "availableWidth": 514,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 23,
+        "measuredTextWidth": 337,
+        "minimumHeight": 23,
+        "minimumWidth": 337,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 514,
+      "x": 383,
+      "y": 237
+    },
+    "Panel/VBox/TitleLabel": {
+      "h": 29,
+      "text": "Load Game",
+      "theme": {
+        "owner": "/root/MainMenu/LoadGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 29,
+        "availableWidth": 514,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 24,
+        "measuredTextWidth": 86,
+        "minimumHeight": 29,
+        "minimumWidth": 86,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 514,
+      "x": 383,
+      "y": 196
+    }
+  }
+}

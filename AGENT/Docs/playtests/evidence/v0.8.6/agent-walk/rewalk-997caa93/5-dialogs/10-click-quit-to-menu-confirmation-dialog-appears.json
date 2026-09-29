@@ -1,0 +1,7 @@
+{
+  "label": "click Quit to Menu -- confirmation dialog appears",
+  "result": {},
+  "screen": "hud",
+  "modal": "hud",
+  "focus": null
+}

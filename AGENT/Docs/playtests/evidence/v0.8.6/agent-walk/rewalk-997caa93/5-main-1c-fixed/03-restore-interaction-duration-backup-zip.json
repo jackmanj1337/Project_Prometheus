@@ -1,0 +1,10 @@
+{
+  "label": "restore interaction-duration-backup.zip",
+  "result": null,
+  "screen": "campaign-library",
+  "modal": "campaign-library",
+  "focus": {
+    "path": "Panel/VBox/HBoxBackup/BtnRestore",
+    "text": "Restore..."
+  }
+}

@@ -1,0 +1,5 @@
+  interaction rows: 
+  forecast contained; zero relationship rows, so no scroll was needed: 1280x720
+[PASS] stateful interaction-readout (14 actions)
+
+1/1 stateful journeys passed

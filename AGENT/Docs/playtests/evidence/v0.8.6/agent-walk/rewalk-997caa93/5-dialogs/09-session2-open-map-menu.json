@@ -1,0 +1,10 @@
+{
+  "label": "session2: open Map Menu",
+  "result": null,
+  "screen": "map-menu",
+  "modal": "map-menu",
+  "focus": {
+    "path": "Panel/VBox/EndTurnButton",
+    "text": "End Turn"
+  }
+}

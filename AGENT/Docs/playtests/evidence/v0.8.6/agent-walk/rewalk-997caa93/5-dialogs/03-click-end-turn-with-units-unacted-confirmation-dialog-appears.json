@@ -1,0 +1,7 @@
+{
+  "label": "click End Turn with units unacted -- confirmation dialog appears",
+  "result": {},
+  "screen": "hud",
+  "modal": "hud",
+  "focus": null
+}

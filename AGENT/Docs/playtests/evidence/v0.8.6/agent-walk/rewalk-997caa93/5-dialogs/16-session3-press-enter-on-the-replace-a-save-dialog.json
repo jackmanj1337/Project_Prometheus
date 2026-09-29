@@ -1,0 +1,10 @@
+{
+  "label": "session3: press Enter on the replace-a-save dialog",
+  "result": null,
+  "screen": "prep",
+  "modal": "prep",
+  "focus": {
+    "path": "Margin/VBox/SaveBox/SaveButton",
+    "text": "Save"
+  }
+}

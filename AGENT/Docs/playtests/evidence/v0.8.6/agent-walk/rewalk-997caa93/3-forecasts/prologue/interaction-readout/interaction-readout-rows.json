@@ -1,0 +1,23 @@
+{
+  "fixture": {
+    "map_id": "map_000_drill",
+    "node_id": "node_00_drill",
+    "campaign_id": "proving_grounds",
+    "package_id": "prometheus-proving-grounds",
+    "seed": 20260921
+  },
+  "attacker": "unit_02_mercenary",
+  "target": "e0_training_dummy",
+  "rows": [
+    {
+      "control": "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2431",
+      "side": "attacker",
+      "text": "▼ Weapon Triangle  -10 Hit, -2 Dmg"
+    },
+    {
+      "control": "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2434",
+      "side": "defender",
+      "text": "▲ Weapon Triangle  +10 Hit, +2 Dmg"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "label": "open Map Menu",
+  "result": null,
+  "screen": "map-menu",
+  "modal": "map-menu",
+  "focus": {
+    "path": "Panel/VBox/EndTurnButton",
+    "text": "End Turn"
+  },
+  "rects": {
+    "Panel": {
+      "h": 205,
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 104,
+      "x": 588,
+      "y": 257.5
+    },
+    "Panel/VBox": {
+      "h": 205,
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 104,
+      "x": 588,
+      "y": 257.5
+    },
+    "Panel/VBox/CloseButton": {
+      "h": 27,
+      "text": "Close",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 27,
+        "minimumHeight": 27,
+        "minimumWidth": 35,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 435.5
+    },
+    "Panel/VBox/EndTurnButton": {
+      "h": 27,
+      "text": "End Turn",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 48,
+        "minimumHeight": 27,
+        "minimumWidth": 56,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 280.5
+    },
+    "Panel/VBox/GoldLabel": {
+      "h": 19,
+      "text": "Total gold: 0",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 104,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 71,
+        "minimumHeight": 19,
+        "minimumWidth": 71,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 104,
+      "x": 588,
+      "y": 257.5
+    },
+    "Panel/VBox/QuitToMenuButton": {
+      "h": 27,
+      "text": "Exit to Main Menu",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 96,
+        "minimumHeight": 27,
+        "minimumWidth": 104,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 404.5
+    },
+    "Panel/VBox/RewindButton": {
+      "h": 27,
+      "text": "Rewind (4)",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 61,
+        "minimumHeight": 27,
+        "minimumWidth": 69,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 311.5
+    },
+    "Panel/VBox/SettingsButton": {
+      "h": 27,
+      "text": "Settings",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 43,
+        "minimumHeight": 27,
+        "minimumWidth": 51,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 342.5
+    },
+    "Panel/VBox/SuspendAndQuitButton": {
+      "h": 27,
+      "text": "Suspend & Quit",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/MapMenu/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 27,
+        "availableWidth": 104,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 83,
+        "minimumHeight": 27,
+        "minimumWidth": 91,
+        "overrunBehavior": 0
+      },
+      "w": 104,
+      "x": 588,
+      "y": 373.5
+    }
+  }
+}

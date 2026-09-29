@@ -1,0 +1,20 @@
+{
+  "label": "1C -- record installed packages / font",
+  "result": {
+    "activePackage": {
+      "packageId": "",
+      "packageVersion": ""
+    },
+    "theme": {
+      "owner": "/root/MainMenu/LoadGameScreen/Panel",
+      "resource": "<embedded>",
+      "source": "control"
+    }
+  },
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": {
+    "path": "Panel/VBox/Scroll/Rows/Row_node-00-drill-prep-1789157303583/ManageCampaignsButton",
+    "text": "Manage Campaigns"
+  }
+}

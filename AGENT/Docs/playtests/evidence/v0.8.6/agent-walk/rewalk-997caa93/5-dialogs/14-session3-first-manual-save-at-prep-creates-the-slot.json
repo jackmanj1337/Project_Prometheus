@@ -1,0 +1,10 @@
+{
+  "label": "session3: first manual Save at Prep (creates the slot)",
+  "result": null,
+  "screen": "prep",
+  "modal": "prep",
+  "focus": {
+    "path": "Margin/VBox/SaveBox/SaveButton",
+    "text": "Save"
+  }
+}

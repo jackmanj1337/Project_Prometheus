@@ -1,0 +1,11 @@
+{
+  "label": "import migration-v2.zip ONLY",
+  "result": {
+    "errors": [],
+    "outcome": "ok",
+    "package_id": "v076_migration_fixture",
+    "package_version": "2.0.0"
+  },
+  "screen": "main-menu",
+  "map": {}
+}

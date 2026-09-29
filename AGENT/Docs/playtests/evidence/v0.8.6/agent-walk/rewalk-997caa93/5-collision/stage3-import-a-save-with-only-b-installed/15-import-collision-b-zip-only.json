@@ -1,0 +1,10 @@
+{
+  "label": "import collision-b.zip ONLY",
+  "result": {
+    "errors": [],
+    "outcome": "ok",
+    "package_id": "prometheus-proving-grounds",
+    "package_version": "0.1.0"
+  },
+  "screen": "main-menu"
+}

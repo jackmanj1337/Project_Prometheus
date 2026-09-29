@@ -1,0 +1,1380 @@
+{
+	"_warning": "This is a human-readable campaign save. Editing may cause invalid or unintended game state.",
+	"campaign": {
+		"active_mid_map_overrides": {
+
+		},
+		"cadence": {
+			"active": {
+
+			},
+			"counters": {
+				"deployments_total": 1.0
+			},
+			"last_fired": {
+
+			},
+			"latched": {
+
+			},
+			"ticks": {
+
+			}
+		},
+		"campaign_id": "two_map_skirmish",
+		"cleared_nodes": [],
+		"content_fingerprint": "sha256:74e9e91efa3550184dd6a3e2f3b98469ac53f7af705bae8d24976f328f90eee3",
+		"content_schema_version": 1,
+		"flags": [],
+		"key_item_custody": {
+
+		},
+		"mutable_state": {
+			"carry_forward_facts": {
+
+			},
+			"imported_record_ref": {
+
+			},
+			"rule_patches": []
+		},
+		"node_id": "crossroads",
+		"package_id": "v076_migration_fixture",
+		"package_version": "1.0.0",
+		"per_map_overrides": {
+
+		},
+		"protected_fields": [],
+		"pvp": null,
+		"recruited_flags": [],
+		"relationship_graph": {
+
+		},
+		"rules": {
+			"auto_promote_at_max_level": false,
+			"autosave_rules": [
+				{
+					"consumed_on_load": false,
+					"keep": 1,
+					"label": "Campaign Autosave",
+					"rule_id": "campaign_progress",
+					"trigger": "battle_end"
+				}
+			],
+			"battle_result_actions": {
+				"defeat": {
+					"load": true,
+					"quit": true,
+					"reload": true,
+					"retry": true,
+					"rewind": true
+				},
+				"victory": {
+					"continue": true,
+					"quit": true,
+					"retry": true,
+					"save": true
+				}
+			},
+			"death_mode": "casual",
+			"exp_gaining_factions": [
+				"blue",
+				"green"
+			],
+			"exposed_tunables": {
+
+			},
+			"hit_formula": "two_roll",
+			"interaction_profiles": [],
+			"leveling_method": "growth_random",
+			"mandated_rules": [],
+			"max_inventory": 8,
+			"max_skills": 5,
+			"pair_up_enabled": true,
+			"profile_selections": {
+
+			},
+			"pxp_profiles": {
+
+			},
+			"requirement_depth_budget": 16,
+			"requirement_node_budget": 128,
+			"rewind_charges_per_map": 4,
+			"rewind_cost_mode": "full_history",
+			"save_slot_classes": [
+				{
+					"accepts": "between_map",
+					"consumed_on_load": false,
+					"count": 3,
+					"label": "Campaign Save"
+				},
+				{
+					"accepts": "mid_map",
+					"consumed_on_load": true,
+					"count": 1,
+					"label": "Suspend"
+				}
+			],
+			"undo_activations": -1,
+			"undo_rounds": 0,
+			"value_term_depth_budget": 16,
+			"value_term_node_budget": 128
+		},
+		"vars": {
+			"_runtime_map_casualties": []
+		}
+	},
+	"format_version": 2,
+	"header": {
+		"badges": [],
+		"campaign_id": "two_map_skirmish",
+		"campaign_state": "in_progress",
+		"chapter_name": "",
+		"last_saved": "",
+		"map_id": "campaign-pack://v076_migration_fixture/1.0.0/skirmish_01",
+		"map_name": "",
+		"node_id": "crossroads",
+		"package_id": "v076_migration_fixture",
+		"package_version": "1.0.0",
+		"party": {
+			"count": 2,
+			"gold": 0,
+			"lord": ""
+		},
+		"playtime_seconds": 0.0,
+		"progress": "",
+		"save_kind": "mid_map",
+		"turn_number": 1
+	},
+	"integrity": {
+		"payload_hash": "74d4a057e09bc1a7d2a3acb5fd96ce63b5609263da2ce4105b4ecde298dfdb72",
+		"schema_hash": "a6f836b7f60b5df29a169067f78f530addf70f0ece2ff87d94461633160f2a45"
+	},
+	"ledger": [
+		{
+			"entry": {
+				"campaign_rules_state": {
+					"active_mid_map_overrides": {
+
+					},
+					"mutable_state": {
+						"carry_forward_facts": {
+
+						},
+						"imported_record_ref": {
+
+						},
+						"rule_patches": []
+					},
+					"per_map_overrides": {
+
+					}
+				},
+				"map_runtime": {
+					"battalion_charges": {
+
+					},
+					"discovered_units": [],
+					"dropped_items": [],
+					"events_fired": [],
+					"flags": [],
+					"key_item_custody": {
+
+					},
+					"map_id": "campaign-pack://v076_migration_fixture/1.0.0/skirmish_01",
+					"map_path": "campaign-pack://v076_migration_fixture/1.0.0/skirmish_01",
+					"objective_latches": {
+
+					},
+					"objects": {
+
+					},
+					"pair_carry": {
+						"pair_up": {
+
+						}
+					},
+					"relationship_gain_counters": {
+
+					},
+					"relationship_overrides": {
+
+					},
+					"rewind_charges_left": 4.0,
+					"rng": {
+						"history_hash": "0",
+						"map_seed": "-3012954429964365046"
+					},
+					"turn": {
+						"activation_mode": "WHOLE_PHASE",
+						"active_faction": "",
+						"active_faction_idx": 0,
+						"escape_records": [],
+						"group_eliminated_round": {
+
+						},
+						"phase": "player",
+						"seize_records": [],
+						"turn_number": 1,
+						"turn_order": [],
+						"unit_states": {
+
+						}
+					},
+					"units": [
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "skirmisher",
+							"class_line_id": "skirmisher",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 8.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 6.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 24.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 3.0,
+							"line_of_sight": 5.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 24.0,
+							"movement": 5.0,
+							"reclass_options": [],
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 7.0,
+							"strength": 8.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 7.0
+							},
+							"unit_id": "alden",
+							"unit_name": "Alden",
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "skirmisher",
+							"class_line_id": "skirmisher",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 8.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 5.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "blue",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 24.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 3.0,
+							"line_of_sight": 5.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 24.0,
+							"movement": 5.0,
+							"reclass_options": [],
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 9.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 9.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 7.0
+							},
+							"unit_id": "mira",
+							"unit_name": "Mira",
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "raider",
+							"class_line_id": "raider",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 7.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 3.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "red",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 18.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 5.0,
+							"luck": 2.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 18.0,
+							"movement": 4.0,
+							"reclass_options": [],
+							"resistance": 1.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 5.0,
+							"strength": 5.0,
+							"tile_position": {
+								"x": 8.0,
+								"y": 2.0
+							},
+							"unit_id": "red_01_a",
+							"unit_name": "Red Raider",
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "raider",
+							"class_line_id": "raider",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 7.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 3.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "red",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 18.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 5.0,
+							"luck": 2.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 18.0,
+							"movement": 4.0,
+							"reclass_options": [],
+							"resistance": 1.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 5.0,
+							"strength": 5.0,
+							"tile_position": {
+								"x": 9.0,
+								"y": 4.0
+							},
+							"unit_id": "red_01_b",
+							"unit_name": "Red Raider",
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"ai_profile": "basic",
+							"can_seize": false,
+							"class_id": "raider",
+							"class_line_id": "raider",
+							"class_variant_id": "",
+							"conditions": [],
+							"constitution": 7.0,
+							"damage_taken_this_map": 0.0,
+							"defense": 3.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"faction": "red",
+							"gold": 1000.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"growth_rates": {
+
+							},
+							"hp": 18.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_default_roster": false,
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 1.0,
+							"line_of_sight": 5.0,
+							"luck": 2.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 18.0,
+							"movement": 4.0,
+							"reclass_options": [],
+							"resistance": 1.0,
+							"shift_gauge": 0.0,
+							"shift_profile_id": "",
+							"skill": 5.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 5.0,
+							"strength": 5.0,
+							"tile_position": {
+								"x": 7.0,
+								"y": 7.0
+							},
+							"unit_id": "red_01_c",
+							"unit_name": "Red Raider",
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						}
+					],
+					"vars": {
+
+					}
+				},
+				"party": {
+					"gold": 0.0,
+					"items": [],
+					"roster": [
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "skirmisher",
+							"class_line_id": "skirmisher",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 6.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 24.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 3.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 24.0,
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"skill": 8.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 7.0,
+							"strength": 8.0,
+							"tile_position": {
+								"x": 1.0,
+								"y": 7.0
+							},
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						},
+						{
+							"active_modifiers": [],
+							"advancement_edge_id": "",
+							"advancement_edge_variant_id": "",
+							"class_id": "skirmisher",
+							"class_line_id": "skirmisher",
+							"class_variant_id": "",
+							"conditions": [],
+							"damage_taken_this_map": 0.0,
+							"defense": 5.0,
+							"earned_skills": [],
+							"exp": 0.0,
+							"groups": [],
+							"growth_accumulators": {
+
+							},
+							"hp": 24.0,
+							"internal_level": 1.0,
+							"inventory": [
+								{
+									"accuracy": 0.0,
+									"crit": 0.0,
+									"damage": 0.0,
+									"dodge": 0.0,
+									"entry_type": "weapon",
+									"forged_mods": {
+
+									},
+									"item_id": "",
+									"uses_remaining": -1.0,
+									"weapon_id": "training_sword",
+									"weapon_variant_id": ""
+								}
+							],
+							"is_incapacitated": false,
+							"is_promoted": false,
+							"is_shifted": false,
+							"level": 3.0,
+							"luck": 5.0,
+							"magic": 0.0,
+							"mastery_skills": [],
+							"max_hp": 24.0,
+							"resistance": 3.0,
+							"shift_gauge": 0.0,
+							"skill": 9.0,
+							"skill_use_counters": {
+
+							},
+							"skills": [],
+							"speed": 9.0,
+							"strength": 7.0,
+							"tile_position": {
+								"x": 2.0,
+								"y": 7.0
+							},
+							"weapon_wexp": {
+								"sword": 40.0
+							}
+						}
+					]
+				},
+				"suspend": {
+					"conversation_resume": null,
+					"cursor_tile": null,
+					"danger_mode": "none",
+					"kind": "map",
+					"mode": "free",
+					"pending_action": {
+						"source_id": null,
+						"style_id": null
+					},
+					"threat_views_by_faction": {
+
+					},
+					"threat_views_version": 1,
+					"watch_set": []
+				}
+			},
+			"metadata": {
+
+			},
+			"reason": "round_start"
+		}
+	],
+	"map_runtime": {
+		"battalion_charges": {
+
+		},
+		"discovered_units": [],
+		"dropped_items": [],
+		"events_fired": [],
+		"flags": [],
+		"key_item_custody": {
+
+		},
+		"map_id": "campaign-pack://v076_migration_fixture/1.0.0/skirmish_01",
+		"map_path": "campaign-pack://v076_migration_fixture/1.0.0/skirmish_01",
+		"objective_latches": {
+
+		},
+		"objects": {
+
+		},
+		"pair_carry": {
+			"pair_up": {
+
+			}
+		},
+		"relationship_gain_counters": {
+
+		},
+		"relationship_overrides": {
+
+		},
+		"rewind_charges_left": 4.0,
+		"rng": {
+			"history_hash": "0",
+			"map_seed": "-3012954429964365046"
+		},
+		"turn": {
+			"activation_mode": "WHOLE_PHASE",
+			"active_faction": "blue",
+			"active_faction_idx": 0,
+			"controller_boundary": "",
+			"escape_records": [],
+			"group_eliminated_round": {
+
+			},
+			"phase": "player",
+			"seize_records": [],
+			"turn_number": 1,
+			"turn_order": [
+				"blue",
+				"green",
+				"red",
+				"yellow"
+			],
+			"unit_states": {
+				"alden": 0,
+				"mira": 0,
+				"red_01_a": 0,
+				"red_01_b": 0,
+				"red_01_c": 0
+			}
+		},
+		"units": [
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "skirmisher",
+				"class_line_id": "skirmisher",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 6.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 24.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 3.0,
+				"line_of_sight": 5.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 24.0,
+				"movement": 5.0,
+				"reclass_options": [],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 7.0,
+				"strength": 8.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 7.0
+				},
+				"unit_id": "alden",
+				"unit_name": "Alden",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "skirmisher",
+				"class_line_id": "skirmisher",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 5.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 24.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 3.0,
+				"line_of_sight": 5.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 24.0,
+				"movement": 5.0,
+				"reclass_options": [],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 9.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 9.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 7.0
+				},
+				"unit_id": "mira",
+				"unit_name": "Mira",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "raider",
+				"class_line_id": "raider",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 7.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 3.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "red",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 18.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 5.0,
+				"luck": 2.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 18.0,
+				"movement": 4.0,
+				"reclass_options": [],
+				"resistance": 1.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 5.0,
+				"strength": 5.0,
+				"tile_position": {
+					"x": 8.0,
+					"y": 2.0
+				},
+				"unit_id": "red_01_a",
+				"unit_name": "Red Raider",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "raider",
+				"class_line_id": "raider",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 7.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 3.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "red",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 18.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 5.0,
+				"luck": 2.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 18.0,
+				"movement": 4.0,
+				"reclass_options": [],
+				"resistance": 1.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 5.0,
+				"strength": 5.0,
+				"tile_position": {
+					"x": 9.0,
+					"y": 4.0
+				},
+				"unit_id": "red_01_b",
+				"unit_name": "Red Raider",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "raider",
+				"class_line_id": "raider",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 7.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 3.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "red",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 18.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 1.0,
+				"line_of_sight": 5.0,
+				"luck": 2.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 18.0,
+				"movement": 4.0,
+				"reclass_options": [],
+				"resistance": 1.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 5.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 5.0,
+				"strength": 5.0,
+				"tile_position": {
+					"x": 7.0,
+					"y": 7.0
+				},
+				"unit_id": "red_01_c",
+				"unit_name": "Red Raider",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			}
+		],
+		"vars": {
+
+		}
+	},
+	"origin": "manual",
+	"party": {
+		"bonus_exp": 0,
+		"convoy": {
+			"entries": []
+		},
+		"resources": {
+			"party_gold": 0.0
+		},
+		"training_purchase_counts": {
+
+		}
+	},
+	"roster": {
+		"units": [
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "skirmisher",
+				"class_line_id": "skirmisher",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 6.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 24.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 3.0,
+				"line_of_sight": 5.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 24.0,
+				"movement": 5.0,
+				"reclass_options": [],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 8.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 7.0,
+				"strength": 8.0,
+				"tile_position": {
+					"x": 1.0,
+					"y": 7.0
+				},
+				"unit_id": "alden",
+				"unit_name": "Alden",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			},
+			{
+				"active_modifiers": [],
+				"advancement_edge_id": "",
+				"advancement_edge_variant_id": "",
+				"ai_profile": "basic",
+				"can_seize": false,
+				"class_id": "skirmisher",
+				"class_line_id": "skirmisher",
+				"class_variant_id": "",
+				"conditions": [],
+				"constitution": 8.0,
+				"damage_taken_this_map": 0.0,
+				"defense": 5.0,
+				"earned_skills": [],
+				"exp": 0.0,
+				"faction": "blue",
+				"gold": 1000.0,
+				"groups": [],
+				"growth_accumulators": {
+
+				},
+				"growth_rates": {
+
+				},
+				"hp": 24.0,
+				"internal_level": 1.0,
+				"inventory": [
+					{
+						"accuracy": 0.0,
+						"crit": 0.0,
+						"damage": 0.0,
+						"dodge": 0.0,
+						"entry_type": "weapon",
+						"forged_mods": {
+
+						},
+						"item_id": "",
+						"uses_remaining": -1.0,
+						"weapon_id": "training_sword",
+						"weapon_variant_id": ""
+					}
+				],
+				"is_default_roster": false,
+				"is_incapacitated": false,
+				"is_promoted": false,
+				"is_shifted": false,
+				"level": 3.0,
+				"line_of_sight": 5.0,
+				"luck": 5.0,
+				"magic": 0.0,
+				"mastery_skills": [],
+				"max_hp": 24.0,
+				"movement": 5.0,
+				"reclass_options": [],
+				"resistance": 3.0,
+				"shift_gauge": 0.0,
+				"shift_profile_id": "",
+				"skill": 9.0,
+				"skill_use_counters": {
+
+				},
+				"skills": [],
+				"speed": 9.0,
+				"strength": 7.0,
+				"tile_position": {
+					"x": 2.0,
+					"y": 7.0
+				},
+				"unit_id": "mira",
+				"unit_name": "Mira",
+				"weapon_wexp": {
+					"sword": 40.0
+				}
+			}
+		]
+	},
+	"rule_id": "",
+	"save_label": "Resume battle",
+	"source": {
+		"campaign_id": "two_map_skirmish",
+		"content_fingerprint": "sha256:74e9e91efa3550184dd6a3e2f3b98469ac53f7af705bae8d24976f328f90eee3",
+		"content_schema_version": 1,
+		"package_id": "v076_migration_fixture",
+		"package_version": "1.0.0"
+	},
+	"suspend": {
+		"conversation_resume": null,
+		"cursor_tile": {
+			"x": 1,
+			"y": 7
+		},
+		"danger_mode": "none",
+		"kind": "map",
+		"mode": "free",
+		"pending_action": {
+			"source_id": null,
+			"style_id": null
+		},
+		"threat_views_by_faction": {
+			"blue": {
+				"danger_mode": "none",
+				"watch_set": []
+			}
+		},
+		"threat_views_version": 1,
+		"watch_set": []
+	}
+}

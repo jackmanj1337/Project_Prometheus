@@ -1,0 +1,553 @@
+{
+  "label": "select campaign two_map_skirmish",
+  "result": {
+    "author_id": "project_prometheus_test",
+    "campaign_id": "two_map_skirmish",
+    "campaign_version": "1.0.0",
+    "index": 2,
+    "label": "Two-Map Skirmish — v076_migration_fixture 1.0.0",
+    "package_id": "v076_migration_fixture",
+    "package_version": "1.0.0"
+  },
+  "screen": "new-game",
+  "modal": "new-game",
+  "focus": {
+    "path": "Panel/Scroll/VBox/HBoxRun/OptRun",
+    "text": "Two-Map Skirmish — v076_migration_fixture 1.0.0"
+  },
+  "rects": {
+    "Dimmer": {
+      "h": 720,
+      "theme": {
+        "owner": "/root/MainMenu",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 1280,
+      "x": 0,
+      "y": 0
+    },
+    "Panel": {
+      "h": 648,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1152,
+      "x": 64,
+      "y": 36
+    },
+    "Panel/Scroll": {
+      "h": 616,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1116,
+      "x": 82,
+      "y": 52
+    },
+    "Panel/Scroll/VBox": {
+      "h": 530,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 52
+    },
+    "Panel/Scroll/VBox/BtnBack": {
+      "h": 33,
+      "text": "Back",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 1112,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 24,
+        "minimumHeight": 33,
+        "minimumWidth": 52,
+        "overrunBehavior": 0
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 549
+    },
+    "Panel/Scroll/VBox/BtnImportStatus": {
+      "h": 33,
+      "text": "Import Status Record...",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 1112,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 122,
+        "minimumHeight": 33,
+        "minimumWidth": 150,
+        "overrunBehavior": 0
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 428
+    },
+    "Panel/Scroll/VBox/BtnManageCampaigns": {
+      "h": 33,
+      "text": "Manage Campaigns...",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 1112,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 100,
+        "minimumHeight": 33,
+        "minimumWidth": 128,
+        "overrunBehavior": 0
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 383
+    },
+    "Panel/Scroll/VBox/BtnStart": {
+      "h": 33,
+      "text": "Start",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 1112,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 29,
+        "minimumHeight": 33,
+        "minimumWidth": 57,
+        "overrunBehavior": 0
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 504
+    },
+    "Panel/Scroll/VBox/HBoxAutoPromote": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 185
+    },
+    "Panel/Scroll/VBox/HBoxAutoPromote/LabelAutoPromote": {
+      "h": 19,
+      "text": "Auto Promote",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 72,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 192
+    },
+    "Panel/Scroll/VBox/HBoxAutoPromote/OptAutoPromote": {
+      "h": 33,
+      "text": "Off",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 16,
+        "minimumHeight": 33,
+        "minimumWidth": 88,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 185
+    },
+    "Panel/Scroll/VBox/HBoxLeveling": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 230
+    },
+    "Panel/Scroll/VBox/HBoxLeveling/LabelLeveling": {
+      "h": 19,
+      "text": "Leveling",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 40,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 237
+    },
+    "Panel/Scroll/VBox/HBoxLeveling/OptLeveling": {
+      "h": 33,
+      "text": "Random",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 36,
+        "minimumHeight": 33,
+        "minimumWidth": 108,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 230
+    },
+    "Panel/Scroll/VBox/HBoxPairUp": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 275
+    },
+    "Panel/Scroll/VBox/HBoxPairUp/LabelPairUp": {
+      "h": 19,
+      "text": "Pair Up",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 40,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 282
+    },
+    "Panel/Scroll/VBox/HBoxPairUp/OptPairUp": {
+      "h": 33,
+      "text": "On",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 13,
+        "minimumHeight": 33,
+        "minimumWidth": 88,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 275
+    },
+    "Panel/Scroll/VBox/HBoxPermadeath": {
+      "h": 33,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 140
+    },
+    "Panel/Scroll/VBox/HBoxPermadeath/LabelPermadeath": {
+      "h": 19,
+      "text": "Permadeath",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 57,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 147
+    },
+    "Panel/Scroll/VBox/HBoxPermadeath/OptPermadeath": {
+      "h": 33,
+      "text": "Off",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 33,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 16,
+        "minimumHeight": 33,
+        "minimumWidth": 88,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 140
+    },
+    "Panel/Scroll/VBox/HBoxRun": {
+      "h": 35,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 93
+    },
+    "Panel/Scroll/VBox/HBoxRun/LabelRun": {
+      "h": 19,
+      "text": "Campaign",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 45,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 101
+    },
+    "Panel/Scroll/VBox/HBoxRun/OptRun": {
+      "h": 35,
+      "text": "Two-Map Skirmish — v076_migration_fixture 1.0.0",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 35,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 21,
+        "measuredTextWidth": 293,
+        "minimumHeight": 35,
+        "minimumWidth": 365,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 93
+    },
+    "Panel/Scroll/VBox/HBoxStatus": {
+      "h": 35,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 320
+    },
+    "Panel/Scroll/VBox/HBoxStatus/LabelStatus": {
+      "h": 19,
+      "text": "Carry Forward",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 160,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 77,
+        "minimumHeight": 19,
+        "minimumWidth": 160,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 160,
+      "x": 82,
+      "y": 328
+    },
+    "Panel/Scroll/VBox/HBoxStatus/OptStatus": {
+      "h": 35,
+      "text": "None — start clean",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 35,
+        "availableWidth": 948,
+        "fits": true,
+        "measuredTextHeight": 21,
+        "measuredTextWidth": 111,
+        "minimumHeight": 35,
+        "minimumWidth": 183,
+        "overrunBehavior": 0
+      },
+      "w": 948,
+      "x": 246,
+      "y": 320
+    },
+    "Panel/Scroll/VBox/HSep": {
+      "h": 4,
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 367
+    },
+    "Panel/Scroll/VBox/StatusFeedback": {
+      "h": 19,
+      "text": "0 compatible record(s) found",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 19,
+        "availableWidth": 1112,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 17,
+        "measuredTextWidth": 155,
+        "minimumHeight": 19,
+        "minimumWidth": 1,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 473
+    },
+    "Panel/Scroll/VBox/TitleLabel": {
+      "h": 29,
+      "text": "New Game",
+      "theme": {
+        "owner": "/root/MainMenu/NewGameScreen/Panel",
+        "resource": "<embedded>",
+        "source": "control"
+      },
+      "truncation": {
+        "availableHeight": 29,
+        "availableWidth": 1112,
+        "fits": true,
+        "lineCount": 1,
+        "measuredTextHeight": 24,
+        "measuredTextWidth": 82,
+        "minimumHeight": 29,
+        "minimumWidth": 82,
+        "overrunBehavior": 0,
+        "visibleLineCount": 1
+      },
+      "w": 1112,
+      "x": 82,
+      "y": 52
+    }
+  }
+}

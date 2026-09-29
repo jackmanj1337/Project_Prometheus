@@ -1,0 +1,26 @@
+{
+  "label": "read node-00-drill-prep-1789157303583 after Retry",
+  "result": {
+    "h": 77,
+    "text": "Prologue - Drill Yard — Prep\nContinue — node_00_drill\n6 units · 0G · 2026-09-29 21:56",
+    "theme": {
+      "owner": "/root/MainMenu/LoadGameScreen/Panel",
+      "resource": "<embedded>",
+      "source": "control"
+    },
+    "truncation": {
+      "availableHeight": 77,
+      "availableWidth": 315,
+      "fits": true,
+      "measuredTextHeight": 63,
+      "measuredTextWidth": 228,
+      "minimumHeight": 77,
+      "minimumWidth": 256,
+      "overrunBehavior": 0
+    },
+    "w": 315,
+    "x": 418,
+    "y": 268
+  },
+  "screen": "load-game"
+}

@@ -1,0 +1,7 @@
+{
+  "label": "press Enter on Quit to Menu dialog",
+  "result": null,
+  "screen": "hud",
+  "modal": "hud",
+  "focus": null
+}

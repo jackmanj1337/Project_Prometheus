@@ -1,0 +1,15 @@
+{
+  "label": "rows after migration",
+  "result": [
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_imported_01/LoadButton",
+      "text": "Resume battle\nResume battle — Turn 1\n2 units · 0G · 2026-09-29 21:58"
+    },
+    {
+      "path": "Panel/VBox/Scroll/Rows/Row_imported_01_migrated/LoadButton",
+      "text": "Resume battle\nResume battle — Turn 1\n2 units · 0G · 2026-09-29 21:58"
+    }
+  ],
+  "screen": "load-game",
+  "map": {}
+}

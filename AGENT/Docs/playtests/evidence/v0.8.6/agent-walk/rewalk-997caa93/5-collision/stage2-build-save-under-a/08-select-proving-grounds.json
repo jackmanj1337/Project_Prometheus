@@ -1,0 +1,13 @@
+{
+  "label": "select proving_grounds",
+  "result": {
+    "author_id": "project_prometheus",
+    "campaign_id": "proving_grounds",
+    "campaign_version": "1.0.0",
+    "index": 0,
+    "label": "The Proving Grounds — prometheus-proving-grounds 0.1.0",
+    "package_id": "prometheus-proving-grounds",
+    "package_version": "0.1.0"
+  },
+  "screen": "new-game"
+}

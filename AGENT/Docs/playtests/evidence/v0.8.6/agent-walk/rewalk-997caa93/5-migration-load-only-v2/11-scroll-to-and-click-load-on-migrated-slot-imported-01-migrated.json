@@ -1,0 +1,77 @@
+{
+  "label": "scroll to and click LOAD on migrated slot imported_01_migrated",
+  "result": null,
+  "screen": "hud",
+  "map": {
+    "cursorState": "free",
+    "cursorTile": [
+      1,
+      7
+    ],
+    "origin": {
+      "x": 256,
+      "y": 40
+    },
+    "step": {
+      "x": 64,
+      "y": 64
+    },
+    "units": [
+      {
+        "hp": 24,
+        "team": "blue",
+        "tile": [
+          1,
+          7
+        ],
+        "unitId": "alden",
+        "x": 320,
+        "y": 488
+      },
+      {
+        "hp": 24,
+        "team": "blue",
+        "tile": [
+          2,
+          7
+        ],
+        "unitId": "mira",
+        "x": 384,
+        "y": 488
+      },
+      {
+        "hp": 18,
+        "team": "red",
+        "tile": [
+          8,
+          2
+        ],
+        "unitId": "red_01_a",
+        "x": 768,
+        "y": 168
+      },
+      {
+        "hp": 18,
+        "team": "red",
+        "tile": [
+          9,
+          4
+        ],
+        "unitId": "red_01_b",
+        "x": 832,
+        "y": 296
+      },
+      {
+        "hp": 18,
+        "team": "red",
+        "tile": [
+          7,
+          7
+        ],
+        "unitId": "red_01_c",
+        "x": 704,
+        "y": 488
+      }
+    ]
+  }
+}

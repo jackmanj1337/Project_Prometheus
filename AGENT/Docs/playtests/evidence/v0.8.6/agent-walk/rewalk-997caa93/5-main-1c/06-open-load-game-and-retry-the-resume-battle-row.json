@@ -1,0 +1,7 @@
+{
+  "label": "open Load Game and Retry the resume_battle row",
+  "result": null,
+  "screen": "load-game",
+  "modal": "load-game",
+  "focus": null
+}

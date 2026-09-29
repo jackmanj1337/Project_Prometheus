@@ -1,0 +1,11 @@
+{
+  "published": [
+    {
+      "control": "Panel/ForecastScroll/HBox/AttackerBox/AtkInteractions/@RichTextLabel@2440",
+      "side": "attacker",
+      "text": "▲ Weapon Effectiveness  ×3 Might"
+    }
+  ],
+  "weapon": "Horseslayer",
+  "dmg": "Dmg  29×1"
+}

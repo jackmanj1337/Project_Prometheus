@@ -1,0 +1,10 @@
+{
+  "step": 10,
+  "label": "press Retry on resume_battle",
+  "result": null,
+  "map": {},
+  "viewport": {
+    "h": 720,
+    "w": 1280
+  }
+}

@@ -1,0 +1,5 @@
+  interaction rows: [attacker] ▼ Weapon Triangle  -10 Hit, -2 Dmg | [defender] ▲ Weapon Triangle  +10 Hit, +2 Dmg | [defender] ▲ Weapon Effectiveness  ×3 Might
+  forecast contained and last row visible after scrolling: 900x760
+[PASS] stateful interaction-readout (14 actions)
+
+1/1 stateful journeys passed

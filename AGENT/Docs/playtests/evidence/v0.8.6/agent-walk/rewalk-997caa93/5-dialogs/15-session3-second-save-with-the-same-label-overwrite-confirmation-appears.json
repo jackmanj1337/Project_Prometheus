@@ -1,0 +1,14 @@
+{
+  "label": "session3: second Save with the same label -- overwrite confirmation appears",
+  "result": {
+    "dialogFocusText": "Save",
+    "dialogFocusPath": "Margin/VBox/SaveBox/SaveButton",
+    "modal": "prep"
+  },
+  "screen": "prep",
+  "modal": "prep",
+  "focus": {
+    "path": "Margin/VBox/SaveBox/SaveButton",
+    "text": "Save"
+  }
+}

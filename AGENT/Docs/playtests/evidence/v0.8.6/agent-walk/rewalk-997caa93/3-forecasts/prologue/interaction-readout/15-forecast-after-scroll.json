@@ -1,0 +1,56 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "panel": {
+    "h": 244,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 976,
+    "x": 288,
+    "y": 68
+  },
+  "scrollBefore": {
+    "h": 216,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 948,
+    "x": 302,
+    "y": 82
+  },
+  "scrollAfter": {
+    "h": 216,
+    "theme": {
+      "owner": "/root/GameMap/HUDLayer/AttackPreview",
+      "resource": "res://assets/themes/manasoul_ui.tres",
+      "source": "control"
+    },
+    "w": 948,
+    "x": 302,
+    "y": 89.9999694824219
+  },
+  "lastRow": [
+    "Panel/ForecastScroll/HBox/DefenderBox/DefInteractions/@RichTextLabel@2434",
+    {
+      "h": 19,
+      "text": "▲ Weapon Triangle  +10 Hit, +2 Dmg",
+      "theme": {
+        "owner": "/root/GameMap/HUDLayer/AttackPreview",
+        "resource": "res://assets/themes/manasoul_ui.tres",
+        "source": "control"
+      },
+      "w": 300,
+      "x": 626,
+      "y": 251.999969482422
+    }
+  ],
+  "noScrollableRows": false,
+  "source": null
+}

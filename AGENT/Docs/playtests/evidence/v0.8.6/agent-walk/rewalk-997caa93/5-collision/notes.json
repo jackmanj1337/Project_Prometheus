@@ -1,0 +1,8 @@
+[
+  "Stage 1 FAILED: page.waitForFunction: Timeout 1000ms exceeded.\n    at waitForAdvance (/workspace/godot-prometheus-env/tools/playwright/lib/bridge.mjs:80:14)\n    at Module.snapshot (/workspace/godot-prometheus-env/tools/playwright/lib/bridge.mjs:100:9)\n    at async importPack (/workspace/godot-prometheus-env/builds/v086-rewalk-997caa93/scripts/lib-common.mjs:162:20)\n    at async step (/workspace/godot-prometheus-env/builds/v086-rewalk-997caa93/scripts/5-collision.mjs:24:18)\n    at async main (/workspace/godot-prometheus-env/builds/v086-rewalk-997caa93/scripts/5-collision.mjs:48:5)",
+  "Exported save built under collision-a: {\"suggestedFilename\":\"resume_battle.json\",\"savedTo\":\"builds/v086-rewalk-997caa93/5-collision/stage2-build-save-under-a/exported-a-save.json\"}",
+  "Row text after importing an A-built save with only B installed: {\"path\":\"Panel/VBox/Scroll/Rows/Row_imported_01/LoadButton\",\"text\":\"[Needs campaign] Resume battle\\nThe installed campaign package does not match this save.\\n6 units · 0G · 2026-09-29 21:32\"}",
+  "Message appears to be PLAIN LANGUAGE (contains readable words, not only an id): true",
+  "Row text after Retry (only B installed): {\"h\":69,\"text\":\"[Needs campaign] Resume battle\\nThe installed campaign package does not match this save.\\n6 units · 0G · 2026-09-29 21:32\",\"theme\":{\"owner\":\"/root/MainMenu/LoadGameScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"truncation\":{\"availableHeight\":69,\"availableWidth\":330,\"fits\":true,\"measuredTextHeight\":55,\"measuredTextWidth\":302,\"minimumHeight\":69,\"minimumWidth\":330,\"overrunBehavior\":0},\"w\":330,\"x\":318.5,\"y\":268}",
+  "Still unavailable after Retry: true"
+]

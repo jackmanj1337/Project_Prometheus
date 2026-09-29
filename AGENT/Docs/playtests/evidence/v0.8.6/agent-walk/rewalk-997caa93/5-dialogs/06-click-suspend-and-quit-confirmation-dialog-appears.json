@@ -1,0 +1,7 @@
+{
+  "label": "click Suspend and Quit -- confirmation dialog appears",
+  "result": {},
+  "screen": "hud",
+  "modal": "hud",
+  "focus": null
+}

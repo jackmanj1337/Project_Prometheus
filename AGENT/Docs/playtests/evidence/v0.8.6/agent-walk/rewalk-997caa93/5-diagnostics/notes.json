@@ -1,0 +1,4 @@
+[
+  "BtnExportDiagnostics present in Settings: true",
+  "FAILED: Error: /BtnExportDiagnostics could not be reached by direct click, Tab traversal, or scroll wheel\n    at clickSuffixWithScrollFallback (file:///workspace/godot-prometheus-env/builds/v086-rewalk-997caa93/scripts/lib-common.mjs:108:9)\n    at async main (file:///workspace/godot-prometheus-env/builds/v086-rewalk-997caa93/scripts/5-diagnostics.mjs:29:7)"
+]

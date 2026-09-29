@@ -1,0 +1,102 @@
+{
+  "label": "read offered campaigns",
+  "result": {
+    "offered": [
+      {
+        "author_id": "project_prometheus",
+        "campaign_id": "proving_grounds",
+        "campaign_version": "1.0.0",
+        "index": 0,
+        "label": "The Proving Grounds — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_000_drill",
+        "campaign_version": "1.0.0",
+        "index": 1,
+        "label": "Map 000 - Drill Yard — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001",
+        "campaign_version": "1.0.0",
+        "index": 2,
+        "label": "Map 001 - Rout — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_001_c3_factions",
+        "campaign_version": "1.0.0",
+        "index": 3,
+        "label": "Map 001 - Faction Demo — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_002_seize",
+        "campaign_version": "1.0.0",
+        "index": 4,
+        "label": "Map 002 - Seize — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_003_defeat_boss",
+        "campaign_version": "1.0.0",
+        "index": 5,
+        "label": "Map 003 - Defeat Boss — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_004_escape",
+        "campaign_version": "1.0.0",
+        "index": 6,
+        "label": "Map 004 - Escape — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_005_defend",
+        "campaign_version": "1.0.0",
+        "index": 7,
+        "label": "Map 005 - Defend — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_900_hotseat_validation",
+        "campaign_version": "1.0.0",
+        "index": 8,
+        "label": "Map 900 - Hotseat Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      },
+      {
+        "author_id": "prometheus-proving-grounds",
+        "campaign_id": "single_map__map_950_promotion_validation",
+        "campaign_version": "1.0.0",
+        "index": 9,
+        "label": "Map 950 - Promotion Validation — prometheus-proving-grounds 0.1.0",
+        "package_id": "prometheus-proving-grounds",
+        "package_version": "0.1.0"
+      }
+    ],
+    "popup": {
+      "visible": false
+    },
+    "selected": 0
+  },
+  "screen": "new-game"
+}

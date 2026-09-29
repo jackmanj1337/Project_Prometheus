@@ -1,0 +1,10 @@
+  interaction rows: [attacker] ▼ Weapon Triangle  -10 Hit, -2 Dmg | [defender] ▲ Weapon Triangle  +10 Hit, +2 Dmg | [defender] ▲ Weapon Effectiveness  ×3 Might
+  forecast contained and last row visible after scrolling: 1280x720
+  more info distinct rows seen: 3
+    [19] Weapon Triangle: Weapon Triangle — an interaction this campaign's data declares, not a rule of the engine. Applies to this combatant: -10 Hit, -2 Dmg.
+    [25] Weapon Triangle: Weapon Triangle — an interaction this campaign's data declares, not a rule of the engine. Applies to this combatant: +10 Hit, +2 Dmg.
+    [26] Weapon Effectiveness: Weapon Effectiveness — an interaction this campaign's data declares, not a rule of the engine. Applies to this combatant: ×3 Might.
+  mouse opened details for 3/3 relationship rows
+[PASS] stateful interaction-readout (16 actions)
+
+1/1 stateful journeys passed

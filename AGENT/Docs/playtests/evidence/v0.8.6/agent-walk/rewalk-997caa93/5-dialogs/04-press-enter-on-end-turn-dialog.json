@@ -1,0 +1,7 @@
+{
+  "label": "press Enter on End Turn dialog",
+  "result": null,
+  "screen": "hud",
+  "modal": "hud",
+  "focus": null
+}

@@ -1,0 +1,10 @@
+[
+  "End Turn dialog: focus=\"undefined\" (expect the OK/\"End Turn\" button, meaning Enter confirms ending the phase)",
+  "End Turn Enter result: cursorState before=locked after=free (phase should have advanced / AI is now playing or BLUE turn incremented)",
+  "Suspend & Quit dialog: focus=\"undefined\" (expect the OK/\"Suspend & Quit\" button, meaning Enter confirms suspending)",
+  "Suspend & Quit Enter result: returned to main menu (confirmed the suspend), matching the dialog's stated default.",
+  "Quit to Menu dialog: focus=\"undefined\" (expect the Cancel/\"Stay in Battle\" button, meaning Enter KEEPS progress)",
+  "Quit to Menu Enter result: screen before=hud after=hud (expect UNCHANGED -- still on the map/hud, progress kept)",
+  "Replace-a-save dialog: focus=\"Save\" modal=\"prep\" (expect the Cancel/\"Keep Saves\" or \"Keep Save\" button, meaning Enter KEEPS the existing save)",
+  "Replace-a-save Enter result: modal before=prep after=prep (expect the dialog closed with NO new overwrite -- existing save kept)"
+]

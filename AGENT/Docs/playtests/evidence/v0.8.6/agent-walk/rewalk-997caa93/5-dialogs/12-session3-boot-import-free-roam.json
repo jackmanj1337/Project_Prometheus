@@ -1,0 +1,10 @@
+{
+  "label": "session3: boot + import free-roam",
+  "result": null,
+  "screen": "main-menu",
+  "modal": null,
+  "focus": {
+    "path": "MenuFrame/Panel/Scroll/VBox/CampaignLibraryButton",
+    "text": "Manage Library"
+  }
+}
