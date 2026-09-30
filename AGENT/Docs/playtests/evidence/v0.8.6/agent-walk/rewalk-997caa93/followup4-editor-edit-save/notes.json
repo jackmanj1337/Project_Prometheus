@@ -1,0 +1,10 @@
+[
+  "Menu Scale before entering editor: {\"content\":1,\"contentPreference\":1,\"effectiveMenu\":1.25,\"menu\":1.25,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "Menu Scale inside the editor: {\"content\":1,\"contentPreference\":1,\"effectiveMenu\":1.25,\"menu\":1.25,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "Editing field: CampaignEditorScreen/Shell/Body/Workspace/Inspector/FormScroll/Form/@VBoxContainer@2060/@LineEdit@2059 (was \"project_prometheus\")",
+  "Tab/working-copy indicator after edit (expect an unsaved marker): [\"CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs\",{\"h\":28,\"theme\":{\"owner\":\"/root/MainMenu/CampaignEditorScreen/Shell\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"w\":1236,\"x\":292,\"y\":86}]",
+  "Tab/working-copy indicator after Ctrl+S (expect no unsaved marker): [\"CampaignEditorScreen/Shell/Body/Workspace/Centre/Tabs\",{\"h\":28,\"theme\":{\"owner\":\"/root/MainMenu/CampaignEditorScreen/Shell\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"w\":1236,\"x\":292,\"y\":86}]",
+  "Screen after Escape: campaign-library",
+  "Menu Scale after closing the editor (expect back to the pre-editor 1.25x): {\"content\":1,\"contentPreference\":1,\"effectiveMenu\":1.25,\"menu\":1.25,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "Menu Scale genuinely restored to its pre-editor value: true"
+]

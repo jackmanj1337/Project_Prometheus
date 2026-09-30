@@ -1,0 +1,14 @@
+[
+  "[1280x720] slider rect once in view: {\"h\":32,\"theme\":{\"owner\":\"/root/MainMenu/SettingsScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"w\":310,\"x\":622,\"y\":357}",
+  "[1280x720] focus immediately after click at (777,373): {\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[1280x720] value immediately after click (a mid-track click should jump the value): {\"content\":2,\"contentPreference\":2.5,\"effectiveMenu\":0.5,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "[1280x720] value after ONE ArrowRight: {\"content\":2,\"contentPreference\":3,\"effectiveMenu\":0.5,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}} focus={\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[1280x720] value after clicking near the right end of the track (x=901): {\"content\":2,\"contentPreference\":3,\"effectiveMenu\":0.5,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}} focus={\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[1280x720] value after DRAGGING the handle to the track's right end: {\"content\":2,\"contentPreference\":3,\"effectiveMenu\":0.5,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "[560x900] slider rect once in view: {\"h\":32,\"theme\":{\"owner\":\"/root/MainMenu/SettingsScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"w\":463,\"x\":42,\"y\":472}",
+  "[560x900] focus immediately after click at (273.5,488): {\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[560x900] value immediately after click (a mid-track click should jump the value): {\"content\":1,\"contentPreference\":2,\"effectiveMenu\":1,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "[560x900] value after ONE ArrowRight: {\"content\":1,\"contentPreference\":2.5,\"effectiveMenu\":1,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}} focus={\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[560x900] value after clicking near the right end of the track (x=458.7): {\"content\":1,\"contentPreference\":2.5,\"effectiveMenu\":1,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}} focus={\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"}",
+  "[560x900] value after DRAGGING the handle to the track's right end: {\"content\":1,\"contentPreference\":4,\"effectiveMenu\":1,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}"
+]

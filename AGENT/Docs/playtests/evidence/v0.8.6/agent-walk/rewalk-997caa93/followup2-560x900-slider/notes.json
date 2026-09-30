@@ -1,0 +1,8 @@
+[
+  "SliderViewportScale rect once scrolled into view: {\"h\":32,\"theme\":{\"owner\":\"/root/MainMenu/SettingsScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"w\":463,\"x\":42,\"y\":472}",
+  "After mouse-click + arrow keys on Viewport Scale slider: {\"vp\":\"0.5x\",\"menu\":\"1.0x\",\"scales\":{\"content\":0.5,\"contentPreference\":0.5,\"effectiveMenu\":2,\"menu\":1,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}}",
+  "After driving BOTH sliders to 2x via mouse+keys: {\"vp\":\"0.5x\",\"menu\":\"2.0x\",\"scales\":{\"content\":0.5,\"contentPreference\":0.5,\"effectiveMenu\":4,\"menu\":2,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}}",
+  "Method A (mouse click, scrolled into view, then arrow keys) worked: false",
+  "After resizing to 1920x1080 (no slider touch): {\"vp\":\"0.5x\",\"menu\":\"2.0x\",\"scales\":{\"content\":0.5,\"contentPreference\":0.5,\"effectiveMenu\":4,\"menu\":2,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}}",
+  "Method B: pure keyboard Tab-focus reached SliderViewportScale: false"
+]

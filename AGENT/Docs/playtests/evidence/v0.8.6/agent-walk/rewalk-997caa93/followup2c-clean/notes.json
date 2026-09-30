@@ -1,0 +1,7 @@
+[
+  "Click at track MIDDLE: Viewport Scale label = \"2.0x (1.0x)\" (focus={\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxViewportScale/SliderViewportScale\",\"text\":\"\"})",
+  "Stepped Viewport Scale to 2.0x: {\"reached\":true,\"steps\":0,\"text\":\"2.0x (1.0x)\"}",
+  "Stepped Menu Scale to 2.0x: {\"reached\":true,\"steps\":6,\"text\":\"2.0x\"}",
+  "Final labels at 560x900: Viewport Scale = \"2.0x (1.0x)\", Menu Scale = \"2.0x\", scales={\"content\":1,\"contentPreference\":2,\"effectiveMenu\":2,\"menu\":2,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}",
+  "After resizing to 1920x1080 (no slider touch): Viewport Scale = \"2.0x\", scales={\"content\":2,\"contentPreference\":2,\"effectiveMenu\":1,\"menu\":2,\"safe\":{\"bottom\":0,\"left\":0,\"right\":0,\"top\":0}}"
+]

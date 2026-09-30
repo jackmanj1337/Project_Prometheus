@@ -1,0 +1,5 @@
+[
+  "Export Diagnostics rect after drag: [\"Panel/ScrollContainer/Margin/VBox/BtnExportDiagnostics\",{\"h\":52,\"text\":\"Export Diagnostics\",\"theme\":{\"owner\":\"/root/MainMenu/SettingsScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"truncation\":{\"availableHeight\":52,\"availableWidth\":444,\"fits\":true,\"measuredTextHeight\":33,\"measuredTextWidth\":192,\"minimumHeight\":52,\"minimumWidth\":220,\"overrunBehavior\":0},\"w\":444,\"x\":42,\"y\":717}]",
+  "Back rect after drag: [\"Panel/ScrollContainer/Margin/VBox/BtnBack\",{\"h\":52,\"text\":\"Back\",\"theme\":{\"owner\":\"/root/MainMenu/SettingsScreen/Panel\",\"resource\":\"<embedded>\",\"source\":\"control\"},\"truncation\":{\"availableHeight\":52,\"availableWidth\":444,\"fits\":true,\"measuredTextHeight\":33,\"measuredTextWidth\":48,\"minimumHeight\":52,\"minimumWidth\":76,\"overrunBehavior\":0},\"w\":444,\"x\":42,\"y\":789}]",
+  "Export Diagnostics visible on-screen after corrected drag: true"
+]

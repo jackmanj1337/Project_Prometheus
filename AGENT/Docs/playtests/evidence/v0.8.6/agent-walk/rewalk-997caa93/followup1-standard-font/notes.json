@@ -1,0 +1,10 @@
+[
+  "While playing free-roam: activePackage={\"packageId\":\"prometheus-proving-grounds\",\"packageVersion\":\"0.1.0\"}",
+  "After Quit to Menu: activePackage={\"packageId\":\"\",\"packageVersion\":\"\"} (expect package_id empty)",
+  "Genuinely no active package: true",
+  "Continue button present/enabled: {\"h\":48,\"text\":\"Continue\",\"theme\":{\"owner\":\"/root/MainMenu\",\"resource\":\"res://assets/themes/manasoul_ui.tres\",\"source\":\"control\"},\"truncation\":{\"availableHeight\":48,\"availableWidth\":496,\"fits\":true,\"measuredTextHeight\":17,\"measuredTextWidth\":43,\"minimumHeight\":48,\"minimumWidth\":71,\"overrunBehavior\":0},\"w\":496,\"x\":391,\"y\":147}",
+  "Campaign Library activePackage while browsing (pack installed, not live): {\"packageId\":\"\",\"packageVersion\":\"\"}",
+  "New Game offered campaigns with ONLY free-roam.zip installed: [\"proving_grounds\",\"single_map__map_000_drill\",\"single_map__map_001\",\"single_map__map_001_c3_factions\",\"single_map__map_002_seize\",\"single_map__map_003_defeat_boss\",\"single_map__map_004_escape\",\"single_map__map_005_defend\",\"single_map__map_900_hotseat_validation\",\"single_map__map_950_promotion_validation\"]",
+  "After starting the only offered campaign (free-roam's own): screen=prep activePackage={\"packageId\":\"prometheus-proving-grounds\",\"packageVersion\":\"0.1.0\"}",
+  "CONCLUSION: with only free-roam.zip installed, reaching Prep/HUD/Map Menu again necessarily reactivates free-roam and its font -- there is no route to those screens with activePackage genuinely empty."
+]

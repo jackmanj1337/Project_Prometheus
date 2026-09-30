@@ -341,7 +341,7 @@ Role: topic
 - [`playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.6/raw/PLAYTEST_CHECKLIST.md) — v0.7.6 Windows Tester Checklist — *Ready*
 - [`playtests/evidence/v0.7.7/raw/PLAYTEST_CHECKLIST.md`](playtests/evidence/v0.7.7/raw/PLAYTEST_CHECKLIST.md) — v0.7.7 Focused Windows Tester Checklist — *Ready*
 - [`playtests/evidence/v0.8.6/agent-walk/agent-walk-report.md`](playtests/evidence/v0.8.6/agent-walk/agent-walk-report.md) — v0.8.6 agent browser walk report — *Sections 3 and 4 browser pass; Sections *
-- [`playtests/evidence/v0.8.6/agent-walk/rewalk-997caa93/rewalk-report.md`](playtests/evidence/v0.8.6/agent-walk/rewalk-997caa93/rewalk-report.md) — v0.8.6 agent browser re-walk — source 997caa93 (2026-09-29) — *Full agent browser re-walk on the exact *
+- [`playtests/evidence/v0.8.6/agent-walk/rewalk-997caa93/rewalk-report.md`](playtests/evidence/v0.8.6/agent-walk/rewalk-997caa93/rewalk-report.md) — v0.8.6 agent browser re-walk — source 997caa93 (2026-09-29, updated 2026-09-30) — *Full agent browser re-walk on the exact *
 - [`playtests/playtest_build_v0.2.3.md`](playtests/playtest_build_v0.2.3.md) — Playtester Build Manifest - v0.2.3
 - [`playtests/playtest_build_v0.2.6.md`](playtests/playtest_build_v0.2.6.md) — Playtester Build Manifest - v0.2.6
 - [`playtests/playtest_build_v0.2.7.md`](playtests/playtest_build_v0.2.7.md) — Playtester Build Manifest - v0.2.7

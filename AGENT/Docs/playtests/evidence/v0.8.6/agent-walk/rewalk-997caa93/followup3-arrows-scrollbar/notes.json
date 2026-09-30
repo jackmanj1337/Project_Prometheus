@@ -1,0 +1,7 @@
+[
+  "[2.0x] Initial focus on opening Settings (before any key): {\"path\":\"Panel/ScrollContainer/Margin/VBox/BtnBack\",\"text\":\"Back\"}",
+  "[2.0x] Focus after explicitly clicking the Master Volume slider: {\"path\":\"Panel/ScrollContainer/Margin/VBox/HBoxMaster/SliderMaster\",\"text\":\"\"}",
+  "[2.0x] Tab-cycling from an explicit starting focus (budget 200): reached Panel/ScrollContainer/Margin/VBox/BtnExportDiagnostics (\"Export Diagnostics\") after 56 Tab presses",
+  "[2.0x] Last 10 focus paths seen (to show real traversal, not a stall): [\"Panel/ScrollContainer/Margin/VBox/KeybindList/_HBoxContainer_1934/BtnPadRebind_zoom_in\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/_HBoxContainer_1937/BtnRebind_zoom_out\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/_HBoxContainer_1937/BtnPadRebind_zoom_out\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/_HBoxContainer_1940/BtnRebind_zoom_reset\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/_HBoxContainer_1940/BtnPadRebind_zoom_reset\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnApplyKeybindings\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnRevertKeybindings\",\"Panel/ScrollContainer/Margin/VBox/KeybindList/@HBoxContainer@1942/BtnResetKeybindings\",\"Panel/ScrollContainer/Margin/VBox/BtnEditHudLayout\",\"Panel/ScrollContainer/Margin/VBox/BtnExportDiagnostics\"]",
+  "[2.0x] Scrollbar drag at painted position (x=553, 90->850): Export Diagnostics visible on-screen after drag: false"
+]
