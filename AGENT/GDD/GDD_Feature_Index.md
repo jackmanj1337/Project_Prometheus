@@ -338,6 +338,7 @@ planned or future anchors and are not asserted as existing files.
 | **UUI-14** | [GDD_07_UI_UX.md#the-rulings](GDD_07_UI_UX.md#the-rulings) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
 | **UUI-16** | [GDD_07_UI_UX.md#the-rulings](GDD_07_UI_UX.md#the-rulings) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
 | **UUI-18** | [GDD_07_UI_UX.md#accessibility-input-parity](GDD_07_UI_UX.md#accessibility-input-parity)<br>[GDD_11_Campaign_Editor.md#display-shell-and-navigation](GDD_11_Campaign_Editor.md#display-shell-and-navigation) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
+| **UUI-20** | [GDD_07_UI_UX.md#accessibility-input-parity](GDD_07_UI_UX.md#accessibility-input-parity) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
 | **UUI-4** | [GDD_07_UI_UX.md#the-rulings](GDD_07_UI_UX.md#the-rulings) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
 | **UUI-9** | [GDD_07_UI_UX.md#the-rulings](GDD_07_UI_UX.md#the-rulings) | `AGENT/Docs/registers/unified_ui_decisions_2026-08-12.md` |
 <!-- END GENERATED STABLE ID INDEX -->

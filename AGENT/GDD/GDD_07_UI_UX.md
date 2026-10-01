@@ -326,7 +326,9 @@ Cross-cutting obligations:
   phone resolves to **3.0** and 393×852, which is Compact at 16 CSS px. It is deliberately
   **not** flipped yet: doing so before the screen conversions would make portrait large and
   broken instead of small and unclipped. Sequenced in `responsive_ui_programme_2026-08-06.md`.
-- **Window limit on Viewport Scale — Implemented 2026-09-25, Pending native validation.**
+- **Window limit on Viewport Scale — Implemented 2026-09-25; ruled for removal 2026-10-01
+  (`[UUI-20]`).** It stays until `[UUI-18]`'s confirm-or-revert ships, and is removed in that
+  same change.
   The slider stores the player's preference, but the factor applied to the window is capped
   so the logical canvas never drops below **640 on the long side and 360 on the short
   side** (the ratified floor in both orientations), snapped down to the slider's 0.5 step:
@@ -364,7 +366,10 @@ Cross-cutting obligations:
   acceptance remains part of the v0.8.5 playtest gate.
 - **Display/scaling design floor:** **Superseded 2026-08-06** by the responsive redesign
   (owner decision). The floor was **1280×720** (desktop/web) with the mobile-portrait case
-  deferred; it is now **360×640**, and mobile is no longer deferred. The obligation is
+  deferred; it is now **375×667 portrait and 667×375 landscape** (iPhone SE 2nd gen, `[UUI-20]`,
+  2026-10-01; 360×640 from 2026-08-06 until then), and mobile is no longer deferred. It is a
+  **test floor, not a limit**: the player may size the game view and Viewport Scale below it,
+  guarded by `[UUI-18]`'s confirm-or-revert rather than by a clamp. The obligation is
   unchanged in kind — every screen, panel, and beat must be playable at the fewest tiles the
   floor shows, and a bigger display revealing more is a comfort bonus that can never break a
   mechanic — but it now binds at the smaller size. Prior rationale and measured tile counts:

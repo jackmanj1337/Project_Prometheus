@@ -1,9 +1,9 @@
 ---
 Role: dated
 Type: register
-Status: RESOLVED 2026-08-12 — UUI-1..19 ratified in the owner walk
-Last verified: 2026-08-12
-Register: UUI-1..19
+Status: RESOLVED 2026-08-12 — UUI-1..19 ratified in the owner walk; UUI-20 ratified 2026-10-01
+Last verified: 2026-10-01
+Register: UUI-1..20
 Tracker: UNIFIED-UI-PROGRAMME-2026-08-12
 Control plane: [Project Control Plane](../plans/project_control_plane_2026-06-29.md)
 ---
@@ -34,7 +34,8 @@ every conversion branch draws and captures against them.
 
 | # | Logical | Class | Aspect | What it proves |
 |---|---|---|---|---|
-| 1 | 360 × 640 | Compact | 9:16 | the ratified design floor; the row-budget worst case |
+| 1 | 375 × 667 | Compact | 9:16 | the test floor (iPhone SE 2nd gen, `[UUI-20]`); the row-budget worst case |
+| 1L | 667 × 375 | Medium | 16:9 | the test floor in landscape (`[UUI-20]`); the narrowest side columns |
 | 2 | 393 × 852 | Compact | 19.5:9 | measured real phone (1179×2556 @ 3.0); notch and home indicator |
 | 3 | 852 × 393 | Medium | 21:9 | landscape; 4:3 game view + two side control columns |
 | 4 | 768 × 1024 | Medium | 3:4 | tablet portrait; the two-pane threshold |
@@ -42,6 +43,10 @@ every conversion branch draws and captures against them.
 | 6 | 1280 × 720 | Expanded | 16:9 | the legacy authoring size, now the largest class |
 
 Control region present on 1–4 (touch), absent on 5–6 (desktop).
+
+*Corrected 2026-10-01 by `[UUI-20]`:* viewport 1 was 360 × 640 and there was no landscape
+floor point. The album's frames were drawn at 360 × 640 and are not redrawn; every new
+capture uses 375 × 667 and 667 × 375.
 
 ---
 
@@ -60,6 +65,11 @@ where it was never drawn.
 **Decision:** ship a preset list — 2:3, 1:1, 4:3, 16:9 — with **4:3 as the shipped
 default**. 4:3 is the widest rectangle that still fits the split keyboard (3 columns per
 side at 852×393); 3:2 and wider drop to 2 columns or fewer and force the shrink fallback.
+
+*Amended 2026-10-01 by `[UUI-20]`:* the default is no longer 4:3 everywhere. It is the
+**widest preset whose leftover side columns still hold the controls**: 4:3 at 852 × 393,
+1:1 at the 667 × 375 test floor, where a 4:3 view (500 wide) leaves 83 px per side
+against the ~150 px the D-pad needs. The preset list itself is unchanged.
 
 **Why a rectangle must be chosen deliberately.** An emulator gets its letterbox for free by
 showing a fixed-aspect device on a phone. Prometheus runs `aspect=EXPAND` and will happily
@@ -81,6 +91,12 @@ combination reserves roughly three quarters of the screen for controls. All thre
 references disagree with the measurement: DS 55%, Awakening 54%, the preset itself 0.55.
 
 **Decision:** default 55%, exposed through the Game View editor already built in Slice 3.
+
+*Corrected 2026-10-01:* the cause above is wrong. Read from the code (not re-rendered),
+the 26% comes from `ControllerLayout.default_viewport("portrait")` being
+`aspect_locked: true`, which `ControllerService._lock_aspect()` crops to a hard-coded 16:9:
+0.90 W × 9/16 is 23% of height at 412 × 915 and 28% at 360 × 640. Delivering 55% therefore
+means the aspect follows the chosen preset (`[UUI-20]`), not only a new default.
 A 26% band cannot show the 12×14 tiles the map layouts are drawn against, which is why
 this must land before the conversions reach the map HUD.
 
@@ -117,6 +133,12 @@ The PWA shell already publishes real values —
 and `safe_area_insets_from_shell()` converts them — and **nothing consumes them today**.
 This decision is the consumer.
 
+*Corrected 2026-10-01:* the in-game half was already built when this was written —
+`refresh_web_safe_area()` feeds `safe_area_insets` since 83a94acb (2026-08-04), read by
+`HUD._safe_viewport_rect()`, `ModalScreen`, `TouchControls` and `MapResultsScreen`. What
+still consumes nothing is the HTML on-screen controller: its buttons clamp to a 4 px edge
+margin, not to the safe rect.
+
 ### [UUI-7] HUD panels — **free positions stored as viewport fractions, clamped**
 
 Positions are stored as fractions of the viewport, not absolute pixels, and clamped on
@@ -132,7 +154,9 @@ today while removing the stranding.
    `_reflow_layout` (`:375-378`) re-applies only `_active_layout`, while `HudLayoutEditor`
    drives panels through `_hud.set_panel_layout` (`HudLayoutEditor.gd:264,274`). A resize
    therefore re-applies a layout that is not the one on screen. **The live layout must be
-   the one reflowed.**
+   the one reflowed.** *(Corrected 2026-10-01: already true when written — since 92d54bbe
+   on 2026-08-02 `set_panel_layout` writes into `_active_layout`, which is what
+   `_reflow_layout` re-applies.)*
 3. The editor toolbar becomes an `HFlowContainer`. It is `PRESET_TOP_WIDE` with unwrapped
    children today, so "Done" clips off the right edge at high viewport — an editor that
    cannot be exited.
@@ -337,10 +361,13 @@ the dialog, wherever it lives.
 | `menu_mode` | controller mode publishes `min_target: 0` — on a touch device that is a screen of untappable rows |
 | `control_style` | **`off` on a touch-only device leaves no control at all** |
 | `overlay_menus` | suppresses the control band |
-| `game_view_preset` / size / offset | can shrink the canvas to its 640×360 floor |
+| `game_view_preset` / size / offset | can shrink the canvas until the UI is unreachable — there is no design floor (`[UUI-20]`) |
 
 No dialog: information density, audio, gameplay and accessibility toggles — all
 recoverable in place.
+
+*Amended 2026-10-01 by `[UUI-20]`:* this dialog is now the **only** guard against a
+too-small view, so it is a precondition for removing the size limits, not a follow-up.
 
 **The constraint that makes the dialog actually work.** It must be **exempt from the
 setting it is confirming**. Viewport Scale 4.0 applied to the dialog renders the dialog
@@ -374,6 +401,47 @@ and the tab strip needs its own `[tab]` role.
 needs roughly 105px at the 16px body token — so the strip must scroll at Medium and only
 fits outright at Expanded. Section count is data-adjacent and will grow, so a scrolling
 strip is the general case rather than a fallback.
+
+---
+
+## F. Size limits
+
+Ruled by the owner on 2026-10-01, reviewing `MOBILE-CONTROLLER-UUI-GAP-2026-09-28`.
+
+### [UUI-20] **No player-facing minimum size**; the iPhone SE 2nd gen is the test floor
+
+> "Let players make things as small as they want instead of arbitrary limits on screen
+> size."
+
+**Decision.**
+
+1. **No design minimum on anything the player sizes.** The game view rectangle and Viewport
+   Scale take any value. Three limits are retired: `ControllerLayout.MIN_VIEWPORT_PIXELS`
+   (640 × 360 CSS px on the game view), the v0.8.6 Viewport Scale window limit
+   (`SettingsManager.CONTENT_SCALE_FLOOR_LONG/SHORT`), and the controller branch's
+   `GAME_VIEW_MIN_SIZE` (30% of the screen). `[UUI-18]`'s "640×360 floor" goes with them.
+2. **What replaces them is `[UUI-18]`, and it lands first.** A player who shrinks past
+   usability gets the 15-second confirm-or-revert. The limits are removed in the same change
+   that ships `reachability_risk`, never before it.
+3. **A technical minimum only.** The code keeps the smallest size that does not break its
+   own arithmetic and still leaves the undo path reachable (on the order of one map tile, or
+   the Game View editor's drag handles). It is documented as technical, not as a design floor.
+4. **The test floor is the iPhone SE 2nd gen: 375 × 667 portrait and 667 × 375 landscape**
+   (CSS px). Every screen is designed and verified there. Below it a screen may clip, but the
+   confirm-or-revert dialog and the path to Settings must still work. Replaces 360 × 640.
+5. **Default landscape game view: widest that fits** — see the `[UUI-1]` amendment.
+6. **Viewport Scale measures the game view**, not the window. Once the shell sizes the
+   canvas, the window and the game view differ, and the game view is what is drawn.
+7. **Game View presets are `[UUI-1]`'s aspect list plus a size**, keeping the controller
+   branch's free-drag editor for a custom rectangle. `auto` is dropped. The aspect lock
+   follows the chosen preset; the hard-coded 16:9 is retired (see the `[UUI-3]` correction).
+8. **Controller placement follows `[UUI-2]`** for both profiles: labelled actions move into
+   the side columns, SELECT/START into the left column. The on-screen controller clamps to
+   the safe rect (`[UUI-6]`).
+9. **Scope: the web build.** Native desktop keeps the window as the game view.
+
+**Unchanged by this:** `[UUI-11]`'s `dense` column is still needed at 375. With the touch
+tokens, seven 44 px keys need 388 px and overflow; with `dense` they need 348 and fit.
 
 ---
 
