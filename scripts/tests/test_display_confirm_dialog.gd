@@ -68,5 +68,81 @@ func _init() -> void:
 	d4._on_revert()
 	_ok(_reverted, "Revert button emits reverted")
 
+	# ---- one answer only: a late tick or Escape after Keep emits nothing ----
+	_kept = false
+	_reverted = false
+	var d5: CanvasLayer = DialogS.new()
+	root.add_child(d5)
+	d5.kept.connect(func() -> void: _kept = true)
+	d5.reverted.connect(func() -> void: _reverted = true)
+	d5.start(1)
+	d5._on_keep()
+	d5._tick()
+	d5._on_revert()
+	_ok(_kept and not _reverted, "a dialog never emits both kept and reverted")
+
+	# ---- Escape (cancel) reverts ----
+	_reverted = false
+	var d6: CanvasLayer = DialogS.new()
+	root.add_child(d6)
+	d6.reverted.connect(func() -> void: _reverted = true)
+	d6.start(15)
+	var esc := InputEventAction.new()
+	esc.action = "ui_cancel"
+	esc.pressed = true
+	d6._input(esc)
+	_ok(_reverted, "Escape reverts")
+
+	# ---- [UUI-18] exempt from the setting it confirms ----
+	# The live fit needs a viewport, which a node added during _init does not have yet.
+	await process_frame
+	var d7: CanvasLayer = DialogS.new()
+	root.add_child(d7)
+	d7.start(15)
+	var k7: float = d7.layer_scale()
+	_ok(
+		is_equal_approx(d7._revert_button.custom_minimum_size.y, DialogS.TARGET_MIN * k7),
+		"Revert holds the 44pt target at the safe scale regardless of Menu Mode"
+	)
+	_ok(
+		(
+			d7._root.theme != null
+			and d7._root.theme.default_font_size == roundi(DialogS.FONT_SIZE * k7)
+		),
+		"the dialog carries its own type size, not the Menu Scale theme"
+	)
+	_ok(
+		d7.transform == Transform2D.IDENTITY,
+		"the scale reaches type and metrics, never a glyph-stretching layer transform"
+	)
+	# Viewport Scale 4.0 pending on a display whose default is 1.5: the layer cancels the
+	# 4.0 and draws at 1.5 when the panel fits.
+	var big_view := Vector2(1920.0, 1080.0) / 4.0
+	var k_fit: float = DialogS.layer_scale_for(1.5, 4.0, big_view, Vector2(100.0, 50.0))
+	_ok(is_equal_approx(k_fit, 0.375), "a 4.0 pending factor is cancelled back to the safe 1.5")
+	# The same change on a panel too large for the view shrinks it to fit, like every modal.
+	var k_shrunk: float = DialogS.layer_scale_for(1.5, 4.0, big_view, Vector2(344.0, 160.0))
+	_ok(
+		(
+			344.0 * k_shrunk <= big_view.x * DialogS.FIT_RATIO + 0.001
+			and 160.0 * k_shrunk <= big_view.y * DialogS.FIT_RATIO + 0.001
+		),
+		"a panel larger than the game view shrinks to fit inside it"
+	)
+	# A shrinking factor (0.5) is cancelled upward the same way.
+	_ok(
+		is_equal_approx(
+			DialogS.layer_scale_for(1.0, 0.5, Vector2(2000, 2000), Vector2(100, 50)), 2.0
+		),
+		"a 0.5 pending factor is cancelled back up to the safe scale"
+	)
+	# The live layer obeys the same rule: its panel is inside the game view.
+	var view: Vector2 = d7.get_viewport().get_visible_rect().size
+	var drawn: Vector2 = d7._panel.get_combined_minimum_size()
+	_ok(
+		drawn.x <= view.x * DialogS.FIT_RATIO + 0.5 and drawn.y <= view.y * DialogS.FIT_RATIO + 0.5,
+		"the live panel fits inside the game view (%s in %s)" % [drawn, view]
+	)
+
 	print("\n=== Results: %d passed, %d failed ===" % [_passed, _failed])
 	quit(0 if _failed == 0 else 1)
