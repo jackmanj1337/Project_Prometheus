@@ -11,6 +11,17 @@ const DEFAULT_THEME := "prometheus:minimal_black"
 const MIN_VIEWPORT_PIXELS := Vector2(640.0, 360.0)
 const DEFAULT_SLOT_COUNT := 6
 
+# Per-element edit bounds, named rather than inlined in the clamp below because
+# the Settings sliders have to offer exactly this range. A slider authored to a
+# wider range in the scene would let a player drag to a value the model silently
+# clamps, so the control would stop responding partway along its travel.
+const MIN_ELEMENT_SCALE := 0.5
+const MAX_ELEMENT_SCALE := 3.0
+# Not zero: a fully transparent control still takes touches, so it becomes an
+# invisible dead zone the player cannot find again to undo.
+const MIN_ELEMENT_OPACITY := 0.15
+const MAX_ELEMENT_OPACITY := 1.0
+
 
 static func default_combination(
 	name: String = "Default", orientation: String = "both", slot: int = 0
@@ -21,7 +32,7 @@ static func default_combination(
 		"id": "default-%d" % maxi(slot, 0),
 		"name": name.strip_edges() if not name.strip_edges().is_empty() else "Default",
 		"orientation": safe_orientation,
-		"viewport": _default_viewport(safe_orientation),
+		"viewport": default_viewport(safe_orientation),
 		"profile": "labeled_actions",
 		"theme": DEFAULT_THEME,
 		"global_opacity": 0.72,
@@ -101,14 +112,18 @@ static func select_for_orientation(combinations: Array, orientation: String) -> 
 	return shared if not shared.is_empty() else default_combination("Default", wanted)
 
 
-static func _default_viewport(orientation: String) -> Dictionary:
+# Public because the Game View editor's Reset has to write it: unlike the element
+# list, a viewport has no "empty means follow the built-in placement" state — it is
+# one rect and every key is always present — so resetting means writing today's
+# default rather than clearing an override.
+static func default_viewport(orientation: String) -> Dictionary:
 	if orientation == "portrait":
 		return {"x": 0.05, "y": 0.03, "width": 0.90, "height": 0.55, "aspect_locked": true}
 	return {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "aspect_locked": false}
 
 
 static func _normalize_viewport(raw: Variant, orientation: String) -> Dictionary:
-	var fallback := _default_viewport(orientation)
+	var fallback := default_viewport(orientation)
 	if not raw is Dictionary:
 		return fallback
 	var source: Dictionary = raw
@@ -149,8 +164,29 @@ static func _normalize_elements(raw: Variant) -> Array[Dictionary]:
 					"action": action,
 					"x": clampf(_safe_float(source.get("x", 0.5), 0.5), 0.0, 1.0),
 					"y": clampf(_safe_float(source.get("y", 0.5), 0.5), 0.0, 1.0),
-					"scale": clampf(_safe_float(source.get("scale", 1.0), 1.0), 0.5, 3.0),
-					"opacity": clampf(_safe_float(source.get("opacity", 1.0), 1.0), 0.0, 1.0),
+					"scale":
+					clampf(
+						_safe_float(source.get("scale", 1.0), 1.0),
+						MIN_ELEMENT_SCALE,
+						MAX_ELEMENT_SCALE
+					),
+					"opacity":
+					clampf(
+						_safe_float(source.get("opacity", 1.0), 1.0),
+						MIN_ELEMENT_OPACITY,
+						MAX_ELEMENT_OPACITY
+					),
+					# Whether the control is drawn at all. Defaults to true so an
+					# element written by an older build — every saved layout before
+					# this field existed — keeps every control it had rather than
+					# silently losing the ones it never mentioned.
+					#
+					# The model does NOT decide whether a false here is honoured:
+					# it has no registry and so cannot know which controls a player
+					# must keep. `ControllerService.build_payload_for()` makes that
+					# call, which is what stops a hand-edited cfg hiding the Back
+					# control that would undo it.
+					"enabled": _safe_bool(source.get("enabled", true), true),
 				}
 			)
 		)
@@ -162,6 +198,13 @@ static func _safe_text(value: Variant, fallback: String) -> String:
 		return fallback
 	var text: String = value.strip_edges()
 	return text if not text.is_empty() else fallback
+
+
+# Strict: only a real bool counts. Godot would happily read 0/""/[] as false, and
+# a saved layout that carried a stray 0 in this field would drop the control
+# rather than fall back to showing it.
+static func _safe_bool(value: Variant, fallback: bool) -> bool:
+	return value if value is bool else fallback
 
 
 static func _safe_float(value: Variant, fallback: float) -> float:

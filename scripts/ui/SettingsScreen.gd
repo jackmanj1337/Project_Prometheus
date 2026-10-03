@@ -24,6 +24,11 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 # Source of truth for the Map Zoom slider's range + factor labels (Display &
 # Accessibility item 1). The stored setting is an index into ZOOM_LEVELS.
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
+const ControllerLayoutS = preload("res://scripts/resources/ControllerLayout.gd")
+# For the auto-hide delay vocabulary. The dropdown is built FROM the constant so a
+# new delay is one array entry rather than an array entry and a matching label list
+# that can silently disagree with it.
+const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
 # In-map per-panel HUD layout editor (item 4), launched by the button below.
 const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
 # 15s confirm-or-revert dialog for any change that carries reachability risk [UUI-18].
@@ -34,9 +39,11 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 # confirm-or-revert dialog, wherever in Settings it lives. Since [UUI-20] removed the
 # player-facing size limits the dialog is the only guard, so a new setting of this kind
 # must route through _confirm_change() -- an enum row by setting "reachability_risk",
-# anything else by calling it directly. The last four are not Settings controls on this
-# branch yet: menu_mode is editor-local today, and control_style, overlay_menus and
-# game_view_preset arrive with the web controller (MOBILE-WEB-CONTROLLER-2026-08-04).
+# anything else by calling it directly. menu_mode is editor-local today, and
+# control_style and overlay_menus arrive with the web controller
+# (MOBILE-WEB-CONTROLLER-2026-08-04). game_view_preset's rows arrived with that
+# controller's merge but still save directly (_commit_game_view); they move onto the
+# dialog when slice 2 rebuilds the presets, before slice 3 removes the size limits.
 const REACHABILITY_RISK_KEYS: Array[String] = [
 	"window_mode",
 	"resolution",
@@ -95,6 +102,47 @@ const _KEYBIND_NAME_COLUMN_WIDTH: float = 175.0
 @onready var _label_menu_scale: Label = _vbox.get_node("HBoxUIScale/LabelUIScale")
 @onready
 var _slider_viewport_scale: HSlider = _vbox.get_node("HBoxViewportScale/SliderViewportScale")
+@onready
+var _opt_game_view_preset: OptionButton = _vbox.get_node("HBoxGameViewPreset/OptGameViewPreset")
+@onready var _slider_game_view_size: HSlider = _vbox.get_node("HBoxGameViewSize/SliderGameViewSize")
+@onready var _label_game_view_size: Label = _vbox.get_node("HBoxGameViewSize/LabelGameViewSize")
+@onready
+var _slider_game_view_offset: HSlider = _vbox.get_node("HBoxGameViewOffset/SliderGameViewOffset")
+@onready
+var _label_game_view_offset: Label = _vbox.get_node("HBoxGameViewOffset/LabelGameViewOffset")
+@onready
+var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/OptGameViewAspect")
+@onready var _opt_game_view_edit: OptionButton = _vbox.get_node("HBoxGameViewEdit/OptGameViewEdit")
+@onready var _btn_undo_game_view: Button = _vbox.get_node("BtnUndoGameView")
+@onready var _btn_reset_game_view: Button = _vbox.get_node("BtnResetGameView")
+@onready var _opt_controller_profile: OptionButton = _vbox.get_node(
+	"HBoxControllerProfile/OptControllerProfile"
+)
+@onready var _opt_controller_layout: OptionButton = _vbox.get_node(
+	"HBoxControllerLayout/OptControllerLayout"
+)
+@onready
+var _opt_controller_edit: OptionButton = _vbox.get_node("HBoxControllerEdit/OptControllerEdit")
+@onready var _label_controller_selection: Label = _vbox.get_node("LabelControllerSelection")
+@onready
+var _slider_controller_size: HSlider = _vbox.get_node("HBoxControllerSize/SliderControllerSize")
+@onready var _label_controller_size: Label = _vbox.get_node("HBoxControllerSize/LabelControllerSize")
+@onready var _slider_controller_opacity: HSlider = _vbox.get_node(
+	"HBoxControllerOpacity/SliderControllerOpacity"
+)
+@onready var _label_controller_opacity: Label = _vbox.get_node(
+	"HBoxControllerOpacity/LabelControllerOpacity"
+)
+@onready var _opt_controller_element: OptionButton = _vbox.get_node(
+	"HBoxControllerElement/OptControllerElement"
+)
+@onready var _opt_controller_visible: OptionButton = _vbox.get_node(
+	"HBoxControllerVisible/OptControllerVisible"
+)
+@onready var _opt_controller_auto_hide: OptionButton = _vbox.get_node(
+	"HBoxControllerAutoHide/OptControllerAutoHide"
+)
+@onready var _btn_reset_controller_layout: Button = _vbox.get_node("BtnResetControllerLayout")
 @onready var _label_viewport_scale: Label = _vbox.get_node("HBoxViewportScale/LabelViewportScale")
 @onready
 var _label_resolution_applied: Label = _vbox.get_node("HBoxResolution/LabelResolutionApplied")
@@ -241,6 +289,9 @@ func _ready() -> void:
 		sm_for_display == null or sm_for_display.call("is_display_config_supported")
 	)
 
+	_setup_game_view_rows()
+	_setup_touch_controls_rows()
+
 	# Schema-driven enum settings (B5).
 	for s in _ENUM_SETTINGS:
 		var btn: OptionButton = _vbox.get_node(s["node"])
@@ -332,6 +383,8 @@ func open() -> void:
 	_slider_master.value = sm.get("master_volume")
 	_slider_music.value = sm.get("music_volume")
 	_slider_sfx.value = sm.get("sfx_volume")
+	_sync_game_view_rows()
+	_sync_touch_controls_rows()
 	_label_master.text = "%d" % sm.get("master_volume")
 	_label_music.text = "%d" % sm.get("music_volume")
 	_label_sfx.text = "%d" % sm.get("sfx_volume")
@@ -442,6 +495,12 @@ func _focus_default() -> Control:
 
 
 func _close() -> void:
+	# Leaving Settings ALWAYS leaves both editors. While either is open, the
+	# on-screen controls drag (or go inert) instead of pressing — so a player who
+	# closed this screen with one left on would be holding a controller that no
+	# longer plays the game, and the only way back is the screen they just closed.
+	_set_controller_editing(false)
+	_set_game_view_editing(false)
 	# Subclass override: emit back_pressed (consumed by MainMenu and MapMenu's
 	# Settings button) in addition to ModalScreen.closed. Then super() emits
 	# closed and hides.
@@ -1487,3 +1546,583 @@ func _settings_row_orientation(row: Container, compact: bool) -> Container:
 			_keybind_rows[action]["row"] = replacement
 	row.queue_free()
 	return replacement
+
+
+# ── Game View ────────────────────────────────────────────────────────────────
+# Presets are a starting point, not a mode: moving either slider switches the
+# preset to Custom rather than silently disagreeing with the label above it.
+
+# [EPUX-07] reasons carried by the Game View and Touch Controls rows when they are gated.
+const _GAME_VIEW_UNDO_NONE_REASON := "There is no Game View change to undo."
+const _GAME_VIEW_EDITING_REASON := "Close the Game View editor to choose a preset."
+const _CONTROLLER_NO_ELEMENT_REASON := "Choose a control first."
+const _CONTROLLER_REQUIRED_REASON := "This control is required and cannot be hidden."
+
+const _GAME_VIEW_PRESET_VALUES: Array[String] = [
+	"auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"
+]
+const _GAME_VIEW_PRESET_LABELS: Array[String] = [
+	"Automatic", "Fullscreen", "Portrait (top band)", "Landscape (pillarbox)", "Custom"
+]
+# The service's own name for this editor's mode. Named here rather than compared
+# against a literal so a rename cannot leave the row reading a mode that no longer
+# exists and silently reporting the editor as closed.
+const _GAME_VIEW_EDIT_MODE := "viewport"
+
+
+func _setup_game_view_rows() -> void:
+	_populate_option_button(_opt_game_view_preset, _GAME_VIEW_PRESET_LABELS)
+	_populate_option_button(_opt_game_view_aspect, ["Off", "On"])
+	_populate_option_button(_opt_game_view_edit, ["Off", "On"])
+	_opt_game_view_preset.item_selected.connect(_on_game_view_preset_changed)
+	_opt_game_view_aspect.item_selected.connect(_on_game_view_aspect_changed)
+	_opt_game_view_edit.item_selected.connect(_on_game_view_edit_changed)
+	_slider_game_view_size.value_changed.connect(_on_game_view_size_changed)
+	_slider_game_view_offset.value_changed.connect(_on_game_view_offset_changed)
+	_btn_undo_game_view.pressed.connect(_on_game_view_undo)
+	_btn_reset_game_view.pressed.connect(_on_game_view_reset)
+	# Only the web export can act on this — it needs canvas_resize_policy=0, where
+	# the shell owns the canvas rectangle. On desktop the canvas IS the window, so
+	# the rows would be inert controls that look broken. Hidden, not disabled: there
+	# is no platform where a desktop player could ever turn it on.
+	if not OS.has_feature("web"):
+		for row in [
+			_vbox.get_node("HSepGameView"),
+			_vbox.get_node("LabelGameView"),
+			_vbox.get_node("LabelGameViewHint"),
+			_vbox.get_node("HBoxGameViewPreset"),
+			_vbox.get_node("HBoxGameViewSize"),
+			_vbox.get_node("HBoxGameViewOffset"),
+			_vbox.get_node("HBoxGameViewAspect"),
+			_vbox.get_node("HBoxGameViewEdit"),
+			_vbox.get_node("LabelGameViewEditHint"),
+			_btn_undo_game_view,
+			_btn_reset_game_view,
+		]:
+			if row is Control:
+				(row as Control).visible = false
+
+
+func _sync_game_view_rows() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var preset := String(sm.get("game_view_preset"))
+	_opt_game_view_preset.select(maxi(0, _GAME_VIEW_PRESET_VALUES.find(preset)))
+	_opt_game_view_aspect.select(1 if bool(sm.get("game_view_aspect_locked")) else 0)
+	_slider_game_view_size.set_value_no_signal(float(sm.get("game_view_size")))
+	_slider_game_view_offset.set_value_no_signal(float(sm.get("game_view_offset")))
+	_sync_game_view_editor_rows()
+	_refresh_game_view_labels()
+
+
+# The editor's own rows. Undo is disabled rather than hidden for the same reason
+# the per-control rows are: a button that vanishes moves everything below it, and
+# a greyed Undo is also the only thing that says there is nothing to undo.
+func _sync_game_view_editor_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		_opt_game_view_edit.select(0)
+		_btn_undo_game_view.disabled = true
+		_btn_undo_game_view.tooltip_text = _GAME_VIEW_UNDO_NONE_REASON
+		return
+	var editing: bool = String(controller.call("edit_mode")) == _GAME_VIEW_EDIT_MODE
+	_opt_game_view_edit.select(1 if editing else 0)
+	_btn_undo_game_view.disabled = not bool(controller.call("can_undo_viewport"))
+	_btn_undo_game_view.tooltip_text = (
+		_GAME_VIEW_UNDO_NONE_REASON if _btn_undo_game_view.disabled else ""
+	)
+	# The preset rows describe a rectangle the editor has just taken ownership of,
+	# so leaving them live would let one slider tick discard a drag without saying
+	# so. They come back the moment the editor closes.
+	_opt_game_view_preset.disabled = editing
+	_opt_game_view_preset.tooltip_text = _GAME_VIEW_EDITING_REASON if editing else ""
+	_slider_game_view_size.editable = not editing
+	_slider_game_view_offset.editable = not editing
+
+
+func _refresh_game_view_labels() -> void:
+	_label_game_view_size.text = "%d%%" % roundi(_slider_game_view_size.value * 100.0)
+	_label_game_view_offset.text = "%d%%" % roundi(_slider_game_view_offset.value * 100.0)
+
+
+# One write path for every Game View control, so the clamp, the persist, and the
+# live re-layout can never be applied by one route and skipped by another.
+func _commit_game_view(preset: String) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var size: float = sm.call("normalize_game_view_size", _slider_game_view_size.value)
+	var offset: float = sm.call("normalize_game_view_offset", _slider_game_view_offset.value, size)
+	sm.set("game_view_preset", preset)
+	sm.set("game_view_size", size)
+	sm.set("game_view_offset", offset)
+	sm.set("game_view_aspect_locked", _opt_game_view_aspect.selected == 1)
+	sm.call("save")
+	# The offset slider is clamped against the size, so a size change can move it.
+	_slider_game_view_offset.set_value_no_signal(offset)
+	_refresh_game_view_labels()
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null and controller.has_method("refresh_game_view"):
+		controller.call("refresh_game_view")
+
+
+func _on_game_view_preset_changed(index: int) -> void:
+	var preset: String = _GAME_VIEW_PRESET_VALUES[clampi(
+		index, 0, _GAME_VIEW_PRESET_VALUES.size() - 1
+	)]
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null and preset != "custom":
+		var values: Dictionary = sm.get("GAME_VIEW_PRESET_VALUES").get(preset, {})
+		_slider_game_view_size.set_value_no_signal(float(values.get("size", 1.0)))
+		_slider_game_view_offset.set_value_no_signal(float(values.get("offset", 0.0)))
+	_commit_game_view(preset)
+
+
+func _on_game_view_size_changed(_value: float) -> void:
+	_commit_game_view("custom")
+
+
+func _on_game_view_offset_changed(_value: float) -> void:
+	_commit_game_view("custom")
+
+
+func _on_game_view_aspect_changed(_index: int) -> void:
+	_commit_game_view(String(_GAME_VIEW_PRESET_VALUES[_opt_game_view_preset.selected]))
+
+
+func _on_game_view_edit_changed(index: int) -> void:
+	_set_game_view_editing(index == 1)
+
+
+func _set_game_view_editing(editing: bool) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	# The two editors are exclusive, and the service enforces that by holding one
+	# mode. Turning this on therefore closes the arrangement editor; its own row
+	# re-reads the service and follows.
+	controller.call("set_viewport_editing", editing)
+	if editing:
+		controller.call("select_element", "")
+	_sync_game_view_rows()
+	_sync_controller_edit_rows()
+
+
+func _on_game_view_undo() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	if bool(controller.call("undo_viewport_edit")):
+		controller.call("commit_viewport_edit")
+	# The preset rows may have moved with it: undoing past the adoption restores
+	# the preset the player was on, and that row has to say so.
+	_sync_game_view_rows()
+
+
+func _on_game_view_reset() -> void:
+	_slider_game_view_size.set_value_no_signal(1.0)
+	_slider_game_view_offset.set_value_no_signal(0.0)
+	_opt_game_view_aspect.select(0)
+	_opt_game_view_preset.select(0)
+	_commit_game_view("auto")
+	# Also the dragged rectangle. Returning the preset to Automatic alone would
+	# leave the canvas exactly where a drag put it while the row above claims the
+	# view has been reset — Automatic means "follow the combination", and the
+	# combination is what the editor writes to.
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null and controller.has_method("reset_viewport"):
+		controller.call("reset_viewport")
+		controller.call("commit_viewport_edit")
+	_sync_game_view_editor_rows()
+
+
+# ── Touch Controls ───────────────────────────────────────────────────────────
+#
+# Slice 4 step 2. The model and the shell payload have supported all three control
+# styles and the whole saved collection since Slice 2 — only the UI to pick one was
+# missing, so a player could not reach anything the service could already do.
+
+# Order matches ControllerLayout.VALID_PROFILES so the index IS the value's index;
+# a mismatch would silently select the wrong style.
+const _CONTROLLER_PROFILE_VALUES: Array[String] = ["off", "virtual_gamepad", "labeled_actions"]
+const _CONTROLLER_PROFILE_LABELS: Array[String] = ["Off", "Virtual Gamepad", "Labeled Actions"]
+# Prepended to the arrangement list. Selecting it clears the saved choice so the
+# device orientation decides again, which is a real option rather than the absence
+# of one — a phone that is used both ways wants it.
+const _CONTROLLER_LAYOUT_AUTO_LABEL := "Automatic (follow orientation)"
+# Prepended to the control picker for the same reason: "nothing is selected" is a
+# real state — it is what a tap on the editor backdrop produces — so the dropdown
+# has to be able to show it and to return to it.
+const _CONTROLLER_ELEMENT_NONE_LABEL := "Nothing selected"
+# The service's name for this editor's mode; see _GAME_VIEW_EDIT_MODE above.
+const _CONTROLLER_EDIT_MODE := "controls"
+# Signature of the control picker's current contents, so it is repopulated only
+# when the list would actually read differently. Rebuilding it on every published
+# layout — which includes every slider tick — would close the dropdown under the
+# player's finger, the same trap the arrangement list is split out to avoid.
+var _controller_element_signature: String = ""
+
+
+func _setup_touch_controls_rows() -> void:
+	_populate_option_button(_opt_controller_profile, _CONTROLLER_PROFILE_LABELS)
+	_populate_option_button(_opt_controller_edit, ["Off", "On"])
+	_populate_option_button(_opt_controller_visible, ["Hidden", "Shown"])
+	_populate_option_button(_opt_controller_auto_hide, _controller_auto_hide_labels())
+	# Ranges come from the model, not the scene: a slider authored wider than the
+	# clamp would stop having any effect partway along its travel, which reads as
+	# a broken control rather than a limit.
+	_slider_controller_size.min_value = ControllerLayoutS.MIN_ELEMENT_SCALE
+	_slider_controller_size.max_value = ControllerLayoutS.MAX_ELEMENT_SCALE
+	_slider_controller_opacity.min_value = ControllerLayoutS.MIN_ELEMENT_OPACITY
+	_slider_controller_opacity.max_value = ControllerLayoutS.MAX_ELEMENT_OPACITY
+	_opt_controller_profile.item_selected.connect(_on_controller_profile_changed)
+	_opt_controller_layout.item_selected.connect(_on_controller_layout_changed)
+	_opt_controller_edit.item_selected.connect(_on_controller_edit_changed)
+	_slider_controller_size.value_changed.connect(_on_controller_size_changed)
+	_slider_controller_opacity.value_changed.connect(_on_controller_opacity_changed)
+	_opt_controller_element.item_selected.connect(_on_controller_element_chosen)
+	_opt_controller_visible.item_selected.connect(_on_controller_visible_changed)
+	_opt_controller_auto_hide.item_selected.connect(_on_controller_auto_hide_changed)
+	_btn_reset_controller_layout.pressed.connect(_on_controller_layout_reset)
+	# The selection is made by TAPPING a control on the phone, which the engine
+	# learns about from the shell — so these rows follow the service rather than
+	# only their own signals. Without this the sliders never learn what to edit.
+	var controller := get_node_or_null("/root/ControllerService")
+	if (
+		controller != null
+		and not controller.layout_changed.is_connected(_on_controller_layout_published)
+	):
+		controller.layout_changed.connect(_on_controller_layout_published)
+	# Selection has its own signal so a tap cannot rebuild the controls mid-drag,
+	# which means these rows have to follow BOTH or the sliders stay disarmed
+	# after the player taps the control they want to resize.
+	if (
+		controller != null
+		and not controller.selection_changed.is_connected(_on_controller_selection_changed)
+	):
+		controller.selection_changed.connect(_on_controller_selection_changed)
+	# Same reason the Game View rows are hidden off web: the on-screen controller is
+	# rendered by the browser shell, so on desktop these would be controls that look
+	# broken rather than controls that are merely unused.
+	if not OS.has_feature("web"):
+		for row in [
+			_vbox.get_node("HSepTouchControls"),
+			_vbox.get_node("LabelTouchControls"),
+			_vbox.get_node("LabelTouchControlsHint"),
+			_vbox.get_node("HBoxControllerProfile"),
+			_vbox.get_node("HBoxControllerLayout"),
+			_vbox.get_node("HBoxControllerEdit"),
+			_vbox.get_node("LabelControllerSelection"),
+			_vbox.get_node("HBoxControllerElement"),
+			_vbox.get_node("HBoxControllerSize"),
+			_vbox.get_node("HBoxControllerOpacity"),
+			_vbox.get_node("HBoxControllerVisible"),
+			_vbox.get_node("HBoxControllerAutoHide"),
+			_vbox.get_node("BtnResetControllerLayout"),
+		]:
+			if row is Control:
+				(row as Control).visible = false
+
+
+# Rebuilt from the service rather than cached: `commit_active_combination()` can add
+# a slot, so the list is not a fixed six.
+func _sync_touch_controls_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var profile := String(controller.call("profile"))
+	_opt_controller_profile.select(maxi(0, _CONTROLLER_PROFILE_VALUES.find(profile)))
+
+	var labels: Array[String] = [_CONTROLLER_LAYOUT_AUTO_LABEL]
+	for combination: Dictionary in controller.call("combinations"):
+		labels.append(String(combination.get("name", "Layout")))
+	_populate_option_button(_opt_controller_layout, labels)
+	_opt_controller_layout.select(_controller_layout_index(controller))
+	_sync_controller_edit_rows()
+
+
+# Index 0 is Automatic, so a saved slot sits one past its position in the
+# collection. An id the collection no longer carries reads as Automatic, which is
+# what the service does with it too.
+func _controller_layout_index(controller: Node) -> int:
+	var chosen := String(controller.call("active_combination_id"))
+	if chosen.is_empty():
+		return 0
+	var index := 1
+	for combination: Dictionary in controller.call("combinations"):
+		if String(combination.get("id", "")) == chosen:
+			return index
+		index += 1
+	return 0
+
+
+# One write path for both rows: change the model, fold the change into its slot,
+# then persist. Splitting these was how the layout came to be the only control
+# setting that did not survive a reload.
+func _commit_controller_layout(controller: Node) -> void:
+	controller.call("commit_active_combination")
+	controller.call("save_layout")
+	_sync_touch_controls_rows()
+
+
+func _on_controller_profile_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var profile: String = _CONTROLLER_PROFILE_VALUES[clampi(
+		index, 0, _CONTROLLER_PROFILE_VALUES.size() - 1
+	)]
+	controller.call("set_profile", profile)
+	_commit_controller_layout(controller)
+
+
+func _on_controller_layout_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var combinations: Array = controller.call("combinations")
+	var slot := index - 1
+	var wanted := ""
+	if slot >= 0 and slot < combinations.size():
+		wanted = String(combinations[slot].get("id", ""))
+	# Selecting an arrangement adopts that slot wholesale, so it must NOT be
+	# committed over: committing would write the previous slot's live edits into the
+	# newly chosen one. Only the choice itself is persisted.
+	if not controller.call("select_combination", wanted):
+		_sync_touch_controls_rows()
+		return
+	controller.call("save_layout")
+	_sync_touch_controls_rows()
+
+
+# ── Arrangement editing ──────────────────────────────────────────────────────
+#
+# Slice 4 step 3. Position is dragged on the device — the browser shell owns
+# those pointers, because the controls live outside the game canvas and Godot
+# never sees a touch that lands on one. Size and opacity are sliders here, and
+# they act on whichever control the player last tapped in the editor. That tap is
+# the only thing joining the two halves, so the selection label is what tells the
+# player these sliders are not global.
+
+
+# Reflects the service's live state. Split from `_sync_touch_controls_rows()`
+# because this one runs on every published layout — including each slider tick —
+# and repopulating the arrangement dropdown that often would close it under the
+# player's finger.
+func _sync_controller_edit_rows() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	# The MODE, not `is_editing()`: that is true in the Game View editor too, and
+	# this row would then claim the arrangement editor was open while every control
+	# on screen was inert scenery.
+	var editing: bool = String(controller.call("edit_mode")) == _CONTROLLER_EDIT_MODE
+	var selected: String = String(controller.call("selected_element_id"))
+	var element: Dictionary = (
+		controller.call("element_layout", selected) if not selected.is_empty() else {}
+	)
+
+	# Fetched once and passed down: three rows read the same list, and the service
+	# rebuilds it from the registry on each call.
+	var entries: Array = controller.call("profile_elements")
+	_opt_controller_edit.select(1 if editing else 0)
+	_sync_controller_element_rows(entries, selected)
+	_label_controller_selection.text = _controller_selection_text(
+		editing, element, _controller_element_entry(entries, selected)
+	)
+	# Disabled rather than hidden: a row that vanishes when nothing is selected
+	# moves every control below it, and the list is already long enough to scroll.
+	var adjustable := not element.is_empty()
+	_slider_controller_size.editable = adjustable
+	_slider_controller_opacity.editable = adjustable
+	if adjustable:
+		_slider_controller_size.set_value_no_signal(float(element.get("scale", 1.0)))
+		_slider_controller_opacity.set_value_no_signal(float(element.get("opacity", 1.0)))
+	_opt_controller_auto_hide.select(
+		maxi(
+			0,
+			SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS.find(
+				float(controller.call("auto_hide_seconds"))
+			)
+		)
+	)
+	_refresh_controller_edit_labels()
+
+
+# The control picker and the Show Control row. The picker is what makes hiding a
+# control REVERSIBLE: a control that is not drawn cannot be tapped, so a list that
+# still names it is the only way back to it. Without this row, turning Zoom Out off
+# would be permanent short of resetting the whole arrangement.
+func _sync_controller_element_rows(entries: Array, selected: String) -> void:
+	var labels: Array[String] = [_CONTROLLER_ELEMENT_NONE_LABEL]
+	var chosen := 0
+	for entry: Dictionary in entries:
+		var label := String(entry.get("label", entry.get("id", "Control")))
+		if not bool(entry.get("enabled", true)):
+			label += " (hidden)"
+		labels.append(label)
+		if String(entry.get("id", "")) == selected:
+			chosen = labels.size() - 1
+	var signature := "|".join(labels)
+	if signature != _controller_element_signature:
+		_controller_element_signature = signature
+		_populate_option_button(_opt_controller_element, labels)
+	_opt_controller_element.select(chosen)
+
+	var entry := _controller_element_entry(entries, selected)
+	# A required control's row is shown but inert, not hidden. Hiding it would
+	# answer "why can I not turn this one off?" by not asking the question; the
+	# selection label above says which controls are fixed and why.
+	_opt_controller_visible.disabled = entry.is_empty() or bool(entry.get("required", false))
+	_opt_controller_visible.tooltip_text = (
+		_CONTROLLER_NO_ELEMENT_REASON
+		if entry.is_empty()
+		else (_CONTROLLER_REQUIRED_REASON if _opt_controller_visible.disabled else "")
+	)
+	_opt_controller_visible.select(1 if bool(entry.get("enabled", true)) else 0)
+
+
+func _controller_element_entry(entries: Array, element_id: String) -> Dictionary:
+	if element_id.is_empty():
+		return {}
+	for entry: Dictionary in entries:
+		if String(entry.get("id", "")) == element_id:
+			return entry
+	return {}
+
+
+func _controller_selection_text(editing: bool, element: Dictionary, entry: Dictionary) -> String:
+	if element.is_empty():
+		if not editing:
+			return "Turn editing on, then drag a control to move it."
+		return "Editing: drag a control to move it, or tap one to resize it."
+	var name := String(entry.get("label", element.get("id", "control")))
+	if bool(entry.get("required", false)):
+		return "%s: always shown — it is how you reach and use this screen." % name
+	# A control can now be chosen from the list without the editor being open, so
+	# the label must not claim an editing session that is not running.
+	return "Editing %s." % name if editing else "Selected: %s." % name
+
+
+func _refresh_controller_edit_labels() -> void:
+	_label_controller_size.text = "%d%%" % roundi(_slider_controller_size.value * 100.0)
+	_label_controller_opacity.text = "%d%%" % roundi(_slider_controller_opacity.value * 100.0)
+
+
+# The shell reports a tap on a control as a selection, so the rows have to follow
+# the service and not only their own signals.
+func _on_controller_layout_published(_payload: Dictionary) -> void:
+	if not is_inside_tree():
+		return
+	_sync_controller_edit_rows()
+
+
+func _on_controller_selection_changed(_element_id: String) -> void:
+	if not is_inside_tree():
+		return
+	_sync_controller_edit_rows()
+
+
+func _on_controller_edit_changed(index: int) -> void:
+	_set_controller_editing(index == 1)
+
+
+func _set_controller_editing(editing: bool) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	controller.call("set_editing", editing)
+	# Leaving the editor drops the selection with it: the sliders would otherwise
+	# keep editing a control that no longer shows which one it is.
+	if not editing:
+		controller.call("select_element", "")
+	_sync_controller_edit_rows()
+	# Opening this one closes the Game View editor — the service holds one mode —
+	# so that row has to follow rather than keep claiming to be on.
+	_sync_game_view_editor_rows()
+
+
+func _on_controller_size_changed(value: float) -> void:
+	_commit_element_edit("set_element_scale", value)
+
+
+func _on_controller_opacity_changed(value: float) -> void:
+	_commit_element_edit("set_element_opacity", value)
+
+
+# One write path for both sliders. Persists per tick, the same as the Game View
+# sliders: the alternative is committing on `drag_ended`, which never fires when
+# the value is changed by keyboard or by a controller's directional input.
+func _commit_element_edit(method: String, value: float) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var selected: String = String(controller.call("selected_element_id"))
+	if selected.is_empty():
+		return
+	if bool(controller.call(method, selected, value)):
+		controller.call("commit_element_edit")
+	_refresh_controller_edit_labels()
+
+
+func _on_controller_element_chosen(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	# Index 0 is "Nothing selected", so a chosen control sits one past its position
+	# in the profile list — the same offset the Arrangement row uses for Automatic.
+	var elements: Array = controller.call("profile_elements")
+	var slot := index - 1
+	var wanted := ""
+	if slot >= 0 and slot < elements.size():
+		wanted = String(elements[slot].get("id", ""))
+	controller.call("select_element", wanted)
+	_sync_controller_edit_rows()
+
+
+func _on_controller_visible_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	var selected: String = String(controller.call("selected_element_id"))
+	if selected.is_empty():
+		return
+	# A refusal is a required control, which is not an error worth reporting: the
+	# row re-reads the model and snaps back to Shown, which is the honest answer.
+	if bool(controller.call("set_element_enabled", selected, index == 1)):
+		controller.call("commit_element_edit")
+	_sync_controller_edit_rows()
+
+
+# Persisted straight to SettingsManager rather than into the combination: the delay
+# is a whole-device comfort preference, not part of any one arrangement. The
+# service is then told, because nothing else would tell the shell to re-time.
+func _on_controller_auto_hide_changed(index: int) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var choices := SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS
+	sm.set("controller_auto_hide_seconds", choices[clampi(index, 0, choices.size() - 1)])
+	sm.call("save")
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller != null:
+		controller.call("refresh_auto_hide")
+
+
+# Built from the vocabulary constant so a new delay cannot be added to one and
+# forgotten in the other.
+func _controller_auto_hide_labels() -> Array[String]:
+	var labels: Array[String] = []
+	for seconds: float in SettingsManagerS.VALID_CONTROLLER_AUTO_HIDE_SECONDS:
+		labels.append("Never" if seconds <= 0.0 else "After %d seconds" % roundi(seconds))
+	return labels
+
+
+func _on_controller_layout_reset() -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	controller.call("reset_elements")
+	controller.call("commit_element_edit")
+	_sync_controller_edit_rows()

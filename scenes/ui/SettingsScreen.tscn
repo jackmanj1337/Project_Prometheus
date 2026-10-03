@@ -363,6 +363,246 @@ layout_mode = 2
 text = "1.0x"
 horizontal_alignment = 2
 
+[node name="HSepGameView" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameView" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Game View"
+theme_override_font_sizes/font_size = 18
+
+[node name="LabelGameViewHint" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Shrinks the game so on-screen controls get their own space. Web builds only."
+autowrap_mode = 3
+
+[node name="HBoxGameViewPreset" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewPresetTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewPreset"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Preset"
+
+[node name="OptGameViewPreset" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewPreset"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxGameViewSize" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewSizeTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewSize"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Game Size"
+
+[node name="SliderGameViewSize" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewSize"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.3
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="LabelGameViewSize" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewSize"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HBoxGameViewOffset" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewOffsetTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewOffset"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Game Offset"
+
+[node name="SliderGameViewOffset" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewOffset"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 0.7
+step = 0.01
+value = 0.0
+
+[node name="LabelGameViewOffset" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewOffset"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "0%"
+horizontal_alignment = 2
+
+[node name="HBoxGameViewAspect" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewAspectTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewAspect"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Lock to 16:9"
+
+[node name="OptGameViewAspect" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewAspect"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxGameViewEdit" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelGameViewEditTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Edit Game View"
+
+[node name="OptGameViewEdit" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelGameViewEditHint" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Drag the frame to move the game, or its handles to resize it."
+autowrap_mode = 3
+
+[node name="BtnUndoGameView" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Undo Game View Change"
+
+[node name="BtnResetGameView" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Reset Game View"
+
+[node name="HSepTouchControls" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelTouchControls" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Touch Controls"
+theme_override_font_sizes/font_size = 18
+
+[node name="LabelTouchControlsHint" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Which on-screen controls are drawn, and which saved arrangement they use. Web builds only."
+autowrap_mode = 3
+
+[node name="HBoxControllerProfile" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerProfileTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control Style"
+
+[node name="OptControllerProfile" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerLayout" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerLayoutTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Arrangement"
+
+[node name="OptControllerLayout" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerEdit" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerEditTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerEdit"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Edit Arrangement"
+
+[node name="OptControllerEdit" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerEdit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LabelControllerSelection" type="Label" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Turn editing on, then drag a control to move it."
+autowrap_mode = 3
+
+[node name="HBoxControllerElement" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerElementTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerElement"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control"
+
+[node name="OptControllerElement" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerElement"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerSize" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerSizeTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerSize"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control Size"
+
+[node name="SliderControllerSize" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerSize"]
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.05
+value = 1.0
+
+[node name="LabelControllerSize" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerSize"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HBoxControllerOpacity" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerOpacityTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerOpacity"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Control Opacity"
+
+[node name="SliderControllerOpacity" type="HSlider" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerOpacity"]
+layout_mode = 2
+size_flags_horizontal = 3
+step = 0.05
+value = 1.0
+
+[node name="LabelControllerOpacity" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerOpacity"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="HBoxControllerVisible" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerVisibleTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Show Control"
+
+[node name="OptControllerVisible" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxControllerAutoHide" type="HBoxContainer" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+
+[node name="LabelControllerAutoHideTitle" type="Label" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+text = "Auto-Hide Controls"
+
+[node name="OptControllerAutoHide" type="OptionButton" parent="Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnResetControllerLayout" type="Button" parent="Panel/ScrollContainer/Margin/VBox"]
+layout_mode = 2
+text = "Reset Arrangement"
+
 [node name="HSepControls" type="HSeparator" parent="Panel/ScrollContainer/Margin/VBox"]
 layout_mode = 2
 

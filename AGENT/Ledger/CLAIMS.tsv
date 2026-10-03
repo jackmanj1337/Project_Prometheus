@@ -9,6 +9,7 @@
 007741b258cc58a0f8e724a36907924576b85bca	Precedence check for DRC Group A before the owner walk
 009d878f57c76100d68f231e53657a9473a62fe6	Guard the main-menu gate label at the 282 px width floor
 00c9bba891a0ce63ebfe869e424e762641786067	Claim the B3 TCV slice
+00ca02f544147d59dbded6ed8c801ecc707c995a	Add in-app Game View resizing: presets, sliders, live preview, reset
 00da18d7fbc4459d828744a54910c6d08292cc78	Bump GDD_01 and GDD_10 Last verified for the runtime-contract correction
 00fc0c93dfdb06c845539c042efbd8e6b7c4deb7	Fix returned saves using their own catalogue and migration identity
 00fe05dd972cb2eb1530d0b94678a12d97414bcd	Replace FileDialog Escape interception with export naming modal
@@ -103,6 +104,7 @@
 1d060c7a513aab01a5b3c1c8fca7e9dcf64ab15d	Switch map units to animated sprites
 1d25d0c8ada50f8439e638a063ba6546f0b2d2f6	Work order: the consolidated v0.7.0 playtest and visual-check bundle
 1d265671c02a5b549953b7a85a2fabcbeaf19639	Correct GDD_01: the conditions field is live and already saved
+1d2dd0a2c6a8f5795ce460fb7666b00f8146ccdd	Draw the Game View editor: a frame, eight handles, guides and snapping
 1d8aca5b704e738f5767fc5f9a5d404aafded70b	Regenerate the docs index for the audit doc's new status
 1db93da1e97e59fd9f6c8dcf2dd7b8b205a4710f	Refuse to strand executed infrastructure on the staging line
 1dd5f3d1fd10ce33250733c39b73df9a1b3b64a4	Add isolated Chapter 6 duration release fixture
@@ -127,8 +129,10 @@
 22550ea11df34891dbe80b6eb357e5f189eba41f	Add v0.5.2 playtest triage, fix plan, and evidence
 229ed41509720df76807c863276ffe4aea9e2f69	Fix v0.5.4 controller UI and add authored result actions
 22b98d889171a7dbff2d008eba448a74cbefd48a	Add the v0.7.16 return root-cause review
+22cceb5915abfb02f01a758558be0612ee55a6cb	Connect the on-screen controller to the browser so it renders on phones
 22eb67b0ea54b18e76ab336ca35885aa7e20387a	Record the Session 7 outcome and correct the Session 8 premise
 22f891cfc50cf4eecdf9717c941b1e2ebf27702b	Bump GDD_07_UI_UX Last verified to the day it was touched
+22ffafb38fb9fb9e63e70526f3ae300a6d257aec	Persist the on-screen controller layout so a player's choice survives a reload
 230a7c0411460cfe77593de769452dc8b555fb52	playtests: add v0.5.0 regression carry-over to the v0.5.1 checklist
 23114b03d705981de01635f315a4d36bf9f9e712	Re-order the v0.7.8 waiting work against the dependency graph
 23611b710393fce37d60add5ece422f7e6a70a7d	Pay the four RCR/RCV/REQ propagation debts the DRC walks recorded
@@ -172,6 +176,7 @@
 2c898d2ae38eff3258b481977ab9481f3d35d1c8	Author the convoy/shop residue packet: CVS-1..10
 2cae4bb84dccad91325b992c1058fbc9f5da7602	Claim v0.6.1 release metadata commit
 2cd5968a9cf442b0cfa9794e97c1d0291533e751	Archive v0.7 returns and record acceptance
+2cde8db96e656c5cf1544bc63b4871c02d46e522	Give both control profiles a d-pad, and make the controller reach the GUI at all
 2d01509f7269e9c699858c774c7e3f40638e443d	Claim the maps commit and refresh GDD verification dates
 2d636375c4eacdde1b64c1c14c3677a923351f83	Expose semantic web bridge state
 2db24fa9e4ba2bc22e65622c22083d3b560b432d	Reject campaign packs that cannot activate registries
@@ -305,6 +310,7 @@
 4d761496df5ddb0dd10c27d48ef92d7ae99a545a	Prove editor theme scope isolation
 4ddd54c82b2fb1a0565d4e901f43053221cebe11	Add v0.5.3 Windows build record (pre-export)
 4e28a32145254a36ec368ab0a9e453b3281a6362	Require discovery of non-Godot tests
+4ebab70715ba8b2b0fc760635df74adb92be0023	Add the Touch Controls settings rows so a player can pick a control style and arrangement
 4ed19ea4b99ba55d21c56c00db86a65086e29cb9	Connect TER-7 pass-through to the fog-of-war and perception seam
 4f227a9f2782d9e80599d2ee1f99a7492eeed9a3	Repoint three dangling tracker references in the 2026-08-12 packets
 4f240a0bda1884e958200d2968ab5420eb67813a	Record the gate closure, the new CLI verbs and PR #34 in the handoff
@@ -513,6 +519,7 @@
 8bef2e3609056f46254a3322a1a5ff1b345c5a8c	Gate releases on Campaign Library recovery route
 8c1c586bc3b9c848c8e2ac6fd1379c10dfbe4b61	Give campaign editor an opaque host background
 8c432d64c89d2c7916b946d204eb2d36e48cfc9c	Centralize and measure import budgets
+8c83e8a8ac93c5d397eb07c73863613fff0ca2bc	Give the shell the canvas rectangle so portrait is playable
 8c92b879693c308ae0391f756b686fd8c28def9a	Viewport expand model: content_scale_factor setting + menu-scale reconciliation
 8c9d7d3c57fe3c13da4f5edcf22fb2b0d8334c03	Inventory combat item and skill mutation paths
 8cb1387f2959de7221690ce209bf2c8c4e27cdb3	Gate the foundation-adopter guard in CI
@@ -540,6 +547,7 @@
 926e7e8e4ca2735b98322d9617b29de07d8ae035	Scope manual save budget per-campaign + atomic Replace (V053-04)
 92d54bbe716364c3e885d842c650a7507e256c91	Make menus and HUD layouts responsive
 92ef2f62bb4be87f9e155c448e7f986a0aa97c61	Land the authored-relationship design and registers on integration
+93a0462a2014da69b7ff27a4c7d78b066e505595	Let a player remove optional controls and fade idle ones
 93f23f9138da73dda17221929d735c56cdd1cb6b	Walk SHC-1..8 and open CUR-1..7 on shop currency presentation
 94e7a0b3420ab4cabccd059f8576e24fe7d6e2d2	Record the DRC precedence-walk rulings; catalog DLUX; flag the stale plan
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
@@ -578,6 +586,7 @@
 9ccc40fe3679ae5e2e80b3ebe85711a4356d5dee	Open the combat feedback research trio for the next planning session
 9d0a044c52d561b57ea590e702673e32ac398887	Content: make weapon effectiveness and the magic triangle reachable in play
 9d5cafe0c5e59ce11f8442816041374f892107c2	Resolve staged action cancellation
+9da73f4f74e2f5a12a247d10f8633d041851b37c	Let a player drag the game canvas itself, not only its presets
 9db37ed55421dfc30c7abdbc692b233aa29c4487	Record the owner rulings that close the unified-doc plan
 9e25dde1567fa0b1995460304369e05eff235cac	Retire the stale inventory migration converter
 9e726d6b166bd305907e214bf686f8e626119643	Implement unit palette swap fallback
@@ -589,6 +598,7 @@ a0984e9b004936edab636fa9181048825227cecd	Session note: claim exported registry g
 a0e068d51e3d713dc81c02c68bb59b18fb13e00f	Draft combat actions UX packet
 a0ebf96bf9190b728048a5c3431065f7f7ce9822	Fix nested load-game modal ownership
 a1517414e431b07ac282ec331e2f9594b8fbec7f	document v0.4 release fix port
+a1739672936cdd4cf9f4595cb3d5f23b3747ab41	Reach the Game View editor from Settings, with Undo and a truthful Reset
 a22566553823febc354076a8db45300cfb9d2aee	Preload the UI font stack in standalone validators
 a25498ddbf6189d0e315b9db15cd35a926c70016	Close sprite composition schema on authored FE pack
 a255170c1894915674674108ae09c5783454cb3f	Ignore generated import sidecars for the zero-content fixture media
@@ -636,6 +646,7 @@ ad63117ce24b387e62fd9415afb6308ef513e1ce	Add ruleset class schema pressure packs
 ad6f3c7ad7510f80e7ad130e576e831c26700801	Reconcile the plans and docs, and inventory what is still open
 adcf22c2edcfdbb91d4f0b373016975513fc8e7c	Write full campaign backups from clean packs and verbatim user state
 ae84d183dae5b87a57958d7a12266f8bb69c7f32	Mark GDD_01 verified on 2026-09-15 for the suspend resume transaction paragraph
+ae9667620b456f18a19d329b51cca97043c9f716	Claim the Game View commit and refresh the GDD_07 verification date
 aec3970dd555353138dc96df8f7adfb24eb3991d	Gate on session-note index consistency at pre-push
 aecab82608d94c21d782c5884171758f0500c0e1	Close order 1 in the docs/process handoff
 aedfe50d89adc61f7ddd599e5605d3450426d5f6	Claim campaign map navigation commit
@@ -704,6 +715,7 @@ c5472c2a0f45c57c7ae033eac0f3a0d59439b559	Rule DRC-29, DRC-27, DRC-28 and the reg
 c57e1faa5e2c9b361b00f4e82274aeb998ec4aba	Rule DRC-23: transition patches the five dimensions only
 c5c4fc06f032aa05ea7bfe2be3be30159ed3f3f3	Track sprite schema metadata and commit claim
 c61fd099b9aaf516be017c96b9f536d89b900fd4	Verify authored standalone map opens with pack rules
+c63d8afde1667e30afeb1d1d4b6be0c2c7941b96	Give controls orientation-aware placement and screen-proportional size
 c6e2f568185d9d41a208a24efcb91a9100155efa	Fix four editor shell defects a rendered pass found
 c7c1227f4e806312e44b5e55d092e94e8bf1a792	Add the Web export preset
 c7f55652b9b7660e414a86e397373bbaf0a2e9c7	Record v0.5.3 build identity and finalize checklist
@@ -776,6 +788,7 @@ dada1278e89a2cf41e21a5651862c3be9d12d7bf	Refresh the stale global script class c
 db2b2107c6c7db4d50da0948a060841a8cd7c48e	Resolve forecast cycling controls
 db488bc39939db3041bddbb75e8ba0ec0902fe80	Verify Session 6 roadmap outcome
 dc67c16cd9bf24908944f59bc5e6922720c4c2a0	Add campaign editor authority chapter
+dcd4251347c81ddee5fa9058dfb144e9a5680929	Let a player drag, resize and fade the on-screen controls
 dd4f971e2f028286f5dac3929bfc7da7d8e8f3fa	Enforce pinned GDScript style gates
 dd6b1eddd48609351fb4d075785e31cbc276e6ff	Plan the unified documentation system the reference consolidation needs
 ddb008863b1a9683482b6553a2f32382fac8527a	Publish the September audit reports on integration so cadence can reset
@@ -822,6 +835,7 @@ ea191c6a370aaf762c3a9a71fec442e63fb2d268	Consolidate governance and planning bra
 ea2b672c13725a27df6dcf70ad023a30d4de4aeb	Report registry failures, bound telemetry output, harden HUD edits
 ea362b0dbf8474fdb0ab43c022bd4a0752183d2a	Stand down watchdog for visible input owners
 ea4cb26951226ed41bbd606cd067a5c16d5212c1	correct v0.5 fix branch disposition
+eb189a9ef5696e4056d907c08db722cca10c7ee6	Make an on-screen control reach the game, not just Godot's GUI
 eb235ff2a07ea8a835da73a1ceb7be724d7a4674	Add versioned mobile controller layout model
 eb8c72ed6315d123ea24a4850031ec9b52f1aba4	Name the branch each pack is validated from
 ec59325a2cad2b34d2b78099cb26175cfccb5a00	Render authored sprite composition layers

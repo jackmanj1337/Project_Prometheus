@@ -130,6 +130,65 @@ const VALID_TOUCH_CONTROLS: Array[String] = ["dedicated", "virtual_gamepad"]
 var input_mode: String = "auto"
 var text_entry_mode: String = "auto"
 var touch_controls: String = "dedicated"
+
+# Game View — how much of the screen the game canvas takes, leaving the rest as
+# dedicated on-screen-controller space. Only the web export can act on this: it
+# needs canvas_resize_policy=0, where the shell owns the canvas rectangle. On
+# desktop the canvas IS the window, so these are stored but inert.
+#
+# `size` is the fraction of the long axis the canvas spans and `offset` where it
+# starts, both resolved against the CURRENT orientation — portrait gives a top
+# band (full width), landscape a centred pillar (full height). Two numbers rather
+# than a free rect because that is the whole vocabulary the reference layouts use,
+# and it cannot express an off-screen or inside-out canvas.
+# "auto" means "leave the active layout's own viewport alone" — it is the default
+# so this setting is purely additive: portrait keeps the top band its preset
+# already defines, and desktop keeps a full-window canvas, until a player opts in.
+const VALID_GAME_VIEW_PRESETS: Array[String] = [
+	"auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"
+]
+const GAME_VIEW_PRESET_VALUES: Dictionary = {
+	"fullscreen": {"size": 1.0, "offset": 0.0},
+	"portrait_top": {"size": 0.55, "offset": 0.03},
+	"landscape_pillarbox": {"size": 0.55, "offset": 0.225},
+}
+const GAME_VIEW_MIN_SIZE: float = 0.3
+var game_view_preset: String = "auto"
+var game_view_size: float = 1.0
+var game_view_offset: float = 0.0
+var game_view_aspect_locked: bool = false
+
+# On-screen controller layout. `ControllerService` rebuilt its six default
+# combinations on every launch, so a profile change or a moved control lasted
+# exactly as long as the session — every other control-related setting here was
+# durable and this one was not.
+#
+# Stored RAW and normalized by `ControllerLayout` when the service loads it, the
+# same division `hud_layout` uses: this manager owns persistence, the controller
+# model owns validation. A corrupt or hand-edited entry therefore costs the
+# player their customisation and nothing else.
+#
+# An empty array means "never saved" and the service falls back to its built-in
+# collection. An empty active id means "no explicit choice", where the service
+# picks a combination from the device orientation instead.
+var controller_combinations: Array = []
+var controller_active_id: String = ""
+
+# How long the on-screen controls stay visible with nothing touching them, in
+# seconds. `0.0` is "never hide" and is the default, so the controls behave
+# exactly as before for anyone who does not go looking for this.
+#
+# Deliberately NOT part of a combination, unlike position, size and opacity. Those
+# describe the ARRANGEMENT and differ per layout slot; this describes how long the
+# arrangement lingers, which a player would have to re-set in all six slots for it
+# to mean anything. It sits beside the Game View keys instead, which are the other
+# whole-device comfort preferences.
+#
+# A closed vocabulary rather than a free number: the delays are a menu of choices,
+# and an arbitrary 0.2s stored by a hand-edited cfg would read as "the controls
+# vanish the moment I let go", which looks like the controller breaking.
+const VALID_CONTROLLER_AUTO_HIDE_SECONDS: Array[float] = [0.0, 3.0, 5.0, 10.0, 30.0]
+var controller_auto_hide_seconds: float = 0.0
 # "follow"|"click"|"disabled" — how mouse/touch drives the on-map cursor.
 # follow: hover moves the cursor and targeting snaps to the nearest valid target.
 # click: hover is inert; first click moves the cursor, second same-tile click confirms.
@@ -368,6 +427,28 @@ func load_settings() -> void:
 	touch_controls = normalize_touch_controls(
 		cfg.get_value("controls", "touch_controls", touch_controls)
 	)
+	game_view_preset = normalize_game_view_preset(
+		cfg.get_value("controls", "game_view_preset", game_view_preset)
+	)
+	game_view_size = normalize_game_view_size(
+		cfg.get_value("controls", "game_view_size", game_view_size)
+	)
+	game_view_offset = normalize_game_view_offset(
+		cfg.get_value("controls", "game_view_offset", game_view_offset), game_view_size
+	)
+	game_view_aspect_locked = bool(
+		cfg.get_value("controls", "game_view_aspect_locked", game_view_aspect_locked)
+	)
+	# Type-checked but not clamped: ControllerLayout.normalize() is the validation
+	# gate and runs on every entry when the service restores it, so clamping here
+	# would be a second, separately-wrong copy of the same rules.
+	var raw_combinations: Variant = cfg.get_value("controls", "controller_combinations", [])
+	controller_combinations = raw_combinations if raw_combinations is Array else []
+	var raw_active_id: Variant = cfg.get_value("controls", "controller_active_id", "")
+	controller_active_id = raw_active_id if raw_active_id is String else ""
+	controller_auto_hide_seconds = normalize_controller_auto_hide(
+		cfg.get_value("controls", "controller_auto_hide_seconds", controller_auto_hide_seconds)
+	)
 	mouse_cursor = _load_mouse_cursor_mode(cfg)
 	active_profile = String(cfg.get_value("controls", "active_profile", active_profile))
 	var raw_profiles: Variant = cfg.get_value("controls", "profiles", {})
@@ -427,6 +508,13 @@ func snapshot() -> Dictionary:
 			"input_mode": input_mode,
 			"text_entry_mode": text_entry_mode,
 			"touch_controls": touch_controls,
+			"game_view_preset": game_view_preset,
+			"game_view_size": game_view_size,
+			"game_view_offset": game_view_offset,
+			"game_view_aspect_locked": game_view_aspect_locked,
+			"controller_combinations": controller_combinations,
+			"controller_active_id": controller_active_id,
+			"controller_auto_hide_seconds": controller_auto_hide_seconds,
 			# Normalized on load and whenever SettingsScreen sets it; save() writes
 			# only the new controls key while legacy gameplay keys remain readable.
 			"mouse_cursor": mouse_cursor,
@@ -484,6 +572,15 @@ func reset_section_to_defaults(section: String) -> void:
 			input_mode = "auto"
 			text_entry_mode = "auto"
 			touch_controls = "dedicated"
+			game_view_preset = "auto"
+			game_view_size = 1.0
+			game_view_offset = 0.0
+			game_view_aspect_locked = false
+			# Clearing both is what "reset" means here: the empty pair is exactly the
+			# never-saved state, so the service rebuilds its built-in collection.
+			controller_combinations = []
+			controller_active_id = ""
+			controller_auto_hide_seconds = 0.0
 			mouse_cursor = "follow"
 			active_profile = KEYBINDING_DEFAULT_PROFILE
 			profiles = {KEYBINDING_DEFAULT_PROFILE: {}}
@@ -1334,6 +1431,19 @@ const _UI_MIRROR: Dictionary = {
 }
 
 
+# The mirrored `ui_*` action a game action drives, or "" when it drives none.
+#
+# The mirror above is keyed the other way because it is written from the ui_*
+# side. Callers that hold a game action and need its GUI counterpart — the
+# on-screen controller, which must reach focus navigation the same way a hardware
+# key does — would otherwise each invert it and each be separately wrong.
+static func ui_action_for(game_action: String) -> String:
+	for ui_action: String in _UI_MIRROR:
+		if String(_UI_MIRROR[ui_action]) == game_action:
+			return ui_action
+	return ""
+
+
 # Snapshots the engine-default ui_* events (Enter/Space on ui_accept etc.)
 # the first time the mirror runs. Restored at the top of every subsequent
 # mirror call so a later re-mirror after rebind_action() doesn't leave the
@@ -1542,6 +1652,71 @@ static func normalize_text_entry_mode(value: Variant) -> String:
 	if mode in VALID_TEXT_ENTRY_MODES:
 		return mode
 	return "auto"
+
+
+# Snaps to the closest offered delay rather than clamping to the range. Clamping
+# would keep an unoffered 7.5s alive forever — the dropdown cannot show it, so the
+# player would see a value they cannot reproduce and cannot get back to. An exact
+# tie takes the SHORTER delay (strictly-closer wins, so the earlier entry keeps
+# it), which matters only in that it is decided here rather than by array order.
+static func normalize_controller_auto_hide(value: Variant) -> float:
+	if not (value is float or value is int):
+		return 0.0
+	var seconds := float(value)
+	if not is_finite(seconds):
+		return 0.0
+	var best := 0.0
+	var best_distance := INF
+	for choice: float in VALID_CONTROLLER_AUTO_HIDE_SECONDS:
+		var distance := absf(choice - seconds)
+		if distance < best_distance:
+			best_distance = distance
+			best = choice
+	return best
+
+
+static func normalize_game_view_preset(value: Variant) -> String:
+	var preset := String(value)
+	return preset if preset in VALID_GAME_VIEW_PRESETS else "auto"
+
+
+static func normalize_game_view_size(value: Variant) -> float:
+	if not (value is float or value is int):
+		return 1.0
+	var size := float(value)
+	if not is_finite(size):
+		return 1.0
+	return clampf(size, GAME_VIEW_MIN_SIZE, 1.0)
+
+
+# Clamped against the size, not independently: an offset that puts the canvas
+# partly off-screen is not a smaller canvas, it is a lost one.
+static func normalize_game_view_offset(value: Variant, size: float) -> float:
+	if not (value is float or value is int):
+		return 0.0
+	var offset := float(value)
+	if not is_finite(offset):
+		return 0.0
+	return clampf(offset, 0.0, maxf(0.0, 1.0 - normalize_game_view_size(size)))
+
+
+# Resolves the stored pair into the ControllerLayout viewport rect for one
+# orientation. Portrait spans the full width and bands vertically; landscape spans
+# the full height and pillars horizontally — which is exactly what the handheld
+# reference layouts do, and why one number can drive both.
+static func game_view_viewport(
+	orientation: String, size: float, offset: float, locked: bool
+) -> Dictionary:
+	var span := normalize_game_view_size(size)
+	var start := normalize_game_view_offset(offset, span)
+	var portrait := orientation == "portrait"
+	return {
+		"x": 0.0 if portrait else start,
+		"y": start if portrait else 0.0,
+		"width": 1.0 if portrait else span,
+		"height": span if portrait else 1.0,
+		"aspect_locked": locked,
+	}
 
 
 static func normalize_touch_controls(value: Variant) -> String:

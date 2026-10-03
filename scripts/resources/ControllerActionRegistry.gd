@@ -19,6 +19,19 @@ const VALID_PROFILES: Array[String] = [PROFILE_VIRTUAL_GAMEPAD, PROFILE_LABELED_
 # the input path reads it, so a new group needs no engine change.
 const VALID_GROUPS: Array[String] = ["dpad", "face", "shoulder", "system", "action"]
 
+# A descriptor may declare itself REQUIRED, which means the player cannot turn it
+# off. The set is deliberately tiny — the directional cross plus Confirm and Back
+# — because it exists for exactly one failure: those are the controls that reach
+# and work the Settings screen, so hiding them would hide the row that unhides
+# them. It is the same trap the profile-without-a-cross owner call named, arriving
+# by a different door, and the remedy is the same. Everything else is the player's
+# to remove: Zoom, Danger Zone and the unit-cycling controls are convenience, and
+# on a small screen the space they take is worth more than they are.
+#
+# Enforced in TWO places on purpose. Refusing the toggle stops the player doing it;
+# drawing a required control even when a saved layout says otherwise stops a
+# hand-edited or corrupt cfg doing it, where there is no UI to refuse.
+
 # Built-in descriptors. Coordinates are normalized to the controller surface
 # (the full browser rectangle), so they survive any device size or pixel ratio.
 # Slice 4's editor overwrites them per saved combination; these are only the
@@ -33,8 +46,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Up",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.12,
 		"y": 0.64,
+		"portrait_x": 0.22,
+		"portrait_y": 0.776,
 	},
 	{
 		"id": "dpad_down",
@@ -42,8 +58,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Down",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.12,
 		"y": 0.88,
+		"portrait_x": 0.22,
+		"portrait_y": 0.864,
 	},
 	{
 		"id": "dpad_left",
@@ -51,8 +70,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Left",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.05,
 		"y": 0.76,
+		"portrait_x": 0.13,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "dpad_right",
@@ -60,8 +82,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Right",
 		"group": "dpad",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.19,
 		"y": 0.76,
+		"portrait_x": 0.31,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_south",
@@ -69,8 +94,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Confirm",
 		"group": "face",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.88,
 		"y": 0.88,
+		"portrait_x": 0.78,
+		"portrait_y": 0.864,
 	},
 	{
 		"id": "pad_east",
@@ -78,8 +106,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Back",
 		"group": "face",
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
+		"required": true,
 		"x": 0.95,
 		"y": 0.76,
+		"portrait_x": 0.87,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_west",
@@ -89,6 +120,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.81,
 		"y": 0.76,
+		"portrait_x": 0.69,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "pad_north",
@@ -98,6 +131,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.88,
 		"y": 0.64,
+		"portrait_x": 0.78,
+		"portrait_y": 0.776,
 	},
 	{
 		"id": "shoulder_left",
@@ -107,6 +142,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.05,
 		"y": 0.10,
+		"portrait_x": 0.12,
+		"portrait_y": 0.64,
 	},
 	{
 		"id": "shoulder_right",
@@ -116,6 +153,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.95,
 		"y": 0.10,
+		"portrait_x": 0.88,
+		"portrait_y": 0.64,
 	},
 	{
 		"id": "pad_select",
@@ -125,6 +164,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.42,
 		"y": 0.94,
+		"portrait_x": 0.38,
+		"portrait_y": 0.95,
 	},
 	{
 		"id": "pad_start",
@@ -134,18 +175,87 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_VIRTUAL_GAMEPAD],
 		"x": 0.58,
 		"y": 0.94,
+		"portrait_x": 0.62,
+		"portrait_y": 0.95,
 	},
 	# ── Labeled actions: engine-authored words, fixed semantics ───────────────
 	# These labels never change with a physical-pad rebinding; that is the whole
 	# point of the profile, so no glyph is resolved for them.
+	#
+	# The directional cross comes FIRST because without it this profile could not
+	# move a menu highlight at all: menu navigation runs on ui_up/ui_down, which
+	# only the cursor_* actions mirror, so a phone on the default profile could
+	# render nine controls and still not reach the Settings screen that offers the
+	# other profile. Owner call 2026-08-05: both profiles carry a d-pad.
+	#
+	# Separate descriptors rather than adding this profile to the `dpad_*` entries:
+	# a descriptor carries ONE placement per orientation, and the virtual pad's
+	# cross sits exactly where this profile's word grid already is. The registry
+	# already pairs two ids to one action this way (`act_confirm` and `pad_south`
+	# both fire `confirm`), so this is the established shape, not a new one.
+	#
+	# Group `dpad`, not `action`: the shell renders `action` as a 1.9x-wide pill,
+	# which cannot form a cross without the arms overlapping, and round directional
+	# buttons are also what a player expects to read as a d-pad.
+	{
+		"id": "act_up",
+		"action": "cursor_up",
+		"label": "Up",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
+		"x": 0.43,
+		"y": 0.66,
+		"portrait_x": 0.24,
+		"portrait_y": 0.491,
+	},
+	{
+		"id": "act_down",
+		"action": "cursor_down",
+		"label": "Down",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
+		"x": 0.43,
+		"y": 0.90,
+		"portrait_x": 0.24,
+		"portrait_y": 0.622,
+	},
+	{
+		"id": "act_left",
+		"action": "cursor_left",
+		"label": "Left",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
+		"x": 0.36,
+		"y": 0.78,
+		"portrait_x": 0.11,
+		"portrait_y": 0.557,
+	},
+	{
+		"id": "act_right",
+		"action": "cursor_right",
+		"label": "Right",
+		"group": "dpad",
+		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
+		"x": 0.50,
+		"y": 0.78,
+		"portrait_x": 0.37,
+		"portrait_y": 0.557,
+	},
 	{
 		"id": "act_confirm",
 		"action": "confirm",
 		"label": "Confirm",
 		"group": "action",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.91,
 		"y": 0.88,
+		"portrait_x": 0.82,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_back",
@@ -153,8 +263,11 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"label": "Back",
 		"group": "action",
 		"profiles": [PROFILE_LABELED_ACTIONS],
+		"required": true,
 		"x": 0.76,
 		"y": 0.88,
+		"portrait_x": 0.5,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_menu",
@@ -164,6 +277,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.91,
 		"y": 0.70,
+		"portrait_x": 0.82,
+		"portrait_y": 0.7,
 	},
 	{
 		"id": "act_info",
@@ -173,6 +288,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.76,
 		"y": 0.70,
+		"portrait_x": 0.82,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_more",
@@ -182,6 +299,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.61,
 		"y": 0.88,
+		"portrait_x": 0.18,
+		"portrait_y": 0.94,
 	},
 	{
 		"id": "act_prev_unit",
@@ -191,6 +310,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.09,
 		"y": 0.88,
+		"portrait_x": 0.18,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_next_unit",
@@ -200,6 +321,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.24,
 		"y": 0.88,
+		"portrait_x": 0.5,
+		"portrait_y": 0.82,
 	},
 	{
 		"id": "act_zoom_in",
@@ -209,6 +332,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.09,
 		"y": 0.70,
+		"portrait_x": 0.18,
+		"portrait_y": 0.7,
 	},
 	{
 		"id": "act_zoom_out",
@@ -218,6 +343,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"profiles": [PROFILE_LABELED_ACTIONS],
 		"x": 0.24,
 		"y": 0.70,
+		"portrait_x": 0.5,
+		"portrait_y": 0.7,
 	},
 ]
 
@@ -274,8 +401,22 @@ func register(raw: Variant) -> Array[String]:
 		"label": label,
 		"group": group,
 		"profiles": profiles,
+		# Defaults to FALSE, so a descriptor that says nothing is removable. The
+		# opposite default would make every third-party control unhideable by
+		# omission, which is the wrong way round for a setting whose whole purpose
+		# is reclaiming screen space.
+		"required": source.get("required", false) is bool and source.get("required", false),
 		"x": clampf(_number(source.get("x", 0.5), 0.5), 0.0, 1.0),
 		"y": clampf(_number(source.get("y", 0.5), 0.5), 0.0, 1.0),
+		# Portrait needs its own placement, not a reflowed landscape one. The same
+		# fraction means a very different pixel offset on a 412-wide screen than on
+		# an 863-wide one, which is what pushed the landscape defaults off both
+		# edges the moment portrait became playable. Falls back to the landscape
+		# value so a third-party descriptor need not know about orientations.
+		"portrait_x":
+		clampf(_number(source.get("portrait_x", source.get("x", 0.5)), 0.5), 0.0, 1.0),
+		"portrait_y":
+		clampf(_number(source.get("portrait_y", source.get("y", 0.5)), 0.5), 0.0, 1.0),
 		"scale": clampf(_number(source.get("scale", 1.0), 1.0), 0.5, 3.0),
 	}
 	_order.append(id)
@@ -298,6 +439,14 @@ func action_for(id: String) -> String:
 	return String(found.get("action", ""))
 
 
+# Whether this control may be turned off. An UNREGISTERED id answers false rather
+# than true: it names nothing that can be drawn, so treating it as required would
+# have the payload filter keep drawing a control the registry cannot describe.
+func is_required(id: String) -> bool:
+	var found: Dictionary = _descriptors.get(id, {})
+	return bool(found.get("required", false))
+
+
 func ids_for_profile(profile: String) -> Array[String]:
 	var result: Array[String] = []
 	for id in _order:
@@ -309,8 +458,9 @@ func ids_for_profile(profile: String) -> Array[String]:
 
 # Starting element list for a profile in the shape ControllerLayout stores, so a
 # fresh combination can be saved and edited like any authored one.
-func default_elements(profile: String) -> Array[Dictionary]:
+func default_elements(profile: String, orientation: String = "landscape") -> Array[Dictionary]:
 	var elements: Array[Dictionary] = []
+	var use_portrait := orientation == "portrait"
 	for id in ids_for_profile(profile):
 		var found: Dictionary = _descriptors[id]
 		(
@@ -319,10 +469,14 @@ func default_elements(profile: String) -> Array[Dictionary]:
 				{
 					"id": id,
 					"action": found.action,
-					"x": found.x,
-					"y": found.y,
+					"x": found.portrait_x if use_portrait else found.x,
+					"y": found.portrait_y if use_portrait else found.y,
 					"scale": found.scale,
 					"opacity": 1.0,
+					# Every registered control starts on. A descriptor cannot ship
+					# hidden: the player would have to discover a control they have
+					# never seen before they could ask for it.
+					"enabled": true,
 				}
 			)
 		)

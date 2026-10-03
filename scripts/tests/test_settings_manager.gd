@@ -767,6 +767,111 @@ func _init() -> void:
 		)
 		failed += 1
 
+	# ---- controller layout: the two keys ControllerService persists ----------
+	# Slice 4 step 1. The on-screen controller rebuilt its collection every launch,
+	# so it was the one control setting that did not survive a reload. Stored raw
+	# and validated by ControllerLayout when the service restores it, so this only
+	# has to prove the cfg round-trip and the type guard — a hand-edited scalar
+	# where an array belongs must not reach the service as one.
+	var ctl_default_ok: bool = (
+		sm.controller_combinations.is_empty() and sm.controller_active_id.is_empty()
+	)
+	var ctl_saved: Array = [{"schema_version": 1, "id": "slot-2", "profile": "virtual_gamepad"}]
+	sm.controller_combinations = ctl_saved
+	sm.controller_active_id = "slot-2"
+	sm.save()
+	var sm_ctl: Node = SettingsManagerS.new()
+	sm_ctl.load_settings()
+	var ctl_roundtrip_ok: bool = (
+		sm_ctl.controller_combinations.size() == 1
+		and String(sm_ctl.controller_combinations[0].get("id", "")) == "slot-2"
+		and sm_ctl.controller_active_id == "slot-2"
+	)
+	sm_ctl.free()
+	var ctl_bad_cfg := ConfigFile.new()
+	ctl_bad_cfg.load(sm.SETTINGS_PATH)
+	ctl_bad_cfg.set_value("controls", "controller_combinations", "not an array")
+	ctl_bad_cfg.set_value("controls", "controller_active_id", 17)
+	ctl_bad_cfg.save(sm.SETTINGS_PATH)
+	var sm_ctl_bad: Node = SettingsManagerS.new()
+	sm_ctl_bad.load_settings()
+	var ctl_guard_ok: bool = (
+		sm_ctl_bad.controller_combinations is Array
+		and sm_ctl_bad.controller_combinations.is_empty()
+		and sm_ctl_bad.controller_active_id.is_empty()
+	)
+	sm_ctl_bad.free()
+	# Reset clears both, which is exactly the never-saved state the service falls
+	# back to — not a third "reset" state it would need to recognise separately.
+	sm.controller_combinations = ctl_saved
+	sm.controller_active_id = "slot-2"
+	sm.reset_section_to_defaults("controls")
+	var ctl_reset_ok: bool = (
+		sm.controller_combinations.is_empty() and sm.controller_active_id.is_empty()
+	)
+	sm.save()  # restore a clean cfg for anything loading it after this block
+	if ctl_default_ok and ctl_roundtrip_ok and ctl_guard_ok and ctl_reset_ok:
+		print("OK  controller layout: defaults, cfg round-trip, type guard, controls reset")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL controller layout: default=%s roundtrip=%s guard=%s reset=%s"
+				% [ctl_default_ok, ctl_roundtrip_ok, ctl_guard_ok, ctl_reset_ok]
+			)
+		)
+		failed += 1
+
+	# ---- controller auto-hide: the delay, snapped to the offered vocabulary ---
+	# Slice 4 step 4. Deliberately NOT stored inside a combination like position and
+	# size are: those describe one arrangement, this describes how long any of them
+	# lingers, and per-slot it would have to be set six times to mean anything.
+	var hide_default_ok: bool = is_equal_approx(sm.controller_auto_hide_seconds, 0.0)
+	sm.controller_auto_hide_seconds = 10.0
+	sm.save()
+	var sm_hide: Node = SettingsManagerS.new()
+	sm_hide.load_settings()
+	var hide_roundtrip_ok: bool = is_equal_approx(sm_hide.controller_auto_hide_seconds, 10.0)
+	sm_hide.free()
+	# A value the dropdown cannot show would be a setting the player can see and
+	# never reproduce, so loading snaps it to one that is offered rather than
+	# clamping it into range.
+	var hide_cfg := ConfigFile.new()
+	hide_cfg.load(sm.SETTINGS_PATH)
+	hide_cfg.set_value("controls", "controller_auto_hide_seconds", 9.0)
+	hide_cfg.save(sm.SETTINGS_PATH)
+	var sm_hide_odd: Node = SettingsManagerS.new()
+	sm_hide_odd.load_settings()
+	var hide_snap_ok: bool = is_equal_approx(sm_hide_odd.controller_auto_hide_seconds, 10.0)
+	sm_hide_odd.free()
+	hide_cfg.set_value("controls", "controller_auto_hide_seconds", "soon")
+	hide_cfg.save(sm.SETTINGS_PATH)
+	var sm_hide_bad: Node = SettingsManagerS.new()
+	sm_hide_bad.load_settings()
+	var hide_guard_ok: bool = is_equal_approx(sm_hide_bad.controller_auto_hide_seconds, 0.0)
+	sm_hide_bad.free()
+	sm.controller_auto_hide_seconds = 30.0
+	sm.reset_section_to_defaults("controls")
+	var hide_reset_ok: bool = is_equal_approx(sm.controller_auto_hide_seconds, 0.0)
+	sm.save()
+	if hide_default_ok and hide_roundtrip_ok and hide_snap_ok and hide_guard_ok and hide_reset_ok:
+		print("OK  controller auto-hide: default off, round-trip, snap, type guard, reset")
+		passed += 1
+	else:
+		print(
+			(
+				"FAIL controller auto-hide: default=%s roundtrip=%s snap=%s guard=%s reset=%s"
+				% [
+					hide_default_ok,
+					hide_roundtrip_ok,
+					hide_snap_ok,
+					hide_guard_ok,
+					hide_reset_ok,
+				]
+			)
+		)
+		failed += 1
+
 	# ---- window limit on the applied content scale (v0.8.5 walk, 1A) ----
 	# The applied factor never takes the logical canvas below 640 long x 360 short. The
 	# four stops are the walk's own windows: 2x fits 1280x720 exactly (640x360), and the

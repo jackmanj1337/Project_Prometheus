@@ -1073,5 +1073,351 @@ func _init() -> void:
 		else:
 			failed += 1
 
+	# ---- Slice 4 step 2: the Touch Controls rows ----------------------------
+	# The service has supported all three control styles and the whole saved
+	# collection since Slice 2; only the UI to reach them was missing. Handlers are
+	# called directly because the rows are hidden off web — hidden, not absent, so
+	# the wiring is still the wiring a phone runs.
+	var controller := root.get_node_or_null("ControllerService")
+	if controller != null:
+		var opt_profile: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerProfile/OptControllerProfile"
+		)
+		var opt_layout: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerLayout/OptControllerLayout"
+		)
+		var rows_present: bool = opt_profile != null and opt_layout != null
+		var profile_choices_ok: bool = (
+			rows_present and opt_profile.item_count == ControllerLayout.VALID_PROFILES.size()
+		)
+		# Start from a known state: no explicit arrangement, a known style.
+		controller.call("select_combination", "")
+		controller.call("set_profile", "labeled_actions")
+		screen._sync_touch_controls_rows()
+		var synced_ok: bool = (
+			rows_present
+			and opt_profile.selected == ControllerLayout.VALID_PROFILES.find("labeled_actions")
+			and opt_layout.item_count == int(controller.call("combinations").size()) + 1
+			and opt_layout.selected == 0
+		)
+
+		# Changing style on Automatic must not silently pin the arrangement.
+		screen._on_controller_profile_changed(ControllerLayout.VALID_PROFILES.find("off"))
+		var style_ok: bool = (
+			String(controller.call("profile")) == "off" and opt_layout.selected == 0
+		)
+
+		# Choosing an arrangement pins it, survives a resync, and index 0 releases it.
+		var slot_id := String(controller.call("combinations")[1].get("id", ""))
+		screen._on_controller_layout_changed(2)
+		var pinned_ok: bool = (
+			String(controller.call("active_combination_id")) == slot_id and opt_layout.selected == 2
+		)
+		screen._sync_touch_controls_rows()
+		var resync_ok: bool = opt_layout.selected == 2
+		screen._on_controller_layout_changed(0)
+		var released_ok: bool = (
+			String(controller.call("active_combination_id")).is_empty() and opt_layout.selected == 0
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("save_layout")
+		if (
+			rows_present
+			and profile_choices_ok
+			and synced_ok
+			and style_ok
+			and pinned_ok
+			and resync_ok
+			and released_ok
+		):
+			print("OK  Touch Controls rows: style, arrangement, Automatic release, persistence")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Touch Controls rows: present=%s choices=%s sync=%s style=%s pinned=%s resync=%s released=%s"
+					% [
+						rows_present,
+						profile_choices_ok,
+						synced_ok,
+						style_ok,
+						pinned_ok,
+						resync_ok,
+						released_ok
+					]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Touch Controls rows (ControllerService autoload absent)")
+
+	# ---- Slice 4 step 3: the arrangement editor rows ------------------------
+	# The sliders act on whichever control the player last TAPPED, which arrives
+	# from the browser shell — so the rows have to follow the service, not only
+	# their own signals. Driven through the handlers because the rows are hidden
+	# off web, exactly as the step-2 rows above are.
+	if controller != null:
+		var slider_size: HSlider = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerSize/SliderControllerSize"
+		)
+		var slider_opacity: HSlider = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerOpacity/SliderControllerOpacity"
+		)
+		var edit_rows_present: bool = slider_size != null and slider_opacity != null
+		# Authored from the model rather than the scene: a slider with a wider
+		# range would stop having any effect partway along its travel.
+		var ranges_ok: bool = (
+			edit_rows_present
+			and is_equal_approx(slider_size.min_value, ControllerLayout.MIN_ELEMENT_SCALE)
+			and is_equal_approx(slider_size.max_value, ControllerLayout.MAX_ELEMENT_SCALE)
+			and is_equal_approx(slider_opacity.min_value, ControllerLayout.MIN_ELEMENT_OPACITY)
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("select_element", "")
+		screen._sync_controller_edit_rows()
+		# Nothing selected means nothing to resize: disabled rather than hidden,
+		# because a row that vanishes moves every control below it.
+		var idle_ok: bool = edit_rows_present and not slider_size.editable
+
+		screen._on_controller_edit_changed(1)
+		var editing_ok: bool = bool(controller.call("is_editing"))
+
+		# The tap the shell reports is what arms the sliders.
+		controller.call("select_element", "act_back")
+		screen._sync_controller_edit_rows()
+		var armed_ok: bool = edit_rows_present and slider_size.editable
+
+		screen._on_controller_size_changed(2.0)
+		var sized_ok: bool = is_equal_approx(
+			float((controller.call("element_layout", "act_back") as Dictionary).get("scale", 0.0)),
+			2.0
+		)
+
+		screen._on_controller_layout_reset()
+		var reset_ok: bool = (
+			(controller.call("active_combination") as Dictionary).elements.is_empty()
+			and not slider_size.editable
+		)
+
+		# Closing Settings must leave the editor: while editing, the on-screen
+		# controls drag instead of pressing, and the only way back is the screen
+		# the player just closed.
+		screen._on_controller_edit_changed(1)
+		screen._close()
+		var closed_ok: bool = not bool(controller.call("is_editing"))
+
+		if (
+			edit_rows_present
+			and ranges_ok
+			and idle_ok
+			and editing_ok
+			and armed_ok
+			and sized_ok
+			and reset_ok
+			and closed_ok
+		):
+			print("OK  Arrangement editor rows: ranges, selection gating, resize, reset, close")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Arrangement editor rows: present=%s ranges=%s idle=%s editing=%s armed=%s sized=%s reset=%s closed=%s"
+					% [
+						edit_rows_present,
+						ranges_ok,
+						idle_ok,
+						editing_ok,
+						armed_ok,
+						sized_ok,
+						reset_ok,
+						closed_ok
+					]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Arrangement editor rows (ControllerService autoload absent)")
+
+	# ---- Slice 4 step 4: optional controls and auto-hide ---------------------
+	# The control picker is the row that makes hiding REVERSIBLE. A hidden control
+	# is not drawn, so it cannot be tapped, so the tap-to-select path that arms
+	# every other editor row cannot reach it — a list that still names it is the
+	# only way back.
+	if controller != null:
+		var opt_element: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerElement/OptControllerElement"
+		)
+		var opt_visible: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerVisible/OptControllerVisible"
+		)
+		var opt_auto_hide: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxControllerAutoHide/OptControllerAutoHide"
+		)
+		var rows_present: bool = (
+			opt_element != null and opt_visible != null and opt_auto_hide != null
+		)
+
+		controller.call("set_profile", "labeled_actions")
+		controller.call("reset_elements")
+		controller.call("select_element", "")
+		screen._sync_controller_edit_rows()
+		# Index 0 is "Nothing selected", so every drawable control sits one past its
+		# position — the same offset the Arrangement row uses for Automatic.
+		var listed: Array = controller.call("profile_elements")
+		var listing_ok: bool = (
+			rows_present
+			and opt_element.item_count == listed.size() + 1
+			and opt_element.selected == 0
+			and opt_visible.disabled
+		)
+
+		var zoom_slot := 0
+		var back_slot := 0
+		for index in listed.size():
+			if String(listed[index].get("id", "")) == "act_zoom_in":
+				zoom_slot = index + 1
+			if String(listed[index].get("id", "")) == "act_back":
+				back_slot = index + 1
+		screen._on_controller_element_chosen(zoom_slot)
+		var picked_ok: bool = (
+			String(controller.call("selected_element_id")) == "act_zoom_in"
+			and rows_present
+			and not opt_visible.disabled
+			and opt_visible.selected == 1
+		)
+
+		screen._on_controller_visible_changed(0)
+		var hidden_ok: bool = rows_present and opt_visible.selected == 0
+		var drawn_ids: Array[String] = []
+		for element: Dictionary in (controller.call("build_payload") as Dictionary).elements:
+			drawn_ids.append(String(element.get("id", "")))
+		hidden_ok = hidden_ok and not drawn_ids.has("act_zoom_in")
+		# The whole point of the picker: the control is gone from the screen and
+		# still in the list, marked, so it can be turned back on.
+		hidden_ok = (
+			hidden_ok
+			and opt_element.item_count == listed.size() + 1
+			and opt_element.get_item_text(zoom_slot).ends_with("(hidden)")
+		)
+		screen._on_controller_visible_changed(1)
+		hidden_ok = hidden_ok and opt_visible.selected == 1
+
+		# A required control shows the row inert rather than hiding it: hiding the
+		# row would answer "why can I not turn this one off?" by never asking it.
+		screen._on_controller_element_chosen(back_slot)
+		screen._on_controller_visible_changed(0)
+		var required_ok: bool = rows_present and opt_visible.disabled and opt_visible.selected == 1
+
+		var sm_node: Node = screen.get_node_or_null("/root/SettingsManager")
+		var auto_hide_ok: bool = sm_node != null and rows_present
+		if auto_hide_ok:
+			screen._on_controller_auto_hide_changed(2)
+			auto_hide_ok = (
+				is_equal_approx(float(sm_node.get("controller_auto_hide_seconds")), 5.0)
+				and is_equal_approx(float(controller.call("auto_hide_seconds")), 5.0)
+			)
+			screen._sync_controller_edit_rows()
+			auto_hide_ok = auto_hide_ok and opt_auto_hide.selected == 2
+			screen._on_controller_auto_hide_changed(0)
+			auto_hide_ok = (
+				auto_hide_ok and is_equal_approx(float(controller.call("auto_hide_seconds")), 0.0)
+			)
+
+		controller.call("reset_elements")
+		if rows_present and listing_ok and picked_ok and hidden_ok and required_ok and auto_hide_ok:
+			print("OK  Optional-control rows: picker, hide/show, required guard, auto-hide")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Optional-control rows: present=%s listing=%s picked=%s hidden=%s required=%s autohide=%s"
+					% [rows_present, listing_ok, picked_ok, hidden_ok, required_ok, auto_hide_ok]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Optional-control rows (ControllerService autoload absent)")
+
+	# ---- Slice 3: the Game View editor rows --------------------------------
+	# The drag itself happens in the browser; what these rows own is entering and
+	# leaving the editor, Undo, and the fact that the preset rows must stop being
+	# live while the editor holds the rectangle they describe.
+	if controller != null:
+		var opt_edit: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewEdit/OptGameViewEdit"
+		)
+		var btn_undo: Button = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/BtnUndoGameView"
+		)
+		var opt_preset: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewPreset/OptGameViewPreset"
+		)
+		var view_rows_present: bool = opt_edit != null and btn_undo != null and opt_preset != null
+
+		screen._on_game_view_edit_changed(1)
+		var opened_ok: bool = (
+			view_rows_present
+			and String(controller.call("edit_mode")) == "viewport"
+			# The preset rows describe a rectangle the editor now owns, so a stray
+			# slider tick must not be able to discard a drag without saying so.
+			and opt_preset.disabled
+		)
+
+		# Undo is disabled until there is something to undo, and enabled once a
+		# drag has happened — a greyed button is the only thing that says so.
+		var undo_ok: bool = view_rows_present and btn_undo.disabled
+		controller.call("set_viewport_rect", 0.0, 0.0, 1.0, 0.5)
+		screen._sync_game_view_rows()
+		undo_ok = undo_ok and not btn_undo.disabled
+		screen._on_game_view_undo()
+		undo_ok = undo_ok and btn_undo.disabled
+
+		# The two editors are exclusive, and each row has to follow the other's
+		# effect rather than keep claiming to be on.
+		screen._on_controller_edit_changed(1)
+		var exclusive_ok: bool = (
+			view_rows_present
+			and String(controller.call("edit_mode")) == "controls"
+			and opt_edit.selected == 0
+			and not opt_preset.disabled
+		)
+
+		# Closing Settings leaves BOTH: a controller left in either editor no
+		# longer plays the game, and the way back is the screen just closed.
+		screen._on_game_view_edit_changed(1)
+		screen._close()
+		var closed_ok: bool = (
+			String(controller.call("edit_mode")) == "none" and opt_edit.selected == 0
+		)
+
+		# Reset returns the preset AND the dragged rectangle. Returning only the
+		# preset would leave the canvas where a drag put it while the row above
+		# claims the view was reset.
+		controller.call("set_viewport_rect", 0.2, 0.2, 0.4, 0.4)
+		screen._on_game_view_reset()
+		var built_in: Dictionary = ControllerLayout.default_viewport(
+			String(controller.call("active_combination").get("orientation", "both"))
+		)
+		var reset_ok: bool = is_equal_approx(
+			float(controller.call("viewport_fractions").get("width", -1.0)),
+			float(built_in.get("width", -2.0))
+		)
+
+		if view_rows_present and opened_ok and undo_ok and exclusive_ok and closed_ok and reset_ok:
+			print("OK  Game View editor rows: open, Undo, editor exclusivity, close, Reset")
+			passed += 1
+		else:
+			print(
+				(
+					"FAIL Game View editor rows: present=%s opened=%s undo=%s exclusive=%s closed=%s reset=%s"
+					% [view_rows_present, opened_ok, undo_ok, exclusive_ok, closed_ok, reset_ok]
+				)
+			)
+			failed += 1
+	else:
+		print("SKIP Game View editor rows (ControllerService autoload absent)")
+
 	print("\n=== Results: %d passed, %d failed ===" % [passed, failed])
 	quit(0 if failed == 0 else 1)

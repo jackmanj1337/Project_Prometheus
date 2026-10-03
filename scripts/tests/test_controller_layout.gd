@@ -77,15 +77,43 @@ func _init() -> void:
 		malformed.global_opacity == 1.0 and malformed.theme == ControllerLayoutS.DEFAULT_THEME,
 		"opacity clamps and an empty theme falls back"
 	)
+	# Opacity floors at MIN_ELEMENT_OPACITY rather than 0.0 (Slice 4 step 3): a
+	# fully transparent control still takes touches, so zero would leave an
+	# invisible dead zone the player cannot find again to undo.
 	_ok(
 		(
 			malformed.elements.size() == 1
 			and malformed.elements[0].x == 1.0
 			and malformed.elements[0].y == 0.0
-			and malformed.elements[0].scale == 3.0
-			and malformed.elements[0].opacity == 0.0
+			and malformed.elements[0].scale == ControllerLayoutS.MAX_ELEMENT_SCALE
+			and malformed.elements[0].opacity == ControllerLayoutS.MIN_ELEMENT_OPACITY
 		),
 		"elements clamp and duplicate or malformed IDs are rejected"
+	)
+
+	# Slice 4 step 4. `enabled` defaults to TRUE, which is what every layout saved
+	# before the field existed carries: the alternative default would empty a
+	# returning player's controller on upgrade.
+	_ok(
+		bool(malformed.elements[0].get("enabled", false)),
+		"an element that never heard of `enabled` is drawn, not hidden"
+	)
+	var visibility := (
+		ControllerLayoutS
+		. normalize(
+			{
+				"schema_version": 1,
+				"elements":
+				[
+					{"id": "a", "action": "confirm", "enabled": false},
+					{"id": "b", "action": "cancel", "enabled": 0},
+				],
+			}
+		)
+	)
+	_ok(
+		not bool(visibility.elements[0].enabled) and bool(visibility.elements[1].enabled),
+		"a real false hides a control; a stray 0 does not, because losing one is worse"
 	)
 
 	var unsupported := ControllerLayoutS.normalize({"schema_version": 99, "name": "Future"})
