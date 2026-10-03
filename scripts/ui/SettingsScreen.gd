@@ -26,8 +26,27 @@ const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const CameraControllerS = preload("res://scripts/core/CameraController.gd")
 # In-map per-panel HUD layout editor (item 4), launched by the button below.
 const HudLayoutEditorS = preload("res://scripts/ui/HudLayoutEditor.gd")
-# 15s confirm-or-revert dialog for risky display changes (resolution / window mode).
+# 15s confirm-or-revert dialog for any change that carries reachability risk [UUI-18].
 const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd")
+
+# [UUI-18]'s full reachability-risk table: a change to any of these can make the UI hard
+# or impossible to get back from, so it applies live but persists only through the
+# confirm-or-revert dialog, wherever in Settings it lives. Since [UUI-20] removed the
+# player-facing size limits the dialog is the only guard, so a new setting of this kind
+# must route through _confirm_change() -- an enum row by setting "reachability_risk",
+# anything else by calling it directly. The last four are not Settings controls on this
+# branch yet: menu_mode is editor-local today, and control_style, overlay_menus and
+# game_view_preset arrive with the web controller (MOBILE-WEB-CONTROLLER-2026-08-04).
+const REACHABILITY_RISK_KEYS: Array[String] = [
+	"window_mode",
+	"resolution",
+	"content_scale_factor",
+	"menu_scale_index",
+	"menu_mode",
+	"control_style",
+	"overlay_menus",
+	"game_view_preset",
+]
 
 const _DESKTOP_PANEL_SIZE := Vector2(760.0, 620.0)
 const _COMPACT_WIDTH: float = 600.0
@@ -101,6 +120,12 @@ var _display_refresh_queued: bool = false
 #   hidden: optional bool — when true, the OptionButton is set invisible (used
 #           for inert scaffolded settings like combat_animations until their
 #           system lands)
+#   reachability_risk: optional bool — the change applies live but persists only
+#           when the player keeps it in the confirm-or-revert dialog [UUI-18]
+#   display_config: optional bool — the row drives DisplayServer window config,
+#           so it is hidden where is_display_config_supported() is false. This is
+#           a separate concern from reachability_risk: a risky row is not
+#           necessarily display-dependent (Menu Scale is risky and works on Web).
 #
 # Adding a new enum setting:
 #   1. Declare the @export/var on SettingsManager.gd (load/save still names it
@@ -176,16 +201,17 @@ const _ENUM_SETTINGS: Array = [
 	},
 	{
 		# Display & Accessibility item 2. "apply" re-runs the SettingsManager method
-		# so the change takes effect live (not just on next launch). "confirm" routes
-		# the change through the 15s confirm-or-revert dialog (a wrong fullscreen/
-		# resolution can leave the screen unusable), so the new value is applied but
-		# only persisted on confirm.
+		# so the change takes effect live (not just on next launch). A wrong fullscreen
+		# mode or resolution can leave the screen unusable, so both rows carry
+		# reachability risk (applied live, persisted only on Keep) and both are
+		# DisplayServer config (hidden where it cannot apply).
 		"key": "window_mode",
 		"node": "HBoxWindowMode/OptWindowMode",
 		"values": ["windowed", "borderless", "fullscreen"],
 		"labels": ["Windowed", "Borderless", "Fullscreen"],
 		"apply": "_apply_display",
-		"confirm": true,
+		"reachability_risk": true,
+		"display_config": true,
 	},
 	{
 		"key": "resolution",
@@ -194,7 +220,8 @@ const _ENUM_SETTINGS: Array = [
 		"labels":
 		["1280 x 720", "1600 x 900", "1920 x 1080", "2560 x 1440 (1440p)", "3840 x 2160 (4K)"],
 		"apply": "_apply_display",
-		"confirm": true,
+		"reachability_risk": true,
+		"display_config": true,
 	},
 ]
 
@@ -206,10 +233,9 @@ func _focus_scroll_container() -> ScrollContainer:
 
 
 func _ready() -> void:
-	# E1: window mode + resolution are confirm-gated DisplayServer controls that Web
-	# can't honour. Hide those rows where display config isn't supported so the web
-	# build never shows a dropdown + 15s confirm dialog that can't apply. Desktop keeps
-	# every row. Defaults true if SettingsManager is somehow absent (desktop assumption).
+	# E1: window mode + resolution are DisplayServer controls that Web can't honour.
+	# Hide those rows where display config isn't supported so the web build never shows
+	# a dropdown + 15s confirm dialog that can't apply. Desktop keeps every row. Defaults true if SettingsManager is somehow absent (desktop assumption).
 	var sm_for_display := get_node_or_null("/root/SettingsManager")
 	var display_supported: bool = (
 		sm_for_display == null or sm_for_display.call("is_display_config_supported")
@@ -228,9 +254,10 @@ func _ready() -> void:
 			_apply_mode_availability(btn, s)
 		if s.get("hidden", false):
 			btn.visible = false
-		# Confirm-gated rows are the DisplayServer ones (window mode / resolution);
-		# hide their whole HBox row on platforms that can't apply them (E1).
-		if s.get("confirm", false) and not display_supported:
+		# DisplayServer rows (window mode / resolution): hide the whole HBox row on
+		# platforms that can't apply them (E1). Keyed on display_config, NOT on
+		# reachability_risk -- the two used to share one flag [UUI-18].
+		if s.get("display_config", false) and not display_supported:
 			var row := btn.get_parent()
 			if row is Control:
 				(row as Control).visible = false
@@ -376,7 +403,7 @@ func _input(event: InputEvent) -> void:
 # singleton every frame, which set_input_as_handled() in the editor cannot stop,
 # so the tester saw settings focus scrolling under the open editor (V053-05).
 func _modal_focus_repeat_enabled() -> bool:
-	return _capturing_action == "" and not _hud_editor_open
+	return _capturing_action == "" and not _hud_editor_open and _confirm_dialog == null
 
 
 # V023-01 covered the horizontal axis (stable row columns); rows above the Menu
@@ -455,10 +482,10 @@ func _on_enum_setting_changed(index: int, schema_row: Dictionary) -> void:
 		# Out-of-schema index: either defensive, or the trailing display-only
 		# "Custom (WxH)" resolution item (V027-04b) — already the current value.
 		return
-	# Risky display changes (resolution / window mode) apply immediately but defer the
-	# save behind a confirm-or-revert dialog, so a setting that blanks the screen
-	# auto-reverts (item 2 safety). Everything else saves straight away.
-	if schema_row.get("confirm", false):
+	# Reachability-risk changes apply immediately but defer the save behind a
+	# confirm-or-revert dialog, so a setting that strands the player auto-reverts
+	# [UUI-18]. Everything else saves straight away.
+	if schema_row.get("reachability_risk", false):
 		_change_with_confirm(sm, schema_row, index)
 		return
 	sm.set(schema_row["key"], values[index])
@@ -469,10 +496,10 @@ func _on_enum_setting_changed(index: int, schema_row: Dictionary) -> void:
 		sm.call(schema_row["apply"])
 
 
-# Applies a confirm-gated display change: the new value is set + applied (so the
-# player sees it) but NOT saved yet. A DisplayConfirmDialog then either persists it
-# (Keep) or restores the previous value, re-applies, and resets the dropdown
-# (Revert / 15s timeout). The modal dialog blocks further changes meanwhile.
+# Applies a reachability-risk enum change: the new value is set + applied (so the
+# player sees it) but NOT saved yet. _confirm_change then either persists it (Keep) or
+# restores the previous value, re-applies, and resets the dropdown (Revert / Escape /
+# 15s timeout).
 func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> void:
 	var key: String = schema_row["key"]
 	var values: Array = schema_row["values"]
@@ -484,22 +511,16 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 		sm.call(schema_row["apply"])
 	_refresh_applied_size()  # V025-06: reflect the clamped window size in-game
 
-	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
-	add_child(dlg)
-	dlg.kept.connect(
+	_confirm_change(
 		func() -> void:
-			sm.call("save")
 			# Keeping a preset drops a leftover "Custom (WxH)" item (V027-04b).
 			if key == "resolution":
-				_sync_resolution_dropdown(sm)
-	)
-	dlg.reverted.connect(
+				_sync_resolution_dropdown(sm),
 		func() -> void:
 			sm.set(key, prev_value)
 			if schema_row.has("apply"):
 				sm.call(schema_row["apply"])
 			_refresh_applied_size()
-			# Cfg was never saved with the new value, so the restore is in-memory only.
 			# Resolution re-syncs through its helper — the previous value can be a
 			# non-preset write-back, which prev_index (find == -1) can't restore.
 			if key == "resolution":
@@ -508,7 +529,57 @@ func _change_with_confirm(sm: Object, schema_row: Dictionary, index: int) -> voi
 				var btn: OptionButton = _vbox.get_node(schema_row["node"])
 				btn.selected = maxi(0, prev_index)
 	)
+
+
+# The open confirm-or-revert dialog, or null. While it is up the screen's own focus
+# repeat stands down, so held directions cannot walk focus under the dialog.
+var _confirm_dialog: CanvasLayer = null
+# Every change the open dialog answers for, in the order applied. Normally one; the
+# dialog is modal, but a second change that still lands (a slider's keyboard step in
+# the same frame) joins the open dialog instead of stacking another one whose
+# "previous value" would be the first one's unconfirmed change.
+var _confirm_kept: Array[Callable] = []
+var _confirm_restores: Array[Callable] = []
+
+
+# The one confirm-or-revert path for every reachability-risk setting [UUI-18]. The
+# caller has ALREADY applied the change without saving. Keep saves and then runs
+# `on_kept`; Revert, Escape and the countdown run `restore`, which puts the previous
+# value back -- the settings file never held the new one, so the restore is in memory.
+func _confirm_change(on_kept: Callable, restore: Callable) -> void:
+	_confirm_kept.append(on_kept)
+	_confirm_restores.append(restore)
+	if _confirm_dialog != null and is_instance_valid(_confirm_dialog):
+		return
+	var sm := get_node_or_null("/root/SettingsManager")
+	var dlg: CanvasLayer = DisplayConfirmDialogS.new()
+	_confirm_dialog = dlg
+	add_child(dlg)
+	dlg.kept.connect(
+		func() -> void:
+			var callbacks := _confirm_kept.duplicate()
+			_end_confirm()
+			if sm != null:
+				sm.call("save")
+			for cb in callbacks:
+				(cb as Callable).call()
+	)
+	dlg.reverted.connect(
+		func() -> void:
+			var callbacks := _confirm_restores.duplicate()
+			_end_confirm()
+			# Newest first, so each restore puts back the value the one before it saw.
+			callbacks.reverse()
+			for cb in callbacks:
+				(cb as Callable).call()
+	)
 	dlg.start()
+
+
+func _end_confirm() -> void:
+	_confirm_dialog = null
+	_confirm_kept.clear()
+	_confirm_restores.clear()
 
 
 # V027-04b (Q5): rebuilds the Resolution dropdown from the preset schema and
@@ -731,10 +802,24 @@ func _commit_menu_scale(value: float, apply_live: bool) -> void:
 		return
 	var idx: int = clampi(int(value), 0, sm.MENU_SCALE_LEVELS.size() - 1)
 	_label_menu_scale.text = _menu_scale_label(sm, idx)
-	if apply_live:
-		sm.set("menu_scale_index", idx)
-		sm.call("_apply_menu_scale")
-		sm.call("save")
+	if not apply_live:
+		return
+	var prev_idx: int = int(sm.get("menu_scale_index"))
+	sm.set("menu_scale_index", idx)
+	sm.call("_apply_menu_scale")
+	if idx == prev_idx:
+		# A release back on the start value only re-applies; there is nothing to confirm.
+		return
+	# Menu Scale multiplies every menu token, so 2.0x at Compact can leave ~2 rows:
+	# reachability risk [UUI-18]. Applied live above, persisted only on Keep.
+	_confirm_change(
+		func() -> void: pass,
+		func() -> void:
+			sm.set("menu_scale_index", prev_idx)
+			sm.call("_apply_menu_scale")
+			_slider_menu_scale.set_value_no_signal(prev_idx)
+			_label_menu_scale.text = _menu_scale_label(sm, prev_idx)
+	)
 
 
 # Formats a menu-scale index as a factor label, e.g. 1 -> "1.0x". Defensively clamped.
@@ -778,9 +863,22 @@ func _commit_viewport_scale(value: float, apply_live: bool) -> void:
 	var sm := get_node_or_null("/root/SettingsManager")
 	if sm == null or not sm.has_method("set_content_scale_factor"):
 		return
-	var applied: float = sm.call("set_content_scale_factor", value)
+	var prev: float = float(sm.get("content_scale_factor"))
+	# persist=false: the factor reaches the window now, the settings file only on Keep.
+	var applied: float = sm.call("set_content_scale_factor", value, false)
 	_slider_viewport_scale.set_value_no_signal(applied)
 	_refresh_viewport_scale_label(applied)
+	if is_equal_approx(applied, prev):
+		return
+	# Viewport Scale re-classes the screen the control is on -- the size class is
+	# derived from backing / factor -- so it carries reachability risk [UUI-18].
+	_confirm_change(
+		func() -> void: pass,
+		func() -> void:
+			var restored: float = sm.call("set_content_scale_factor", prev, false)
+			_slider_viewport_scale.set_value_no_signal(restored)
+			_refresh_viewport_scale_label(restored)
+	)
 
 
 # Formats a content scale factor as a label, e.g. 1.5 -> "1.5x". A lower factor reveals
