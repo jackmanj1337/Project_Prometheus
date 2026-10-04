@@ -27,11 +27,10 @@ class StubSettings:
 	var controller_auto_hide_seconds: float = 0.0
 	# The Game View override the viewport editor has to adopt on the way in. Real
 	# fields rather than a mock, because the service reads them through the same
-	# `game_view_viewport()` the Settings rows write.
-	var game_view_preset: String = "auto"
+	# `game_view_viewport()` the Settings rows write. Custom here, so a suite that is
+	# not about the presets sees the combination's own rect.
+	var game_view_preset: String = "custom"
 	var game_view_size: float = 1.0
-	var game_view_offset: float = 0.0
-	var game_view_aspect_locked: bool = false
 	var saves: int = 0
 
 	func save() -> void:
@@ -74,6 +73,7 @@ func _init() -> void:
 	await _test_element_editing()
 	await _test_optional_controls()
 	await _test_viewport_editing()
+	await _test_game_view_presets()
 
 	await _test_gui_reach()
 	await _test_tap_outlives_its_frame()
@@ -874,12 +874,19 @@ func _test_service() -> void:
 		"an unchanged window size reports no change, so the canvas is not re-applied"
 	)
 
-	# Landscape default is the full window: the controller overlays it, which is
-	# the pre-existing behaviour and must not regress.
+	# The landscape default is Widest That Fits [UUI-1]: at 844x390 that is 4:3, and
+	# the rest of the width is the controls' side columns. Set rather than assumed,
+	# because the real SettingsManager here has read whatever settings.cfg holds.
+	var settings_node: Node = service.get_node_or_null("/root/SettingsManager")
+	var restore_game_view: Array = []
+	if settings_node != null:
+		restore_game_view = [settings_node.game_view_preset, settings_node.game_view_size]
+		settings_node.game_view_preset = SettingsManagerS.GAME_VIEW_WIDEST
+		settings_node.game_view_size = 1.0
 	var landscape_rect: Rect2 = service.canvas_rect()
 	_ok(
-		landscape_rect.size.is_equal_approx(Vector2(844.0, 390.0)),
-		"the landscape default fills the window"
+		absf(landscape_rect.size.x - 520.0) < 1.0 and is_equal_approx(landscape_rect.size.y, 390.0),
+		"the landscape default is 4:3, leaving side columns for the controls"
 	)
 
 	# Portrait is the case the reference targets: the canvas takes the top slice and
@@ -907,67 +914,9 @@ func _test_service() -> void:
 		decoded is Dictionary and decoded.has("x") and decoded.has("width"),
 		"the canvas rect serializes for the shell"
 	)
-
-	# ── Game View settings override ──────────────────────────────────────────
-	var sm := service.get_node_or_null("/root/SettingsManager")
-	if sm != null:
-		var restore_preset: String = sm.game_view_preset
-		var restore_size: float = sm.game_view_size
-		var restore_offset: float = sm.game_view_offset
-
-		# "auto" must leave the layout preset's own viewport alone — that is what
-		# keeps this setting additive instead of flattening every combination.
-		sm.game_view_preset = "auto"
-		var auto_rect: Rect2 = service.canvas_rect()
-		_ok(auto_rect.size.y < 844.0 * 0.75, "Automatic defers to the layout's own portrait band")
-
-		sm.game_view_preset = "custom"
-		# Above the model's 360px minimum, so this exercises the setting rather
-		# than the floor clamp.
-		sm.game_view_size = 0.7
-		sm.game_view_offset = 0.0
-		var custom_rect: Rect2 = service.canvas_rect()
-		_ok(
-			absf(custom_rect.size.y - 844.0 * 0.7) < 2.0,
-			"a custom size resizes the portrait canvas"
-		)
-
-		# The override must not be written back into the combination, or coming
-		# back to Automatic would keep the last custom rect forever.
-		sm.game_view_preset = "auto"
-		_ok(
-			service.canvas_rect().size.is_equal_approx(auto_rect.size),
-			"switching back to Automatic restores the layout's rect"
-		)
-
-		sm.game_view_preset = "custom"
-		_ok(
-			sm.normalize_game_view_offset(0.9, 0.5) <= 0.5,
-			"an offset that would push the canvas off-screen is clamped against the size"
-		)
-		_ok(
-			(
-				sm.normalize_game_view_size("wide") == 1.0
-				and sm.normalize_game_view_preset("nonsense") == "auto"
-			),
-			"malformed Game View values fall back instead of being applied"
-		)
-
-		var portrait_view: Dictionary = sm.game_view_viewport("portrait", 0.55, 0.03, false)
-		var landscape_view: Dictionary = sm.game_view_viewport("landscape", 0.55, 0.2, false)
-		_ok(
-			(
-				is_equal_approx(float(portrait_view.width), 1.0)
-				and is_equal_approx(float(portrait_view.height), 0.55)
-				and is_equal_approx(float(landscape_view.height), 1.0)
-				and is_equal_approx(float(landscape_view.width), 0.55)
-			),
-			"portrait bands vertically and landscape pillars horizontally"
-		)
-
-		sm.game_view_preset = restore_preset
-		sm.game_view_size = restore_size
-		sm.game_view_offset = restore_offset
+	if settings_node != null:
+		settings_node.game_view_preset = restore_game_view[0]
+		settings_node.game_view_size = restore_game_view[1]
 
 
 # Slice 4, step 3. Position is dragged in the browser and reported once on
@@ -1341,21 +1290,30 @@ func _test_viewport_editing() -> void:
 	# ── adoption: the editor starts from the rect on screen ──────────────────
 	# Set the way the Settings row sets it: the preset NAME selects the row, but
 	# what the service reads is the size/offset pair the row wrote alongside it.
-	stub.game_view_preset = "landscape_pillarbox"
-	var preset_values: Dictionary = SettingsManagerS.GAME_VIEW_PRESET_VALUES.landscape_pillarbox
-	stub.game_view_size = float(preset_values.size)
-	stub.game_view_offset = float(preset_values.offset)
+	stub.game_view_preset = "aspect_4_3"
+	stub.game_view_size = 1.0
 	var before_adopt := service.canvas_rect()
 	_ok(
 		before_adopt.size.x < 1280.0,
 		"a live Game View preset narrows the canvas, so the preset is what is on screen"
 	)
 	service.set_viewport_editing(true)
-	_ok(stub.game_view_preset == "auto", "entering the editor returns the preset row to Automatic")
+	_ok(stub.game_view_preset == "custom", "entering the editor moves the preset row to Custom")
 	_ok(
 		service.canvas_rect().is_equal_approx(before_adopt),
 		"...having first folded the preset's rect into the combination, so nothing jumps"
 	)
+
+	# ── the adopted preset brings its aspect lock with it ────────────────────
+	_ok(
+		(
+			service.is_viewport_aspect_locked()
+			and is_equal_approx(float(service.viewport_fractions().aspect), 4.0 / 3.0)
+		),
+		"adopting a 4:3 preset keeps the canvas locked to 4:3, not to a design 16:9"
+	)
+	service.set_viewport_aspect_locked(false)
+	_ok(not service.is_viewport_aspect_locked(), "Keep Aspect off frees a custom rect")
 
 	# ── a drag moves the canvas and does NOT rebuild the controls ────────────
 	var layouts: Array[Dictionary] = []
@@ -1404,20 +1362,24 @@ func _test_viewport_editing() -> void:
 		"...returning the previous rectangle"
 	)
 	_ok(service.undo_viewport_edit(), "and the drag before it")
+	_ok(service.undo_viewport_edit(), "and the unlock before that")
 	_ok(
-		is_equal_approx(float(service.viewport_fractions().width), 0.55),
-		"...returning the rect the adoption folded in"
+		(
+			is_equal_approx(float(service.viewport_fractions().width), 0.75)
+			and service.is_viewport_aspect_locked()
+		),
+		"...returning the rect the adoption folded in, still locked"
 	)
 	_ok(service.undo_viewport_edit(), "and the adoption itself, which is an edit like any other")
 	_ok(
-		stub.game_view_preset == "landscape_pillarbox",
+		stub.game_view_preset == "aspect_4_3",
 		"...so the preset the player was on before they opened the editor comes back"
 	)
 	_ok(not service.can_undo_viewport(), "the stack is empty once every edit is undone")
 	_ok(not service.undo_viewport_edit(), "...and an extra Undo does nothing rather than erroring")
 
 	# ── reset writes the built-in rect for this combination ──────────────────
-	stub.game_view_preset = "auto"
+	stub.game_view_preset = "custom"
 	service.set_viewport_rect(0.2, 0.2, 0.5, 0.5)
 	service.reset_viewport()
 	var built_in := ControllerLayoutS.default_viewport(
@@ -1453,3 +1415,153 @@ func _payload_ids(service: Node) -> Array[String]:
 	for element: Dictionary in service.build_payload().elements:
 		ids.append(String(element.id))
 	return ids
+
+
+# Slice 2 of the controller revival: the Game View presets are [UUI-1]'s aspect list
+# plus a size, and the default is the widest preset that still leaves the controls
+# their side columns ([UUI-1] amendment, [UUI-20]). The two worked cases the ruling
+# gives are the assertions, so a change to the column arithmetic that breaks either
+# fails here rather than on a phone.
+func _test_game_view_presets() -> void:
+	var floor_landscape := Vector2(667.0, 375.0)
+	var phone_landscape := Vector2(852.0, 393.0)
+	var floor_portrait := Vector2(375.0, 667.0)
+
+	_ok(
+		(
+			is_equal_approx(SettingsManagerS.controller_side_column_px(floor_landscape), 137.0)
+			and is_equal_approx(SettingsManagerS.controller_side_column_px(phone_landscape), 143.0)
+		),
+		"a side column is three short-edge-sized controls plus the shell's margins"
+	)
+	_ok(
+		SettingsManagerS.widest_game_view_preset(phone_landscape) == "aspect_4_3",
+		"Widest That Fits is 4:3 at 852x393: 16:9 would leave 76px a side"
+	)
+	_ok(
+		SettingsManagerS.widest_game_view_preset(floor_landscape) == "aspect_1_1",
+		"...and 1:1 at the 667x375 test floor, where 4:3 would leave 83px a side"
+	)
+
+	var four_three := SettingsManagerS.game_view_viewport(
+		"landscape", "aspect_4_3", 1.0, phone_landscape, true
+	)
+	_ok(
+		(
+			absf(float(four_three.width) * 852.0 - 524.0) < 1.0
+			and is_equal_approx(float(four_three.height), 1.0)
+			and is_equal_approx(float(four_three.x) * 2.0 + float(four_three.width), 1.0)
+			and bool(four_three.aspect_locked)
+			and is_equal_approx(float(four_three.aspect), 4.0 / 3.0)
+		),
+		"a landscape aspect preset fills the height, centred, locked to its own ratio"
+	)
+	var half := SettingsManagerS.game_view_viewport(
+		"landscape", "aspect_4_3", 0.5, phone_landscape, true
+	)
+	_ok(
+		(
+			is_equal_approx(float(half.height), 0.5)
+			and is_equal_approx(float(half.y), 0.25)
+			and is_equal_approx(float(half.width), float(four_three.width) * 0.5)
+		),
+		"Game Size scales the preset's rect about its centre"
+	)
+
+	var band := SettingsManagerS.game_view_viewport(
+		"portrait", SettingsManagerS.GAME_VIEW_WIDEST, 1.0, floor_portrait, true
+	)
+	_ok(
+		(
+			is_equal_approx(float(band.width), 1.0)
+			and is_equal_approx(float(band.height), 0.55)
+			and is_equal_approx(float(band.y), 0.03)
+			and not bool(band.aspect_locked)
+		),
+		"portrait Widest is the full-width 55% band, unlocked — not cropped to 16:9 [UUI-3]"
+	)
+	var square := SettingsManagerS.game_view_viewport(
+		"portrait", "aspect_1_1", 1.0, floor_portrait, true
+	)
+	_ok(
+		(
+			is_equal_approx(float(square.width), 1.0)
+			and absf(float(square.height) * 667.0 - 375.0) < 1.0
+			and is_equal_approx(float(square.y), 0.03)
+		),
+		"a portrait aspect preset fills the width and sits under the top strip"
+	)
+	var no_controls := SettingsManagerS.game_view_viewport(
+		"landscape", SettingsManagerS.GAME_VIEW_WIDEST, 1.0, phone_landscape, false
+	)
+	_ok(
+		(
+			is_equal_approx(float(no_controls.width), 1.0)
+			and is_equal_approx(float(no_controls.height), 1.0)
+			and not bool(no_controls.aspect_locked)
+		),
+		"with the controller off, Widest has no columns to leave and fills the window"
+	)
+	_ok(
+		(
+			(
+				SettingsManagerS
+				. game_view_viewport("landscape", "custom", 1.0, phone_landscape, true)
+				. is_empty()
+			)
+			and (
+				SettingsManagerS
+				. game_view_viewport("landscape", "aspect_4_3", 1.0, Vector2.ZERO, true)
+				. is_empty()
+			)
+		),
+		"Custom defers to the combination's rect, and an unmeasured window gives no rect"
+	)
+	_ok(
+		(
+			SettingsManagerS.normalize_game_view_preset("auto") == SettingsManagerS.GAME_VIEW_WIDEST
+			and (
+				SettingsManagerS.normalize_game_view_preset("landscape_pillarbox")
+				== SettingsManagerS.GAME_VIEW_WIDEST
+			)
+			and SettingsManagerS.normalize_game_view_size("wide") == 1.0
+		),
+		"the retired vocabulary and malformed values fall back to the ruled default"
+	)
+
+	# ── through the service, which is what the shell is sized from ───────────
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+	service.set_profile("labeled_actions")
+	service.set_available_pixels(phone_landscape)
+	stub.game_view_preset = SettingsManagerS.GAME_VIEW_WIDEST
+	var rect := service.canvas_rect()
+	_ok(
+		absf(rect.size.x - 524.0) < 1.0 and is_equal_approx(rect.size.y, 393.0),
+		"the default canvas at 852x393 is 4:3, leaving both side columns to the controls"
+	)
+	_ok(
+		absf(rect.position.x - 164.0) < 1.0,
+		"...centred, even while the 640px minimum would have grown it from one side"
+	)
+	service.set_profile("off")
+	_ok(
+		service.canvas_rect().size.is_equal_approx(phone_landscape),
+		"turning the controller off gives the whole window back"
+	)
+	service.set_orientation("portrait")
+	service.set_profile("labeled_actions")
+	service.set_available_pixels(floor_portrait)
+	var portrait_rect := service.canvas_rect()
+	_ok(
+		absf(portrait_rect.size.y - 667.0 * 0.55) < 1.0,
+		"the default portrait canvas is 55% of the height, not the old 26% [UUI-3]"
+	)
+
+	service.queue_free()
+	stub.queue_free()
+	await process_frame

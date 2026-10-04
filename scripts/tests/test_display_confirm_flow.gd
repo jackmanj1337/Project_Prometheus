@@ -191,7 +191,59 @@ func _init() -> void:
 	)
 	await process_frame
 
+	# ---- Game View: the preset and its size go through the dialog [UUI-18][UUI-20] ----
+	sm.game_view_preset = SettingsManagerS.GAME_VIEW_WIDEST
+	sm.game_view_size = 1.0
+	screen._sync_game_view_rows()
+	var four_three: int = screen._GAME_VIEW_PRESET_VALUES.find("aspect_4_3")
+	screen._on_game_view_preset_changed(four_three)
+	_ok(sm.game_view_preset == "aspect_4_3", "a Game View preset applies live")
+	var dlg_gv: Node = _find_live_dialog(screen)
+	_ok(dlg_gv != null, "a Game View preset change opens the confirm dialog")
+	dlg_gv._on_revert()
+	_ok(
+		sm.game_view_preset == SettingsManagerS.GAME_VIEW_WIDEST,
+		"Revert restores the previous Game View preset"
+	)
+	_ok(screen._opt_game_view_preset.selected == 0, "...and the preset row follows it")
+	await process_frame
+
+	screen._on_game_view_preset_changed(four_three)
+	_find_live_dialog(screen)._on_keep()
+	_ok(sm.game_view_preset == "aspect_4_3", "Keep retains the Game View preset")
+	await process_frame
+
+	# A keyboard or pad step on Game Size is a finished change and is confirmed at once.
+	screen._on_game_view_size_changed(0.5)
+	_ok(is_equal_approx(sm.game_view_size, 0.5), "a Game Size step applies live")
+	var dlg_size: Node = _find_live_dialog(screen)
+	_ok(dlg_size != null, "a Game Size step opens the confirm dialog")
+	dlg_size._on_revert()
+	_ok(
+		(
+			is_equal_approx(sm.game_view_size, 1.0)
+			and is_equal_approx(screen._slider_game_view_size.value, 1.0)
+		),
+		"Revert restores the previous Game Size, slider included"
+	)
+	await process_frame
+
+	# A drag confirms once, on release, against the size it started from.
+	screen._on_game_view_size_drag_started()
+	screen._on_game_view_size_changed(0.8)
+	screen._on_game_view_size_changed(0.6)
+	_ok(_find_live_dialog(screen) == null, "no dialog while the Game Size grabber is held")
+	screen._on_game_view_size_drag_ended(true)
+	_ok(_count_live_dialogs(screen) == 1, "releasing it opens exactly one dialog")
+	_find_live_dialog(screen)._on_revert()
+	_ok(
+		is_equal_approx(sm.game_view_size, 1.0),
+		"...whose Revert returns the size the drag began at"
+	)
+	await process_frame
+
 	# Restore a sane default for any later suite sharing this process.
+	sm.game_view_preset = SettingsManagerS.GAME_VIEW_WIDEST
 	sm.resolution = "1280x720"
 	sm.menu_scale_index = 1
 	screen.queue_free()

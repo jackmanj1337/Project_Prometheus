@@ -116,10 +116,15 @@ static func select_for_orientation(combinations: Array, orientation: String) -> 
 # list, a viewport has no "empty means follow the built-in placement" state — it is
 # one rect and every key is always present — so resetting means writing today's
 # default rather than clearing an override.
+#
+# Portrait is [UUI-3]'s full-width band at 55%. It used to be 90% wide and locked to
+# 16:9, which cropped the band to a quarter of the screen ([UUI-3] correction).
 static func default_viewport(orientation: String) -> Dictionary:
 	if orientation == "portrait":
-		return {"x": 0.05, "y": 0.03, "width": 0.90, "height": 0.55, "aspect_locked": true}
-	return {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "aspect_locked": false}
+		return {
+			"x": 0.0, "y": 0.03, "width": 1.0, "height": 0.55, "aspect_locked": false, "aspect": 0.0
+		}
+	return {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "aspect_locked": false, "aspect": 0.0}
 
 
 static func _normalize_viewport(raw: Variant, orientation: String) -> Dictionary:
@@ -127,18 +132,25 @@ static func _normalize_viewport(raw: Variant, orientation: String) -> Dictionary
 	if not raw is Dictionary:
 		return fallback
 	var source: Dictionary = raw
+	var aspect := _safe_float(source.get("aspect", 0.0), 0.0)
+	aspect = aspect if aspect > 0.0 else 0.0
 	return {
 		"x": clampf(_safe_float(source.get("x", fallback.x), fallback.x), 0.0, 1.0),
 		"y": clampf(_safe_float(source.get("y", fallback.y), fallback.y), 0.0, 1.0),
 		"width":
 		clampf(_safe_float(source.get("width", fallback.width), fallback.width), 0.01, 1.0),
 		"height":
+		# A lock is only as good as the ratio it holds. A lock with no ratio is what
+		# every pre-[UUI-20] save carries, and its ratio was the retired hard-coded
 		clampf(_safe_float(source.get("height", fallback.height), fallback.height), 0.01, 1.0),
+		# 16:9, so it reads as unlocked rather than guessing.
 		"aspect_locked":
 		(
-			source.get("aspect_locked", fallback.aspect_locked) is bool
-			and source.get("aspect_locked", fallback.aspect_locked)
+			source.get("aspect_locked", false) is bool
+			and source.get("aspect_locked", false)
+			and aspect > 0.0
 		),
+		"aspect": aspect,
 	}
 
 

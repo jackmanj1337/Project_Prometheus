@@ -687,9 +687,9 @@ ok(
 );
 await clear();
 
-// ── the aspect lock holds the design ratio ───────────────────────────────────
+// ── the aspect lock holds the ratio the engine published ─────────────────────
 await page.evaluate((p) => window.PrometheusController.apply(p), gameView({
-  viewport: { x: 0, y: 0, width: 1, height: 1, aspect_locked: true },
+  viewport: { x: 0, y: 0, width: 1, height: 1, aspect_locked: true, aspect: 16 / 9 },
 }));
 await setCanvas({ x: 0, y: 0, width: 800, height: 440 });
 await dragFrame(400, 440, 400, 300);
@@ -701,6 +701,32 @@ ok(
 ok(
   locked.width * 800 < 800 - 1,
   "...by SHRINKING the other edge, never growing it back into the controls' space"
+);
+await clear();
+
+// A 4:3 preset adopted into the editor locks 4:3, not the retired 16:9 [UUI-20].
+await page.evaluate((p) => window.PrometheusController.apply(p), gameView({
+  viewport: { x: 0, y: 0, width: 1, height: 1, aspect_locked: true, aspect: 4 / 3 },
+}));
+await setCanvas({ x: 0, y: 0, width: 800, height: 440 });
+await dragFrame(400, 440, 400, 300);
+const fourThree = (await messages()).find((m) => m.type === "viewport");
+ok(
+  Math.abs((fourThree.width * 800) / (fourThree.height * 480) - 4 / 3) < 0.05,
+  "the lock holds the preset's own ratio"
+);
+await clear();
+
+// A lock that names no ratio is what every pre-[UUI-20] save carries; it holds nothing.
+await page.evaluate((p) => window.PrometheusController.apply(p), gameView({
+  viewport: { x: 0, y: 0, width: 1, height: 1, aspect_locked: true },
+}));
+await setCanvas({ x: 0, y: 0, width: 800, height: 440 });
+await dragFrame(400, 440, 400, 300);
+const unratioed = (await messages()).find((m) => m.type === "viewport");
+ok(
+  Math.abs(unratioed.width * 800 - 800) < 1,
+  "a lock with no ratio leaves the free edges alone instead of guessing 16:9"
 );
 await clear();
 

@@ -136,27 +136,45 @@ var touch_controls: String = "dedicated"
 # needs canvas_resize_policy=0, where the shell owns the canvas rectangle. On
 # desktop the canvas IS the window, so these are stored but inert.
 #
-# `size` is the fraction of the long axis the canvas spans and `offset` where it
-# starts, both resolved against the CURRENT orientation — portrait gives a top
-# band (full width), landscape a centred pillar (full height). Two numbers rather
-# than a free rect because that is the whole vocabulary the reference layouts use,
-# and it cannot express an off-screen or inside-out canvas.
-# "auto" means "leave the active layout's own viewport alone" — it is the default
-# so this setting is purely additive: portrait keeps the top band its preset
-# already defines, and desktop keeps a full-window canvas, until a player opts in.
-const VALID_GAME_VIEW_PRESETS: Array[String] = [
-	"auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"
-]
-const GAME_VIEW_PRESET_VALUES: Dictionary = {
-	"fullscreen": {"size": 1.0, "offset": 0.0},
-	"portrait_top": {"size": 0.55, "offset": 0.03},
-	"landscape_pillarbox": {"size": 0.55, "offset": 0.225},
+# The preset is [UUI-1]'s aspect list plus a size ([UUI-20] point 7). An aspect
+# preset locks the canvas to that ratio, so the lock follows the preset instead of
+# the old hard-coded 16:9. `widest` is the default and is resolved against the
+# screen every time rather than written down once: [UUI-1] as amended makes the
+# default the widest preset whose leftover side columns still hold the controls,
+# which is 4:3 at 852x393 and 1:1 at the 667x375 test floor, so a stored answer
+# would be wrong the moment the phone rotated. In portrait `widest` is [UUI-3]'s
+# full-width band at 55% of the height. `custom` is the rectangle the Game View
+# editor drags, which lives on the controller combination, not here.
+#
+# `size` scales whichever rect the preset produced, about its anchor.
+const GAME_VIEW_WIDEST := "widest"
+const GAME_VIEW_CUSTOM := "custom"
+# Width over height. Kept in widest-first order: widest_game_view_preset() walks it.
+const GAME_VIEW_ASPECTS: Dictionary = {
+	"aspect_16_9": 16.0 / 9.0,
+	"aspect_4_3": 4.0 / 3.0,
+	"aspect_1_1": 1.0,
+	"aspect_2_3": 2.0 / 3.0,
 }
+const VALID_GAME_VIEW_PRESETS: Array[String] = [
+	GAME_VIEW_WIDEST, "aspect_2_3", "aspect_1_1", "aspect_4_3", "aspect_16_9", GAME_VIEW_CUSTOM
+]
+# [UUI-3]: the portrait band, and the strip left above it.
+const GAME_VIEW_PORTRAIT_BAND: float = 0.55
+const GAME_VIEW_PORTRAIT_TOP: float = 0.03
+# How wide a side column has to be to hold the D-pad: three controls across, plus
+# the shell's edge margin either side. These mirror BASE_SIZE_FRACTION,
+# MIN_BUTTON_PX, MAX_BUTTON_PX and EDGE_MARGIN in tools/web/controller_shell.js,
+# which sizes controls from the window's short edge; change them together. They
+# reproduce both of [UUI-1]'s worked cases: 137px needed at 667x375, where 1:1
+# leaves 146 and 4:3 leaves 83; 143px at 852x393, where 4:3 leaves 164 and 16:9 76.
+const CONTROLLER_BUTTON_SHORT_EDGE_FRACTION: float = 0.115
+const CONTROLLER_BUTTON_MIN_PX: float = 38.0
+const CONTROLLER_BUTTON_MAX_PX: float = 96.0
+const CONTROLLER_EDGE_MARGIN_PX: float = 4.0
 const GAME_VIEW_MIN_SIZE: float = 0.3
-var game_view_preset: String = "auto"
+var game_view_preset: String = GAME_VIEW_WIDEST
 var game_view_size: float = 1.0
-var game_view_offset: float = 0.0
-var game_view_aspect_locked: bool = false
 
 # On-screen controller layout. `ControllerService` rebuilt its six default
 # combinations on every launch, so a profile change or a moved control lasted
@@ -433,12 +451,6 @@ func load_settings() -> void:
 	game_view_size = normalize_game_view_size(
 		cfg.get_value("controls", "game_view_size", game_view_size)
 	)
-	game_view_offset = normalize_game_view_offset(
-		cfg.get_value("controls", "game_view_offset", game_view_offset), game_view_size
-	)
-	game_view_aspect_locked = bool(
-		cfg.get_value("controls", "game_view_aspect_locked", game_view_aspect_locked)
-	)
 	# Type-checked but not clamped: ControllerLayout.normalize() is the validation
 	# gate and runs on every entry when the service restores it, so clamping here
 	# would be a second, separately-wrong copy of the same rules.
@@ -510,8 +522,6 @@ func snapshot() -> Dictionary:
 			"touch_controls": touch_controls,
 			"game_view_preset": game_view_preset,
 			"game_view_size": game_view_size,
-			"game_view_offset": game_view_offset,
-			"game_view_aspect_locked": game_view_aspect_locked,
 			"controller_combinations": controller_combinations,
 			"controller_active_id": controller_active_id,
 			"controller_auto_hide_seconds": controller_auto_hide_seconds,
@@ -572,10 +582,8 @@ func reset_section_to_defaults(section: String) -> void:
 			input_mode = "auto"
 			text_entry_mode = "auto"
 			touch_controls = "dedicated"
-			game_view_preset = "auto"
+			game_view_preset = GAME_VIEW_WIDEST
 			game_view_size = 1.0
-			game_view_offset = 0.0
-			game_view_aspect_locked = false
 			# Clearing both is what "reset" means here: the empty pair is exactly the
 			# never-saved state, so the service rebuilds its built-in collection.
 			controller_combinations = []
@@ -1675,9 +1683,12 @@ static func normalize_controller_auto_hide(value: Variant) -> float:
 	return best
 
 
+# Anything else, including the pre-[UUI-20] vocabulary (auto, fullscreen,
+# portrait_top, landscape_pillarbox), falls back to the ruled default. No build that
+# wrote the old values reached a tester, so there is no saved choice worth mapping.
 static func normalize_game_view_preset(value: Variant) -> String:
 	var preset := String(value)
-	return preset if preset in VALID_GAME_VIEW_PRESETS else "auto"
+	return preset if preset in VALID_GAME_VIEW_PRESETS else GAME_VIEW_WIDEST
 
 
 static func normalize_game_view_size(value: Variant) -> float:
@@ -1689,33 +1700,81 @@ static func normalize_game_view_size(value: Variant) -> float:
 	return clampf(size, GAME_VIEW_MIN_SIZE, 1.0)
 
 
-# Clamped against the size, not independently: an offset that puts the canvas
-# partly off-screen is not a smaller canvas, it is a lost one.
-static func normalize_game_view_offset(value: Variant, size: float) -> float:
-	if not (value is float or value is int):
-		return 0.0
-	var offset := float(value)
-	if not is_finite(offset):
-		return 0.0
-	return clampf(offset, 0.0, maxf(0.0, 1.0 - normalize_game_view_size(size)))
+# The width one side column needs to hold the D-pad, in the same CSS pixels as
+# `available`. See CONTROLLER_BUTTON_SHORT_EDGE_FRACTION for where the numbers come from.
+static func controller_side_column_px(available: Vector2) -> float:
+	var short_edge := minf(available.x, available.y)
+	var button := clampf(
+		roundf(short_edge * CONTROLLER_BUTTON_SHORT_EDGE_FRACTION),
+		CONTROLLER_BUTTON_MIN_PX,
+		CONTROLLER_BUTTON_MAX_PX
+	)
+	return button * 3.0 + CONTROLLER_EDGE_MARGIN_PX * 2.0
 
 
-# Resolves the stored pair into the ControllerLayout viewport rect for one
-# orientation. Portrait spans the full width and bands vertically; landscape spans
-# the full height and pillars horizontally — which is exactly what the handheld
-# reference layouts do, and why one number can drive both.
+# [UUI-1] as amended: the widest aspect preset whose full-height rect still leaves a
+# D-pad's width either side. Falls back to the narrowest, which is the most room the
+# list can give; below that, only a custom rect can do better.
+static func widest_game_view_preset(available: Vector2) -> String:
+	var column := controller_side_column_px(available)
+	var narrowest := ""
+	for preset: String in GAME_VIEW_ASPECTS:
+		narrowest = preset
+		if (available.x - available.y * float(GAME_VIEW_ASPECTS[preset])) * 0.5 >= column:
+			return preset
+	return narrowest
+
+
+# Resolves a preset into the ControllerLayout viewport rect (fractions of the
+# window) for one orientation, or {} for `custom` — that rect is the combination's
+# own — and for a window that has not been measured yet. `controls_shown` is false
+# when the controller is off: `widest` then has no columns to make room for, and
+# the widest view that fits is the whole window.
 static func game_view_viewport(
-	orientation: String, size: float, offset: float, locked: bool
+	orientation: String, preset: String, size: float, available: Vector2, controls_shown: bool
 ) -> Dictionary:
-	var span := normalize_game_view_size(size)
-	var start := normalize_game_view_offset(offset, span)
+	if available.x <= 0.0 or available.y <= 0.0:
+		return {}
+	var chosen := normalize_game_view_preset(preset)
+	if chosen == GAME_VIEW_CUSTOM:
+		return {}
+	var scale := normalize_game_view_size(size)
 	var portrait := orientation == "portrait"
+	if chosen == GAME_VIEW_WIDEST:
+		if not controls_shown:
+			return _scaled_view(Vector2.ONE, scale, false, 0.0, 0.0)
+		if portrait:
+			# Full width at 55%: a ruled height, not an aspect, so it is not locked.
+			return _scaled_view(
+				Vector2(1.0, GAME_VIEW_PORTRAIT_BAND), scale, true, GAME_VIEW_PORTRAIT_TOP, 0.0
+			)
+		chosen = widest_game_view_preset(available)
+	var aspect := float(GAME_VIEW_ASPECTS[chosen])
+	# Portrait fills the width below the top strip; landscape fills the height. Either
+	# way the other axis follows the aspect and gives way if the screen runs out.
+	var top := GAME_VIEW_PORTRAIT_TOP * available.y if portrait else 0.0
+	var room := Vector2(available.x, available.y - top)
+	var pixels := Vector2(room.x, room.x / aspect) if portrait else Vector2(room.y * aspect, room.y)
+	if pixels.x > room.x:
+		pixels = Vector2(room.x, room.x / aspect)
+	if pixels.y > room.y:
+		pixels = Vector2(room.y * aspect, room.y)
+	return _scaled_view(pixels / available, scale, portrait, top / available.y, aspect)
+
+
+# Scales a full-size rect (in window fractions) about its anchor: centred
+# horizontally always, and pinned to `top` when `top_anchored`, centred otherwise.
+static func _scaled_view(
+	full: Vector2, scale: float, top_anchored: bool, top: float, aspect: float
+) -> Dictionary:
+	var extent := full * scale
 	return {
-		"x": 0.0 if portrait else start,
-		"y": start if portrait else 0.0,
-		"width": 1.0 if portrait else span,
-		"height": span if portrait else 1.0,
-		"aspect_locked": locked,
+		"x": (1.0 - extent.x) * 0.5,
+		"y": top if top_anchored else (1.0 - extent.y) * 0.5,
+		"width": extent.x,
+		"height": extent.y,
+		"aspect_locked": aspect > 0.0,
+		"aspect": aspect,
 	}
 
 
