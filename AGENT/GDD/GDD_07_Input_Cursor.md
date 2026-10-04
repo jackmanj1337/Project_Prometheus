@@ -357,11 +357,201 @@ export, so a PWA on a phone reported no touch capability at all and `touch` was
 unselectable on the one platform it is for; the tags `web_ios` and `web_android` are
 what identify it, and they also seed the platform default to touch. A mobile browser
 keeps `mouse_keyboard` selectable, because an attached keyboard remains reachable
-there. Mouse cursor behavior
-is exactly `follow`, `click`, or `disabled`. Touch presentation preference is
-exactly `dedicated` or `virtual_gamepad`; until dedicated touch controls ship, the
-runtime may fall back to the virtual-gamepad presentation while preserving the saved
-preference.
+there. Mouse cursor behavior is exactly `follow`, `click`, or `disabled`. Touch
+presentation preference is exactly `dedicated` or `virtual_gamepad`; until dedicated
+touch controls ship, the runtime may fall back to the virtual-gamepad presentation
+while preserving the saved preference.
+
+**On-screen web controller, Game View and arrangement editors.** Status:
+**Implemented 2026-08-06, merged to `agent/integration` 2026-10-03; pending
+physical-device validation** (MOBILE-WEB-CONTROLLER-2026-08-04). The Game View preset
+vocabulary below predates `[UUI-1]`/`[UUI-20]` and is scheduled to be replaced by the
+aspect-preset list in that row's slice 2; `game_view_preset` does not yet route through
+the `[UUI-18]` confirm-or-revert dialog. Until then this text describes the code as
+merged.
+
+The persisted Game View preference is exactly `auto`, `fullscreen`, `portrait_top`,
+`landscape_pillarbox`, or `custom`. It decides how much of the browser window the
+game canvas occupies, so the remainder becomes dedicated on-screen-controller
+space instead of the controls covering the game. `auto` is the default and defers
+to the active controller layout's own viewport, which keeps the setting purely
+additive. Web-only: it requires export `html/canvas_resize_policy=0`, where the
+browser shell owns the canvas rectangle; on desktop the canvas is the window, so
+the rows are hidden rather than shown inert. Size is clamped to the layout model's
+minimum and offset is clamped against the size, so no combination of the two can
+put the canvas partly or wholly off-screen.
+
+The on-screen controller's saved layout persists as exactly two keys,
+`controller_combinations` and `controller_active_id`. The first is the whole
+combination collection stored raw; the second names the slot the player chose, and
+an empty value means no explicit choice. Both empty is the never-saved state, and
+also what a Controls reset produces, so a first launch and a reset take one code
+path back to the built-in collection. `ControllerLayout` normalizes every entry when
+the service restores it, so a corrupt or hand-edited entry costs the player their
+customisation and nothing else. A chosen slot applies only while the current
+orientation can display it — a landscape-pinned combination is authored for a
+landscape shape — and the choice is remembered rather than discarded, so rotating
+back restores it. A combination whose element list is empty follows the registry's
+built-in placement rather than a frozen copy of it, which is what lets an updated
+build move a default control for a player who never edited one.
+
+The delay before idle on-screen controls fade out persists as
+`controller_auto_hide_seconds`, whose vocabulary is exactly `0`, `3`, `5`, `10`, or
+`30` seconds. `0` is "never hide" and is the default, so the controls behave as
+they always have for anyone who does not go looking for this. A stored value the
+menu cannot offer snaps to the nearest one that it can, rather than clamping into
+range: a delay a player can reach and never reproduce is worse than a slightly
+different delay. This key sits deliberately OUTSIDE the saved layout — position,
+size and visibility describe one arrangement and differ per slot, while this
+describes how long any arrangement lingers, and per-slot it would have to be set
+six times to mean anything.
+
+**A faded control takes no touches.** Auto-hide fades to nothing and makes the
+controls inert together, so the tap that brings them back reaches the game rather
+than firing whichever control it landed on; fading while leaving them live would
+be the invisible dead zone the opacity floor already exists to prevent, and worse,
+because the player cannot see what they are about to hit. Any pointer anywhere
+restarts the countdown, including one that lands on the canvas — the browser sees
+both, and Godot sees neither of the ones that hit a control. Controls never fade
+while one is held: the vanishing control takes its pointer-up with it and strands
+the action down. The arrangement editor is exempt for the same class of reason —
+a control that has faded away cannot be dragged.
+
+**Optional controls may be removed; a small set may not.** Each saved element
+carries `enabled`, defaulting to true so a layout written before the field existed
+keeps every control it had. A descriptor may declare itself `required`, and the
+directional cross, Confirm and Back are exactly that set: they are what reaches
+and works the Settings screen, so hiding them would hide the row that unhides
+them. The rule is enforced twice on purpose — the toggle refuses, and the payload
+filter draws a required control even when a saved layout says otherwise, because a
+hand-edited or corrupt cfg answers to no UI. Whether a control is drawn is not an
+authorisation question: pressing is not gated on it, since every hideable control
+fires an action its profile already exposes, and a second rule that drifted from
+the first would turn a visible control into a dead one.
+
+**Every control profile that draws anything carries a directional cross.** Menu
+navigation runs on `ui_up`/`ui_down`, which only the `cursor_up`, `cursor_down`,
+`cursor_left` and `cursor_right` actions mirror, so a profile without one renders
+controls that cannot move a highlight — and because the Control Style row that
+would switch profiles lives inside the Settings screen, a player who cannot
+navigate cannot reach the setting that fixes it. `labeled_actions` therefore
+carries `act_up`/`act_down`/`act_left`/`act_right` alongside its word controls.
+These are separate descriptors from the virtual pad's `dpad_*`, because a
+descriptor holds one placement per orientation and the two profiles need different
+ones; the registry already pairs two ids to one action this way (`act_confirm` and
+`pad_south` both fire `confirm`). They are group `dpad`, not `action`, so the shell
+draws them round rather than as the 1.9×-wide pill a worded control gets — pills
+cannot form a cross without the arms overlapping.
+
+**An on-screen control stands in for a key press, so it is delivered the way a key
+press is.** Pressing an action through `Input.action_press()` sets the polled
+action state and synthesizes no event at all, which reaches code that polls
+`is_action_pressed()` and no handler that reads events — and both halves of the
+game read events: Godot's GUI moves focus and activates buttons from them, and
+every screen reads its own vocabulary (`cancel`, `confirm`, `open_menu`,
+`inspect_unit`) out of `_input` / `_unhandled_input`. A hardware key matches every
+action bound to it at once, so one press of the Cancel key is `cancel` **and**
+`ui_cancel`; an `InputEventAction` matches only its own name, so the controller
+delivers one event per action name — the mirrored `ui_*` first, so the GUI keeps
+first refusal, then the game action. Delivering only the mirror is what let a
+player open the Settings screen on a phone and not be able to leave it.
+
+**A tap always outlives the frame it started in.** The browser reports a control's
+press and release as two JavaScript callbacks, and a synthesized tap — or a real
+one across a dropped frame — delivers both before the engine next runs. Everything
+that reads a direction by polling, including the repeat policy every modal menu
+navigates by, would see the action go up and back down between two polls and read
+no tap at all, so a release arriving in its press's own frame is held to the next
+one. The lifecycle releases (blur, backgrounding, scene or layout change, editor
+entry) are exempt and let go at once: a release still pending when the tab goes
+away is the stuck action the service exists to prevent.
+
+Two Settings rows reach that model: **Control Style**, which is the control-profile
+vocabulary `off`, `virtual_gamepad`, `labeled_actions`, and **Arrangement**, which
+lists the saved combinations behind an **Automatic** entry that clears the choice.
+Both are web-only and hidden elsewhere for the same reason the Game View rows are:
+the controller is drawn by the browser shell, so on desktop they would be controls
+that look broken rather than controls that are merely unused. Changing style while
+Arrangement is on Automatic edits the combination the orientation picked without
+pinning it — pinning would stop rotation swapping layouts, and nothing on screen
+would explain why.
+
+The arrangement is edited **on the device**, because the controls live outside
+the game canvas and Godot never sees a touch that lands on one. So the two halves
+of an edit arrive from opposite directions: position is dragged in the browser
+and reported once, on release, while size and opacity are Settings sliders acting
+on whichever control the player last tapped. That tap is the only thing joining
+them, which is why the editor names the selected control on screen. Reporting a
+drag continuously would be worse than wasteful — each report re-publishes the
+layout, and every publish rebuilds the controls, destroying the one the finger is
+holding.
+
+**The first edit freezes the whole placement.** An empty element list means
+"follow the registry placement", so writing only the element that moved would
+leave a combination carrying exactly one control — the rest of the controller
+gone in a single drag, with the Reset that would undo it behind a menu the player
+can no longer navigate to. Reset clears the list again rather than writing
+today's defaults into the slot, which is what keeps a later build free to move a
+control the player never touched. Opacity floors above zero for the same class of
+reason: a fully transparent control still takes touches, so zero would leave an
+invisible dead zone.
+
+Because a hidden control cannot be tapped, the Settings screen lists **every**
+control the profile can draw — hidden ones marked as such — and selecting from
+that list is what arms the size, opacity and visibility rows. Without it, turning
+a control off would be irreversible short of resetting the whole arrangement,
+since the tap-to-select path that reaches every other control cannot reach one
+that is not on screen. A required control's visibility row is shown inert rather
+than hidden, so the question "why can I not turn this one off?" is answered
+instead of avoided.
+
+Closing Settings always leaves the editor. While editing, the controls drag
+instead of pressing, so a player who left it on would be holding a controller
+that no longer plays the game — and the way back is the screen they just closed.
+
+**The game canvas is dragged the same way, by the same rules, in a separate
+editor.** The Game View editor moves and resizes the canvas rectangle itself
+through handles the shell draws outside it, and reports one rectangle when the
+finger lifts. The two editors are exclusive rather than simultaneous: both need
+the overlay to swallow every pointer, so a screen offering both would give one
+touch two meanings. What a drag writes is the **active combination's own
+viewport**, not a separate stored rectangle — a saved arrangement is where the
+canvas sits and where the controls sit, and a free editor layered over the preset
+rows would give one rectangle two owners.
+
+Opening that editor therefore folds any live Game View preset into the
+combination and returns the preset row to `auto`. This is the first-edit
+materialization rule again: while a preset is active, the rectangle on screen
+comes from the override rather than from the combination, so a drag would be
+measured against one rectangle and stored in another — the canvas would jump on
+first touch and every later drag would be silently overruled. Undo steps back
+through the authored rectangles and carries the preset with each one, so undoing
+the drag that adopted an override returns the player to the preset they were on.
+Reset writes the built-in rectangle for the combination's orientation instead of
+clearing it, because a viewport is one rectangle whose keys are always present
+and has no empty state that could mean "follow the built-in placement".
+
+Three Settings rows reach it — **Edit Game View**, **Undo Game View Change** and
+the existing **Reset Game View** — and while the editor is open the preset and
+size/offset rows go inert, because they describe a rectangle the editor now owns
+and one stray tick would discard a drag without saying so. Undo is greyed rather
+than hidden when there is nothing to undo: a button that disappears moves every
+row below it, and greying is also the only thing that answers "is there anything
+to go back to?". Reset returns the preset **and** the dragged rectangle, since
+returning the preset alone would leave the canvas exactly where a drag put it
+while the row claimed the view had been reset.
+
+The shell speaks exactly eight message types to the engine: `press`, `release`,
+`release_all`, `orientation`, `metrics`, `select`, `move`, and `viewport`. Every
+one is validated before it is applied, and none of them names an InputMap action —
+only a registered element id — so the registry allow-list remains the whole
+authorisation surface. `move` carries coordinates, and a missing, non-numeric or
+non-finite one is dropped rather than defaulted: `0.0` is a real position, the
+top-left corner, so coercing would teleport a control instead of ignoring a
+malformed message. `viewport` carries a whole rectangle and is dropped on the same
+terms, plus a zero or negative extent — a canvas of no width is not a defaulted
+field but a canvas that has ceased to exist, taking the handles that would restore
+it.
 
 These fixed vocabularies and the action table above are guarded by `DOC-011`.
 Settings-screen layout and persistence details are owned by
