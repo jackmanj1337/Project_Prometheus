@@ -72,11 +72,11 @@
     // The frame gesture in flight: {pointer, handle, origin, start}. The canvas
     // itself is NOT resized until this ends; see `endFrameDrag`.
     frameDrag: null,
-    // Smallest canvas the engine will accept, in window pixels, and whether it
-    // holds the design aspect. Both come from the payload so the shell cannot
-    // disagree with the model about them.
+    // Smallest canvas the engine will accept, in window pixels, and the aspect it
+    // holds (width over height; 0 when it holds none). Both come from the payload so
+    // the shell cannot disagree with the model about them.
     minViewport: { width: 0, height: 0 },
-    aspectLocked: false,
+    aspect: 0,
     autoHide: 0,
     // Whether the fade has happened. Faded controls are not merely invisible —
     // they stop taking pointers, so the tap that brings them back reaches the
@@ -435,7 +435,6 @@
   // worth of slop: large enough to be reachable on a phone, small enough that a
   // player who means to sit two pixels off a guide still can.
   var SNAP_PX = 14;
-  var DESIGN_ASPECT = 16 / 9;
 
   // Which edges each handle moves. "move" moves all four together.
   var HANDLES = {
@@ -555,25 +554,25 @@
     return best;
   }
 
-  // Forces the design aspect by SHRINKING, never growing, and about the edges the
+  // Forces the locked aspect by SHRINKING, never growing, and about the edges the
   // gesture is not moving. Growing would silently reclaim screen the player just
   // gave to the controls — the same rule the engine's own aspect lock follows.
-  function holdAspect(rect, moving) {
+  function holdAspect(rect, moving, aspect) {
     var width = rect.right - rect.left;
     var height = rect.bottom - rect.top;
     if (width <= 0 || height <= 0) {
       return rect;
     }
     var next = { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom };
-    if (width / height > DESIGN_ASPECT) {
-      var wantedWidth = height * DESIGN_ASPECT;
+    if (width / height > aspect) {
+      var wantedWidth = height * aspect;
       if (moving.indexOf("left") >= 0) {
         next.left = next.right - wantedWidth;
       } else {
         next.right = next.left + wantedWidth;
       }
     } else {
-      var wantedHeight = width / DESIGN_ASPECT;
+      var wantedHeight = width / aspect;
       if (moving.indexOf("top") >= 0) {
         next.top = next.bottom - wantedHeight;
       } else {
@@ -646,7 +645,7 @@
       edges.bottom = Math.max(Math.min(edges.bottom, win.height), edges.top + min.height);
     }
 
-    var held = state.aspectLocked ? holdAspect(edges, moving) : edges;
+    var held = state.aspect > 0 ? holdAspect(edges, moving, state.aspect) : edges;
     return {
       x: held.left,
       y: held.top,
@@ -975,7 +974,13 @@
       width: typeof minimum.width === "number" && isFinite(minimum.width) ? minimum.width : 0,
       height: typeof minimum.height === "number" && isFinite(minimum.height) ? minimum.height : 0,
     };
-    state.aspectLocked = !!(payload.viewport && payload.viewport.aspect_locked);
+    // The ratio comes with the lock: there is no design aspect to fall back to, so a
+    // lock without a usable ratio holds nothing, exactly as the engine reads it.
+    var view = payload.viewport || {};
+    state.aspect =
+      view.aspect_locked && typeof view.aspect === "number" && isFinite(view.aspect) && view.aspect > 0
+        ? view.aspect
+        : 0;
     // Every node the drag was holding has just been discarded, so a drag that
     // survived this would move a detached element and report its position.
     state.drag = null;

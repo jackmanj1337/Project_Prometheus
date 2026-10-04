@@ -41,9 +41,7 @@ const DisplayConfirmDialogS = preload("res://scripts/ui/DisplayConfirmDialog.gd"
 # must route through _confirm_change() -- an enum row by setting "reachability_risk",
 # anything else by calling it directly. menu_mode is editor-local today, and
 # control_style and overlay_menus arrive with the web controller
-# (MOBILE-WEB-CONTROLLER-2026-08-04). game_view_preset's rows arrived with that
-# controller's merge but still save directly (_commit_game_view); they move onto the
-# dialog when slice 2 rebuilds the presets, before slice 3 removes the size limits.
+# (MOBILE-WEB-CONTROLLER-2026-08-04). game_view_preset covers the Game Size slider too.
 const REACHABILITY_RISK_KEYS: Array[String] = [
 	"window_mode",
 	"resolution",
@@ -106,10 +104,6 @@ var _slider_viewport_scale: HSlider = _vbox.get_node("HBoxViewportScale/SliderVi
 var _opt_game_view_preset: OptionButton = _vbox.get_node("HBoxGameViewPreset/OptGameViewPreset")
 @onready var _slider_game_view_size: HSlider = _vbox.get_node("HBoxGameViewSize/SliderGameViewSize")
 @onready var _label_game_view_size: Label = _vbox.get_node("HBoxGameViewSize/LabelGameViewSize")
-@onready
-var _slider_game_view_offset: HSlider = _vbox.get_node("HBoxGameViewOffset/SliderGameViewOffset")
-@onready
-var _label_game_view_offset: Label = _vbox.get_node("HBoxGameViewOffset/LabelGameViewOffset")
 @onready
 var _opt_game_view_aspect: OptionButton = _vbox.get_node("HBoxGameViewAspect/OptGameViewAspect")
 @onready var _opt_game_view_edit: OptionButton = _vbox.get_node("HBoxGameViewEdit/OptGameViewEdit")
@@ -1549,36 +1543,47 @@ func _settings_row_orientation(row: Container, compact: bool) -> Container:
 
 
 # ── Game View ────────────────────────────────────────────────────────────────
-# Presets are a starting point, not a mode: moving either slider switches the
-# preset to Custom rather than silently disagreeing with the label above it.
+# [UUI-1]'s aspect presets plus a size ([UUI-20] point 7). An aspect preset holds its
+# own shape; Custom is the rectangle Edit Game View drags. Every preset or size change
+# can shrink the game until the UI is out of reach, so each one applies live and
+# persists only through the confirm-or-revert dialog [UUI-18].
 
 # [EPUX-07] reasons carried by the Game View and Touch Controls rows when they are gated.
 const _GAME_VIEW_UNDO_NONE_REASON := "There is no Game View change to undo."
 const _GAME_VIEW_EDITING_REASON := "Close the Game View editor to choose a preset."
+const _GAME_VIEW_SIZE_CUSTOM_REASON := "A custom view is sized by dragging it in Edit Game View."
+const _GAME_VIEW_ASPECT_PRESET_REASON := "A preset keeps its own shape. Choose Custom to set this."
 const _CONTROLLER_NO_ELEMENT_REASON := "Choose a control first."
 const _CONTROLLER_REQUIRED_REASON := "This control is required and cannot be hidden."
 
+# Order is the dropdown's; the values are SettingsManager.VALID_GAME_VIEW_PRESETS.
 const _GAME_VIEW_PRESET_VALUES: Array[String] = [
-	"auto", "fullscreen", "portrait_top", "landscape_pillarbox", "custom"
+	"widest", "aspect_2_3", "aspect_1_1", "aspect_4_3", "aspect_16_9", "custom"
 ]
 const _GAME_VIEW_PRESET_LABELS: Array[String] = [
-	"Automatic", "Fullscreen", "Portrait (top band)", "Landscape (pillarbox)", "Custom"
+	"Widest That Fits", "2:3", "1:1", "4:3", "16:9", "Custom"
 ]
 # The service's own name for this editor's mode. Named here rather than compared
 # against a literal so a rename cannot leave the row reading a mode that no longer
 # exists and silently reporting the editor as closed.
 const _GAME_VIEW_EDIT_MODE := "viewport"
+# True while the Game Size grabber is held. The canvas follows the finger, but the
+# dialog waits for the release: one dialog per drag, not one per tick.
+var _game_view_size_dragging: bool = false
+var _game_view_size_drag_start: float = 1.0
 
 
 func _setup_game_view_rows() -> void:
 	_populate_option_button(_opt_game_view_preset, _GAME_VIEW_PRESET_LABELS)
 	_populate_option_button(_opt_game_view_aspect, ["Off", "On"])
 	_populate_option_button(_opt_game_view_edit, ["Off", "On"])
+	_slider_game_view_size.min_value = SettingsManagerS.GAME_VIEW_MIN_SIZE
 	_opt_game_view_preset.item_selected.connect(_on_game_view_preset_changed)
 	_opt_game_view_aspect.item_selected.connect(_on_game_view_aspect_changed)
 	_opt_game_view_edit.item_selected.connect(_on_game_view_edit_changed)
 	_slider_game_view_size.value_changed.connect(_on_game_view_size_changed)
-	_slider_game_view_offset.value_changed.connect(_on_game_view_offset_changed)
+	_slider_game_view_size.drag_started.connect(_on_game_view_size_drag_started)
+	_slider_game_view_size.drag_ended.connect(_on_game_view_size_drag_ended)
 	_btn_undo_game_view.pressed.connect(_on_game_view_undo)
 	_btn_reset_game_view.pressed.connect(_on_game_view_reset)
 	# Only the web export can act on this — it needs canvas_resize_policy=0, where
@@ -1592,7 +1597,6 @@ func _setup_game_view_rows() -> void:
 			_vbox.get_node("LabelGameViewHint"),
 			_vbox.get_node("HBoxGameViewPreset"),
 			_vbox.get_node("HBoxGameViewSize"),
-			_vbox.get_node("HBoxGameViewOffset"),
 			_vbox.get_node("HBoxGameViewAspect"),
 			_vbox.get_node("HBoxGameViewEdit"),
 			_vbox.get_node("LabelGameViewEditHint"),
@@ -1609,86 +1613,148 @@ func _sync_game_view_rows() -> void:
 		return
 	var preset := String(sm.get("game_view_preset"))
 	_opt_game_view_preset.select(maxi(0, _GAME_VIEW_PRESET_VALUES.find(preset)))
-	_opt_game_view_aspect.select(1 if bool(sm.get("game_view_aspect_locked")) else 0)
 	_slider_game_view_size.set_value_no_signal(float(sm.get("game_view_size")))
-	_slider_game_view_offset.set_value_no_signal(float(sm.get("game_view_offset")))
 	_sync_game_view_editor_rows()
 	_refresh_game_view_labels()
 
 
-# The editor's own rows. Undo is disabled rather than hidden for the same reason
-# the per-control rows are: a button that vanishes moves everything below it, and
-# a greyed Undo is also the only thing that says there is nothing to undo.
+# The editor's own rows, and which of the rest the current preset leaves meaningful.
+# Undo is disabled rather than hidden for the same reason the per-control rows are: a
+# button that vanishes moves everything below it, and a greyed Undo is also the only
+# thing that says there is nothing to undo.
 func _sync_game_view_editor_rows() -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	var custom := (
+		sm != null and String(sm.get("game_view_preset")) == SettingsManagerS.GAME_VIEW_CUSTOM
+	)
 	var controller := get_node_or_null("/root/ControllerService")
+	var editing := false
 	if controller == null:
 		_opt_game_view_edit.select(0)
+		_opt_game_view_aspect.select(0)
 		_btn_undo_game_view.disabled = true
 		_btn_undo_game_view.tooltip_text = _GAME_VIEW_UNDO_NONE_REASON
-		return
-	var editing: bool = String(controller.call("edit_mode")) == _GAME_VIEW_EDIT_MODE
-	_opt_game_view_edit.select(1 if editing else 0)
-	_btn_undo_game_view.disabled = not bool(controller.call("can_undo_viewport"))
-	_btn_undo_game_view.tooltip_text = (
-		_GAME_VIEW_UNDO_NONE_REASON if _btn_undo_game_view.disabled else ""
-	)
+	else:
+		editing = String(controller.call("edit_mode")) == _GAME_VIEW_EDIT_MODE
+		_opt_game_view_edit.select(1 if editing else 0)
+		_opt_game_view_aspect.select(1 if bool(controller.call("is_viewport_aspect_locked")) else 0)
+		_btn_undo_game_view.disabled = not bool(controller.call("can_undo_viewport"))
+		_btn_undo_game_view.tooltip_text = (
+			_GAME_VIEW_UNDO_NONE_REASON if _btn_undo_game_view.disabled else ""
+		)
 	# The preset rows describe a rectangle the editor has just taken ownership of,
 	# so leaving them live would let one slider tick discard a drag without saying
 	# so. They come back the moment the editor closes.
 	_opt_game_view_preset.disabled = editing
 	_opt_game_view_preset.tooltip_text = _GAME_VIEW_EDITING_REASON if editing else ""
-	_slider_game_view_size.editable = not editing
-	_slider_game_view_offset.editable = not editing
+	# Size scales a preset; a custom rect is sized by its handles instead. The aspect
+	# row is the reverse: a preset IS an aspect, so only a custom rect can be unlocked.
+	_slider_game_view_size.editable = not editing and not custom
+	_slider_game_view_size.tooltip_text = (
+		_GAME_VIEW_EDITING_REASON if editing else (_GAME_VIEW_SIZE_CUSTOM_REASON if custom else "")
+	)
+	_opt_game_view_aspect.disabled = not custom
+	_opt_game_view_aspect.tooltip_text = "" if custom else _GAME_VIEW_ASPECT_PRESET_REASON
 
 
 func _refresh_game_view_labels() -> void:
 	_label_game_view_size.text = "%d%%" % roundi(_slider_game_view_size.value * 100.0)
-	_label_game_view_offset.text = "%d%%" % roundi(_slider_game_view_offset.value * 100.0)
 
 
-# One write path for every Game View control, so the clamp, the persist, and the
-# live re-layout can never be applied by one route and skipped by another.
-func _commit_game_view(preset: String) -> void:
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm == null:
-		return
-	var size: float = sm.call("normalize_game_view_size", _slider_game_view_size.value)
-	var offset: float = sm.call("normalize_game_view_offset", _slider_game_view_offset.value, size)
-	sm.set("game_view_preset", preset)
-	sm.set("game_view_size", size)
-	sm.set("game_view_offset", offset)
-	sm.set("game_view_aspect_locked", _opt_game_view_aspect.selected == 1)
-	sm.call("save")
-	# The offset slider is clamped against the size, so a size change can move it.
-	_slider_game_view_offset.set_value_no_signal(offset)
-	_refresh_game_view_labels()
+func _refresh_game_view() -> void:
 	var controller := get_node_or_null("/root/ControllerService")
 	if controller != null and controller.has_method("refresh_game_view"):
 		controller.call("refresh_game_view")
 
 
 func _on_game_view_preset_changed(index: int) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
 	var preset: String = _GAME_VIEW_PRESET_VALUES[clampi(
 		index, 0, _GAME_VIEW_PRESET_VALUES.size() - 1
 	)]
+	var previous := String(sm.get("game_view_preset"))
+	if preset == previous:
+		return
+	var controller := get_node_or_null("/root/ControllerService")
+	if preset == SettingsManagerS.GAME_VIEW_CUSTOM:
+		# Custom starts from the rect on screen: the service folds the preset's rect
+		# into the combination and moves the row to Custom as one undoable step, so
+		# Revert is that step's undo and Keep is its commit.
+		if controller == null or not bool(controller.call("adopt_game_view_override")):
+			_sync_game_view_rows()
+			return
+		_sync_game_view_rows()
+		_confirm_change(
+			func() -> void:
+				controller.call("commit_viewport_edit")
+				_sync_game_view_rows(),
+			func() -> void:
+				controller.call("undo_viewport_edit")
+				_sync_game_view_rows()
+		)
+		return
+	sm.set("game_view_preset", preset)
+	_refresh_game_view()
+	_sync_game_view_rows()
+	_confirm_change(
+		func() -> void: pass,
+		func() -> void:
+			sm.set("game_view_preset", previous)
+			_refresh_game_view()
+			_sync_game_view_rows()
+	)
+
+
+func _on_game_view_size_drag_started() -> void:
+	_game_view_size_dragging = true
 	var sm := get_node_or_null("/root/SettingsManager")
-	if sm != null and preset != "custom":
-		var values: Dictionary = sm.get("GAME_VIEW_PRESET_VALUES").get(preset, {})
-		_slider_game_view_size.set_value_no_signal(float(values.get("size", 1.0)))
-		_slider_game_view_offset.set_value_no_signal(float(values.get("offset", 0.0)))
-	_commit_game_view(preset)
+	_game_view_size_drag_start = float(sm.get("game_view_size")) if sm != null else 1.0
 
 
-func _on_game_view_size_changed(_value: float) -> void:
-	_commit_game_view("custom")
+func _on_game_view_size_drag_ended(_value_changed: bool) -> void:
+	_game_view_size_dragging = false
+	_confirm_game_view_size(_game_view_size_drag_start)
 
 
-func _on_game_view_offset_changed(_value: float) -> void:
-	_commit_game_view("custom")
+# Live on every tick, so the canvas follows the finger; a keyboard or pad step is a
+# finished change on its own and is confirmed straight away.
+func _on_game_view_size_changed(value: float) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	var previous := float(sm.get("game_view_size"))
+	sm.set("game_view_size", SettingsManagerS.normalize_game_view_size(value))
+	_refresh_game_view_labels()
+	_refresh_game_view()
+	if not _game_view_size_dragging:
+		_confirm_game_view_size(previous)
 
 
-func _on_game_view_aspect_changed(_index: int) -> void:
-	_commit_game_view(String(_GAME_VIEW_PRESET_VALUES[_opt_game_view_preset.selected]))
+func _confirm_game_view_size(previous: float) -> void:
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm == null or is_equal_approx(float(sm.get("game_view_size")), previous):
+		return
+	_confirm_change(
+		func() -> void: pass,
+		func() -> void:
+			sm.set("game_view_size", previous)
+			_slider_game_view_size.set_value_no_signal(previous)
+			_refresh_game_view_labels()
+			_refresh_game_view()
+	)
+
+
+# Custom only. Locking holds the shape the canvas has now, so it moves nothing and
+# needs no dialog; it is an editor step, undone by Undo Game View Change.
+func _on_game_view_aspect_changed(index: int) -> void:
+	var controller := get_node_or_null("/root/ControllerService")
+	if controller == null:
+		return
+	controller.call("set_viewport_aspect_locked", index == 1)
+	controller.call("commit_viewport_edit")
+	_sync_game_view_editor_rows()
 
 
 func _on_game_view_edit_changed(index: int) -> void:
@@ -1721,20 +1787,23 @@ func _on_game_view_undo() -> void:
 
 
 func _on_game_view_reset() -> void:
-	_slider_game_view_size.set_value_no_signal(1.0)
-	_slider_game_view_offset.set_value_no_signal(0.0)
-	_opt_game_view_aspect.select(0)
-	_opt_game_view_preset.select(0)
-	_commit_game_view("auto")
-	# Also the dragged rectangle. Returning the preset to Automatic alone would
-	# leave the canvas exactly where a drag put it while the row above claims the
-	# view has been reset — Automatic means "follow the combination", and the
-	# combination is what the editor writes to.
+	var sm := get_node_or_null("/root/SettingsManager")
+	if sm != null:
+		sm.set("game_view_preset", SettingsManagerS.GAME_VIEW_WIDEST)
+		sm.set("game_view_size", 1.0)
+		sm.call("save")
+	# Also the dragged rectangle. Returning the preset alone would leave a custom rect
+	# where a drag put it, ready to reappear the next time Custom is chosen, while the
+	# button claimed the view had been reset. reset_viewport() moves the row to Custom,
+	# so the preset is written again after it.
 	var controller := get_node_or_null("/root/ControllerService")
 	if controller != null and controller.has_method("reset_viewport"):
 		controller.call("reset_viewport")
+		if sm != null:
+			sm.set("game_view_preset", SettingsManagerS.GAME_VIEW_WIDEST)
 		controller.call("commit_viewport_edit")
-	_sync_game_view_editor_rows()
+	_refresh_game_view()
+	_sync_game_view_rows()
 
 
 # ── Touch Controls ───────────────────────────────────────────────────────────

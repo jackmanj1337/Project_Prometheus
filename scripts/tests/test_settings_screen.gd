@@ -1405,8 +1405,34 @@ func _init() -> void:
 			float(built_in.get("width", -2.0))
 		)
 
+		# Reset lands on Widest That Fits, where Game Size is live and Keep Aspect is
+		# not: a preset IS an aspect. Custom is the reverse, and each gate says why.
+		var opt_aspect: OptionButton = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewAspect/OptGameViewAspect"
+		)
+		var slider_size: HSlider = screen.get_node_or_null(
+			"Panel/ScrollContainer/Margin/VBox/HBoxGameViewSize/SliderGameViewSize"
+		)
+		reset_ok = (
+			reset_ok
+			and opt_preset.selected == 0
+			and opt_aspect.disabled
+			and not opt_aspect.tooltip_text.is_empty()
+			and slider_size.editable
+		)
+		var sm_node: Node = screen.get_node_or_null("/root/SettingsManager")
+		sm_node.set("game_view_preset", "custom")
+		screen._sync_game_view_rows()
+		reset_ok = (
+			reset_ok
+			and not opt_aspect.disabled
+			and not slider_size.editable
+			and not slider_size.tooltip_text.is_empty()
+		)
+		screen._on_game_view_reset()
+
 		if view_rows_present and opened_ok and undo_ok and exclusive_ok and closed_ok and reset_ok:
-			print("OK  Game View editor rows: open, Undo, editor exclusivity, close, Reset")
+			print("OK  Game View editor rows: open, Undo, editor exclusivity, close, Reset, gating")
 			passed += 1
 		else:
 			print(

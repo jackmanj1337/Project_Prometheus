@@ -73,6 +73,34 @@ func _init() -> void:
 		),
 		"viewport geometry and aspect flag are sanitized"
 	)
+	var legacy_lock := (
+		ControllerLayoutS
+		. normalize(
+			{
+				"schema_version": ControllerLayoutS.SCHEMA_VERSION,
+				"viewport":
+				{"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0, "aspect_locked": true},
+			}
+		)
+	)
+	var ratio_lock := (
+		ControllerLayoutS
+		. normalize(
+			{
+				"schema_version": ControllerLayoutS.SCHEMA_VERSION,
+				"viewport":
+				{"width": 1.0, "height": 1.0, "aspect_locked": true, "aspect": 4.0 / 3.0},
+			}
+		)
+	)
+	_ok(
+		(
+			not legacy_lock.viewport.aspect_locked
+			and ratio_lock.viewport.aspect_locked
+			and is_equal_approx(float(ratio_lock.viewport.aspect), 4.0 / 3.0)
+		),
+		"a lock without a ratio (every pre-UUI-20 save) reads as unlocked; one with a ratio holds"
+	)
 	_ok(
 		malformed.global_opacity == 1.0 and malformed.theme == ControllerLayoutS.DEFAULT_THEME,
 		"opacity clamps and an empty theme falls back"

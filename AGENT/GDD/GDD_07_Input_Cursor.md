@@ -364,22 +364,31 @@ while preserving the saved preference.
 
 **On-screen web controller, Game View and arrangement editors.** Status:
 **Implemented 2026-08-06, merged to `agent/integration` 2026-10-03; pending
-physical-device validation** (MOBILE-WEB-CONTROLLER-2026-08-04). The Game View preset
-vocabulary below predates `[UUI-1]`/`[UUI-20]` and is scheduled to be replaced by the
-aspect-preset list in that row's slice 2; `game_view_preset` does not yet route through
-the `[UUI-18]` confirm-or-revert dialog. Until then this text describes the code as
-merged.
+physical-device validation** (MOBILE-WEB-CONTROLLER-2026-08-04). The Game View
+presets follow `[UUI-1]`/`[UUI-20]` since that row's slice 2 (2026-10-04); the size
+limits `[UUI-20]` retires are still in place until slice 3.
 
-The persisted Game View preference is exactly `auto`, `fullscreen`, `portrait_top`,
-`landscape_pillarbox`, or `custom`. It decides how much of the browser window the
-game canvas occupies, so the remainder becomes dedicated on-screen-controller
-space instead of the controls covering the game. `auto` is the default and defers
-to the active controller layout's own viewport, which keeps the setting purely
-additive. Web-only: it requires export `html/canvas_resize_policy=0`, where the
-browser shell owns the canvas rectangle; on desktop the canvas is the window, so
-the rows are hidden rather than shown inert. Size is clamped to the layout model's
-minimum and offset is clamped against the size, so no combination of the two can
-put the canvas partly or wholly off-screen.
+The persisted Game View preference is exactly `widest`, `aspect_2_3`, `aspect_1_1`,
+`aspect_4_3`, `aspect_16_9`, or `custom`, plus a **Game Size** in `[0.3, 1.0]`. It
+decides how much of the browser window the game canvas occupies, so the remainder
+becomes dedicated on-screen-controller space instead of the controls covering the
+game. An aspect preset fills the height in landscape (the width in portrait, under a
+3% top strip), centred, and is locked to its own ratio; Game Size scales that rect
+about its anchor. `widest` (**Widest That Fits**) is the default and is resolved
+against the screen every time, not stored: in landscape it is the widest aspect
+preset whose leftover side columns still hold the D-pad (three short-edge-sized
+controls plus margins, mirroring the shell's sizing) — 4:3 at 852x393, 1:1 at the
+667x375 test floor — and in portrait it is the full-width band at 55% of the height
+(`[UUI-3]`). With the controller off it is the whole window, since there are no
+columns to leave. `custom` is the rectangle the Game View editor drags, which lives on
+the controller combination (below); Game Size does not apply to it, and **Keep
+Aspect** locks it to the shape it has on screen. Any other stored value, including
+the retired `auto`/`fullscreen`/`portrait_top`/`landscape_pillarbox`, reads as
+`widest`; no build that wrote them reached a tester. A preset or Game Size change
+applies live and persists only through the `[UUI-18]` confirm-or-revert dialog (a
+Game Size drag confirms once, on release). Web-only: it requires export
+`html/canvas_resize_policy=0`, where the browser shell owns the canvas rectangle; on
+desktop the canvas is the window, so the rows are hidden rather than shown inert.
 
 The on-screen controller's saved layout persists as exactly two keys,
 `controller_combinations` and `controller_active_id`. The first is the whole
@@ -520,7 +529,8 @@ canvas sits and where the controls sit, and a free editor layered over the prese
 rows would give one rectangle two owners.
 
 Opening that editor therefore folds any live Game View preset into the
-combination and returns the preset row to `auto`. This is the first-edit
+combination — its aspect lock included — and moves the preset row to `custom`;
+choosing **Custom** from the row does the same. This is the first-edit
 materialization rule again: while a preset is active, the rectangle on screen
 comes from the override rather than from the combination, so a drag would be
 measured against one rectangle and stored in another — the canvas would jump on
@@ -533,7 +543,7 @@ and has no empty state that could mean "follow the built-in placement".
 
 Three Settings rows reach it — **Edit Game View**, **Undo Game View Change** and
 the existing **Reset Game View** — and while the editor is open the preset and
-size/offset rows go inert, because they describe a rectangle the editor now owns
+Game Size rows go inert, because they describe a rectangle the editor now owns
 and one stray tick would discard a drag without saying so. Undo is greyed rather
 than hidden when there is nothing to undo: a button that disappears moves every
 row below it, and greying is also the only thing that answers "is there anything

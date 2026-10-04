@@ -554,6 +554,7 @@
 94f6b5dc526867816aef048312489864d9116fea	Hand off V070-11: the skill-id error spam in DataManager
 95758a91367a0bbbf358f6ac05fc9520202b1071	Resolution free-resize (drop 16:9 clamp) + snap_2d_transforms_to_pixel
 95b149ae08ed0daadd0a64500bb8e82c3fa6c9e3	Detect commits that reach main outside agent/staging-area
+95d48d0a3a087cfc76c8a96a70de8f83bd828b9c	Game View presets: UUI-1 aspect list plus size, widest-that-fits default, UUI-18 confirm
 96142a90c13bc4cf279c9ebe689889c3e6dbc3ad	Album finding: the segmented control means two different things
 96314fb44db0cb671e99c463018d0d96c1855133	Reconcile documentation lifecycle authority
 9674d32e3cc2c221faf66ee29945087297dc66db	Record the Session 11 automated outcome

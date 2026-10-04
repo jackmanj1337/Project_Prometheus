@@ -338,23 +338,24 @@ func _placement_orientation() -> String:
 # ── Canvas rectangle ─────────────────────────────────────────────────────────
 
 
-# The player's Game View choice as a viewport rect, or {} when they have not
-# overridden the layout. Computed on demand and never written back into `_active`:
-# mutating the combination in place meant switching back to Automatic left the
-# last custom rect stranded, because the original was already gone.
+# The player's Game View preset as a viewport rect, or {} on Custom, where the
+# combination's own (dragged) rect is the answer. Computed on demand and never
+# written back into `_active`: mutating the combination in place meant leaving a
+# preset stranded the rect it produced, because the original was already gone.
 func _game_view_override() -> Dictionary:
 	# Through `_settings_node()` like every other settings read here, rather than
 	# resolving the autoload path directly: the direct path made the whole override
 	# branch unreachable under test, which is precisely where the adoption rule that
 	# depends on it lives.
 	var settings := _settings_node()
-	if settings == null or String(settings.game_view_preset) == "auto":
+	if settings == null:
 		return {}
 	return SettingsManagerS.game_view_viewport(
 		_placement_orientation(),
+		String(settings.game_view_preset),
 		float(settings.game_view_size),
-		float(settings.game_view_offset),
-		bool(settings.game_view_aspect_locked)
+		_available_pixels,
+		profile() != PROFILE_OFF
 	)
 
 
@@ -392,16 +393,28 @@ func canvas_rect() -> Rect2:
 		combination = _active.duplicate(true)
 		combination.viewport = override
 	var rect := ControllerLayoutS.effective_viewport(combination, _available_pixels)
-	if bool(combination.get("viewport", {}).get("aspect_locked", false)):
-		rect = _lock_aspect(rect)
+	var view: Dictionary = combination.get("viewport", {})
+	if bool(view.get("aspect_locked", false)):
+		rect = _lock_aspect(rect, float(view.get("aspect", 0.0)))
+		# Centred on the rect the player chose, not on the one the minimum-size clamp
+		# grew it into: the clamp grows from the authored corner, so re-centring in
+		# the clamped rect pushed a 4:3 preset 58px right of centre at 852x393.
+		var authored := Vector2(
+			(float(view.get("x", 0.0)) + float(view.get("width", 1.0)) * 0.5) * _available_pixels.x,
+			(float(view.get("y", 0.0)) + float(view.get("height", 1.0)) * 0.5) * _available_pixels.y
+		)
+		rect.position = (authored - rect.size * 0.5).clamp(
+			Vector2.ZERO, (_available_pixels - rect.size).max(Vector2.ZERO)
+		)
 	return rect
 
 
-# Shrinks a rect to the 16:9 design aspect and re-centres it inside its old
-# bounds. Shrinks rather than grows so the result always still fits the space the
-# player allocated — growing would silently reclaim screen from the controller.
-func _lock_aspect(rect: Rect2, ratio: float = 16.0 / 9.0) -> Rect2:
-	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+# Shrinks a rect to the locked aspect and re-centres it inside its old bounds.
+# Shrinks rather than grows so the result always still fits the space the player
+# allocated — growing would silently reclaim screen from the controller. The ratio
+# is the preset's ([UUI-20] point 7); there is no design aspect to fall back to.
+func _lock_aspect(rect: Rect2, ratio: float) -> Rect2:
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0 or ratio <= 0.0:
 		return rect
 	var target := Vector2(rect.size.x, rect.size.x / ratio)
 	if target.y > rect.size.y:
@@ -550,14 +563,14 @@ func adopt_game_view_override() -> bool:
 	return true
 
 
-# Returns the preset row to Automatic so the combination's own viewport is what
-# reaches the canvas again. Writes the setting but does not save it: `save_layout()`
+# Moves the preset row to Custom so the combination's own viewport is what reaches
+# the canvas again. Writes the setting but does not save it: `save_layout()`
 # persists the whole cfg, so the commit at the end of the drag carries this too.
 func _clear_game_view_override() -> void:
 	var settings := _settings_node()
-	if settings == null or String(settings.game_view_preset) == "auto":
+	if settings == null or String(settings.game_view_preset) == SettingsManagerS.GAME_VIEW_CUSTOM:
 		return
-	settings.set("game_view_preset", "auto")
+	settings.set("game_view_preset", SettingsManagerS.GAME_VIEW_CUSTOM)
 
 
 # The dragged rectangle, in fractions of the window. Applied to the canvas but
@@ -576,9 +589,17 @@ func set_viewport_rect(x: float, y: float, width: float, height: float) -> bool:
 	return true
 
 
+# Locking holds the ratio the canvas has on screen now. There is no design aspect
+# to lock to any more ([UUI-20] point 7): a custom rect keeps its own shape.
 func set_viewport_aspect_locked(locked: bool) -> void:
+	var rect := canvas_rect()
+	var ratio := rect.size.x / rect.size.y if locked and rect.size.y > 0.0 else 0.0
 	_push_viewport_undo()
-	_apply_viewport_fractions({"aspect_locked": locked})
+	_apply_viewport_fractions({"aspect_locked": ratio > 0.0, "aspect": ratio})
+
+
+func is_viewport_aspect_locked() -> bool:
+	return bool(viewport_fractions().get("aspect_locked", false))
 
 
 # Restores the built-in rect for this combination's orientation. Unlike
@@ -607,7 +628,7 @@ func undo_viewport_edit() -> bool:
 	# without also restoring the preset would leave the player on Automatic looking
 	# at the rect Custom used to produce, which is neither state they were in.
 	var settings := _settings_node()
-	var preset := String(previous.get("preset", "auto"))
+	var preset := String(previous.get("preset", SettingsManagerS.GAME_VIEW_CUSTOM))
 	if settings != null and String(settings.game_view_preset) != preset:
 		settings.set("game_view_preset", preset)
 	canvas_rect_changed.emit(canvas_rect())
@@ -628,7 +649,12 @@ func _push_viewport_undo() -> void:
 		. append(
 			{
 				"viewport": viewport_fractions(),
-				"preset": String(settings.game_view_preset) if settings != null else "auto",
+				"preset":
+				(
+					String(settings.game_view_preset)
+					if settings != null
+					else SettingsManagerS.GAME_VIEW_CUSTOM
+				),
 			}
 		)
 	)
