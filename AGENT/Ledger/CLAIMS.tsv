@@ -438,6 +438,7 @@
 72823076f07c7946c1d4ed55c10f6a993b4e8202	Prepare Session 9 from the code rather than from the plan's premise
 7320819984c4a77a23e490a4b827cb573de18973	Ship campaign packs as installable archives, and prove they install
 73735db71a29f6e450b86af65f2f2e689c0b6380	Resolve relationship UX decisions
+7425c4e94bf981d4befb096c5e4251338b1a2d60	Document the merged web controller in GDD_07 and the roadmap
 7426eb2fdd2eb2f5842f18f43a6be11700374e02	Reconcile the dialogue plan against the implemented foundations
 7478737c73ca4345a85bd3f3c34e20047cbf009b	Queue the plan re-derivation and retire the DRC agenda items
 74b0e94721562846a1f8e1661ae3755569feb377	Cover the effect-less half of [PCM-7]: firing commits the move, effect or not
