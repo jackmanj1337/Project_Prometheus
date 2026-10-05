@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-UI-UX
-Last verified: 2026-10-01
+Last verified: 2026-10-05
 ---
 
 # GDD_07 — UI & UX
 
 **Status:** Active cross-cutting UI/UX contract; input/cursor and screen/panel detail
 are split into the companion GDD_07 contracts linked below.
-**Last verified:** 2026-10-01
+**Last verified:** 2026-10-05
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -326,17 +326,13 @@ Cross-cutting obligations:
   phone resolves to **3.0** and 393×852, which is Compact at 16 CSS px. It is deliberately
   **not** flipped yet: doing so before the screen conversions would make portrait large and
   broken instead of small and unclipped. Sequenced in `responsive_ui_programme_2026-08-06.md`.
-- **Window limit on Viewport Scale — Implemented 2026-09-25; ruled for removal 2026-10-01
-  (`[UUI-20]`).** It stays until `[UUI-18]`'s confirm-or-revert ships, and is removed in that
-  same change.
-  The slider stores the player's preference, but the factor applied to the window is capped
-  so the logical canvas never drops below **640 on the long side and 360 on the short
-  side** (the ratified floor in both orientations), snapped down to the slider's 0.5 step:
-  1280×720 allows 2×, 900×760 and 560×900 allow 1×, 1920×1080 allows 3×. The preference is
-  never rewritten, so a larger window restores it, and Settings reads "2x (1x)" with a
-  tooltip while the window is deciding. The v0.8.5 walk set 2× on 900×760 and 560×900 and
-  got 450×380 and 280×450 canvases no screen is laid out for, including a Main Menu whose
-  Settings button was off-screen — the player could not get back to undo it.
+- **Window limit on Viewport Scale — Implemented 2026-09-25, Retired 2026-10-05
+  (`[UUI-20]`, MOBILE-WEB-CONTROLLER-2026-08-04 slice 3).** The factor is applied exactly
+  as the player sets it. The retired cap held the logical canvas at 640×360 or above
+  (snapped down to 0.5, with Settings reading "2x (1x)"); it was added after the v0.8.5
+  walk set 2× on 900×760 and 560×900 and lost the Main Menu's Settings button. Viewport
+  Scale already applies live and persists only through `[UUI-18]`'s confirm-or-revert,
+  which is now the only guard.
 - Centered temporary windows use safe-centered frames capped at 90% of the usable
   viewport. The cap is a ceiling, never a target: a window occupies its authored size
   when that fits, and only the excess is trimmed. A scene may state that size either as

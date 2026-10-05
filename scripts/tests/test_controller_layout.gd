@@ -154,15 +154,22 @@ func _init() -> void:
 	authored.viewport = {"x": 0.9, "y": 0.9, "width": 0.2, "height": 0.2, "aspect_locked": false}
 	var authored_copy: Dictionary = authored.duplicate(true)
 	var effective := ControllerLayoutS.effective_viewport(authored, Vector2(1000, 500))
+	# 200x100 is under the retired 640x360 design floor and is drawn as authored
+	# [UUI-20]; only the edge clamp moves it back on screen.
 	_ok(
-		effective == Rect2(360, 140, 640, 360),
-		"effective viewport applies the logical minimum and edge clamp"
+		effective == Rect2(800, 400, 200, 100),
+		"effective viewport keeps a small authored rect and applies only the edge clamp"
 	)
 	_ok(authored == authored_copy, "device-specific clamping does not mutate authored geometry")
 
-	var tiny_effective := ControllerLayoutS.effective_viewport(authored, Vector2(320, 240))
+	var technical := ControllerLayoutS.effective_viewport(authored, Vector2(320, 240))
 	_ok(
-		tiny_effective == Rect2(0, 0, 320, 240),
+		technical == Rect2(224, 144, 96, 96),
+		"a rect smaller than the editor's handles resolves at the technical minimum"
+	)
+	var tiny_effective := ControllerLayoutS.effective_viewport(authored, Vector2(80, 60))
+	_ok(
+		tiny_effective == Rect2(0, 0, 80, 60),
 		"minimum shrinks safely on a smaller physical display"
 	)
 

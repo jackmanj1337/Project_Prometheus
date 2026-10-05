@@ -1344,12 +1344,21 @@ func _test_viewport_editing() -> void:
 		"...and neither refusal disturbed the rect the player last authored"
 	)
 
-	# ── the minimum-size guard ───────────────────────────────────────────────
+	# ── the technical minimum [UUI-20] ───────────────────────────────────────
+	# 0.05 of 1280x720 is 64x36: smaller than the editor's handles can live on, so it
+	# resolves at the technical minimum. The retired 640x360 design floor must not.
 	service.set_viewport_rect(0.0, 0.0, 0.05, 0.05)
+	var tiny := service.canvas_rect()
 	_ok(
-		service.canvas_rect().size.x >= ControllerLayoutS.MIN_VIEWPORT_PIXELS.x - 0.001,
-		"a canvas dragged below the minimum resolves at the minimum, not at nothing"
+		tiny.size.is_equal_approx(ControllerLayoutS.TECHNICAL_MIN_VIEWPORT_PIXELS),
+		"a canvas dragged below the technical minimum resolves at it, not at nothing"
 	)
+	service.set_viewport_rect(0.0, 0.0, 0.25, 0.25)
+	_ok(
+		service.canvas_rect().size.is_equal_approx(Vector2(320.0, 180.0)),
+		"...and a 320x180 view, under the retired 640x360 floor, is drawn as authored"
+	)
+	service.undo_viewport_edit()
 	_ok(
 		float(service.viewport_fractions().width) < 0.1,
 		"...while the authored fraction is preserved, so the clamp cannot drift on rotation"
@@ -1544,10 +1553,7 @@ func _test_game_view_presets() -> void:
 		absf(rect.size.x - 524.0) < 1.0 and is_equal_approx(rect.size.y, 393.0),
 		"the default canvas at 852x393 is 4:3, leaving both side columns to the controls"
 	)
-	_ok(
-		absf(rect.position.x - 164.0) < 1.0,
-		"...centred, even while the 640px minimum would have grown it from one side"
-	)
+	_ok(absf(rect.position.x - 164.0) < 1.0, "...centred on the window")
 	service.set_profile("off")
 	_ok(
 		service.canvas_rect().size.is_equal_approx(phone_landscape),

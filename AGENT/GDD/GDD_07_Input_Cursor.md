@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-INPUT-CURSOR
-Last verified: 2026-10-04
+Last verified: 2026-10-05
 ---
 
 # GDD_07 — Input And Cursor
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-10-04
+**Last verified:** 2026-10-05
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -365,11 +365,11 @@ while preserving the saved preference.
 **On-screen web controller, Game View and arrangement editors.** Status:
 **Implemented 2026-08-06, merged to `agent/integration` 2026-10-03; pending
 physical-device validation** (MOBILE-WEB-CONTROLLER-2026-08-04). The Game View
-presets follow `[UUI-1]`/`[UUI-20]` since that row's slice 2 (2026-10-04); the size
-limits `[UUI-20]` retires are still in place until slice 3.
+presets follow `[UUI-1]`/`[UUI-20]` since that row's slice 2 (2026-10-04), and the
+size limits `[UUI-20]` retires are gone since slice 3 (2026-10-05).
 
 The persisted Game View preference is exactly `widest`, `aspect_2_3`, `aspect_1_1`,
-`aspect_4_3`, `aspect_16_9`, or `custom`, plus a **Game Size** in `[0.3, 1.0]`. It
+`aspect_4_3`, `aspect_16_9`, or `custom`, plus a **Game Size** in `[0.05, 1.0]`. It
 decides how much of the browser window the game canvas occupies, so the remainder
 becomes dedicated on-screen-controller space instead of the controls covering the
 game. An aspect preset fills the height in landscape (the width in portrait, under a
@@ -388,7 +388,10 @@ the retired `auto`/`fullscreen`/`portrait_top`/`landscape_pillarbox`, reads as
 applies live and persists only through the `[UUI-18]` confirm-or-revert dialog (a
 Game Size drag confirms once, on release). Web-only: it requires export
 `html/canvas_resize_policy=0`, where the browser shell owns the canvas rectangle; on
-desktop the canvas is the window, so the rows are hidden rather than shown inert.
+desktop the canvas is the window, so the rows are hidden rather than shown inert. There is no design
+minimum on the game view (`[UUI-20]`): the only floor is a technical one of 96×96 CSS
+px, the smallest rect the Game View editor's eight 30 px handles can sit on without
+overlapping, so a drag can never bury the handles that undo it.
 
 The on-screen controller's saved layout persists as exactly two keys,
 `controller_combinations` and `controller_active_id`. The first is the whole

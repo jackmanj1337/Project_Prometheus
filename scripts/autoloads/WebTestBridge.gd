@@ -333,10 +333,7 @@ func _scale_snapshot() -> Dictionary:
 	var safe: Vector4i = settings.get_safe_area_insets()
 	return {
 		"menu": settings.get_menu_scale(),
-		# `content` is the factor the window is drawn at; `contentPreference` is the
-		# player's setting, which the window caps at the 640x360 logical floor.
 		"content": settings.get_applied_content_scale_factor(),
-		"contentPreference": settings.content_scale_factor,
 		"effectiveMenu": settings.get_effective_menu_scale(),
 		"safe": {"left": safe.x, "top": safe.y, "right": safe.z, "bottom": safe.w},
 	}
