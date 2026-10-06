@@ -51,6 +51,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.64,
 		"portrait_x": 0.22,
 		"portrait_y": 0.776,
+		"column": "left",
+		"cell": [0, -1],
 	},
 	{
 		"id": "dpad_down",
@@ -63,6 +65,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.22,
 		"portrait_y": 0.864,
+		"column": "left",
+		"cell": [0, 1],
 	},
 	{
 		"id": "dpad_left",
@@ -75,6 +79,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.76,
 		"portrait_x": 0.13,
 		"portrait_y": 0.82,
+		"column": "left",
+		"cell": [-1, 0],
 	},
 	{
 		"id": "dpad_right",
@@ -87,6 +93,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.76,
 		"portrait_x": 0.31,
 		"portrait_y": 0.82,
+		"column": "left",
+		"cell": [1, 0],
 	},
 	{
 		"id": "pad_south",
@@ -99,6 +107,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.78,
 		"portrait_y": 0.864,
+		"column": "right",
+		"cell": [0, 1],
 	},
 	{
 		"id": "pad_east",
@@ -111,6 +121,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.76,
 		"portrait_x": 0.87,
 		"portrait_y": 0.82,
+		"column": "right",
+		"cell": [1, 0],
 	},
 	{
 		"id": "pad_west",
@@ -122,6 +134,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.76,
 		"portrait_x": 0.69,
 		"portrait_y": 0.82,
+		"column": "right",
+		"cell": [-1, 0],
 	},
 	{
 		"id": "pad_north",
@@ -133,6 +147,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.64,
 		"portrait_x": 0.78,
 		"portrait_y": 0.776,
+		"column": "right",
+		"cell": [0, -1],
 	},
 	{
 		"id": "shoulder_left",
@@ -144,6 +160,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.10,
 		"portrait_x": 0.12,
 		"portrait_y": 0.64,
+		"column": "left",
 	},
 	{
 		"id": "shoulder_right",
@@ -155,6 +172,7 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.10,
 		"portrait_x": 0.88,
 		"portrait_y": 0.64,
+		"column": "right",
 	},
 	{
 		"id": "pad_select",
@@ -166,6 +184,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.94,
 		"portrait_x": 0.38,
 		"portrait_y": 0.95,
+		"column": "left",
+		"order": 1,
 	},
 	{
 		"id": "pad_start",
@@ -177,6 +197,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.94,
 		"portrait_x": 0.62,
 		"portrait_y": 0.95,
+		"column": "left",
+		"order": 2,
 	},
 	# ── Labeled actions: engine-authored words, fixed semantics ───────────────
 	# These labels never change with a physical-pad rebinding; that is the whole
@@ -208,6 +230,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.66,
 		"portrait_x": 0.24,
 		"portrait_y": 0.491,
+		"column": "left",
+		"cell": [0, -1],
 	},
 	{
 		"id": "act_down",
@@ -220,6 +244,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.90,
 		"portrait_x": 0.24,
 		"portrait_y": 0.622,
+		"column": "left",
+		"cell": [0, 1],
 	},
 	{
 		"id": "act_left",
@@ -232,6 +258,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.78,
 		"portrait_x": 0.11,
 		"portrait_y": 0.557,
+		"column": "left",
+		"cell": [-1, 0],
 	},
 	{
 		"id": "act_right",
@@ -244,6 +272,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.78,
 		"portrait_x": 0.37,
 		"portrait_y": 0.557,
+		"column": "left",
+		"cell": [1, 0],
 	},
 	{
 		"id": "act_confirm",
@@ -256,6 +286,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.82,
 		"portrait_y": 0.94,
+		"column": "right",
+		"order": 1,
 	},
 	{
 		"id": "act_back",
@@ -268,6 +300,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.5,
 		"portrait_y": 0.94,
+		"column": "right",
+		"order": 2,
 	},
 	{
 		"id": "act_menu",
@@ -279,6 +313,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.70,
 		"portrait_x": 0.82,
 		"portrait_y": 0.7,
+		"column": "right",
+		"order": 5,
 	},
 	{
 		"id": "act_info",
@@ -290,6 +326,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.70,
 		"portrait_x": 0.82,
 		"portrait_y": 0.82,
+		"column": "right",
+		"order": 4,
 	},
 	{
 		"id": "act_more",
@@ -301,6 +339,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.18,
 		"portrait_y": 0.94,
+		"column": "right",
+		"order": 3,
 	},
 	{
 		"id": "act_prev_unit",
@@ -312,6 +352,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.18,
 		"portrait_y": 0.82,
+		"column": "left",
+		"order": 1,
 	},
 	{
 		"id": "act_next_unit",
@@ -323,6 +365,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.88,
 		"portrait_x": 0.5,
 		"portrait_y": 0.82,
+		"column": "left",
+		"order": 2,
 	},
 	{
 		"id": "act_zoom_in",
@@ -334,6 +378,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.70,
 		"portrait_x": 0.18,
 		"portrait_y": 0.7,
+		"column": "left",
+		"order": 3,
 	},
 	{
 		"id": "act_zoom_out",
@@ -345,6 +391,8 @@ const BUILTIN_DESCRIPTORS: Array[Dictionary] = [
 		"y": 0.70,
 		"portrait_x": 0.5,
 		"portrait_y": 0.7,
+		"column": "left",
+		"order": 4,
 	},
 ]
 
@@ -418,6 +466,12 @@ func register(raw: Variant) -> Array[String]:
 		"portrait_y":
 		clampf(_number(source.get("portrait_y", source.get("y", 0.5)), 0.5), 0.0, 1.0),
 		"scale": clampf(_number(source.get("scale", 1.0), 1.0), 0.5, 3.0),
+		# Column placement hints for ControllerPlacement ([UUI-2]). All optional: a
+		# descriptor that names none goes to the side its own x is on, after the
+		# built-ins.
+		"column": _choice(source.get("column", ""), ["left", "right"], ""),
+		"cell": _cell(source.get("cell", null)),
+		"order": int(_number(source.get("order", 1000), 1000.0)),
 	}
 	_order.append(id)
 	return errors
@@ -447,6 +501,13 @@ func is_required(id: String) -> bool:
 	return bool(found.get("required", false))
 
 
+func descriptors_for_profile(profile: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for id in ids_for_profile(profile):
+		result.append(descriptor(id))
+	return result
+
+
 func ids_for_profile(profile: String) -> Array[String]:
 	var result: Array[String] = []
 	for id in _order:
@@ -458,19 +519,30 @@ func ids_for_profile(profile: String) -> Array[String]:
 
 # Starting element list for a profile in the shape ControllerLayout stores, so a
 # fresh combination can be saved and edited like any authored one.
-func default_elements(profile: String, orientation: String = "landscape") -> Array[Dictionary]:
+#
+# `placement` is ControllerPlacement.place()'s answer for the current window and game
+# view (id -> Vector2 fraction). Without one -- the window not yet measured -- the
+# descriptors' own fixed fractions are used.
+func default_elements(
+	profile: String, orientation: String = "landscape", placement: Dictionary = {}
+) -> Array[Dictionary]:
 	var elements: Array[Dictionary] = []
 	var use_portrait := orientation == "portrait"
 	for id in ids_for_profile(profile):
 		var found: Dictionary = _descriptors[id]
+		var fallback := Vector2(
+			found.portrait_x if use_portrait else found.x,
+			found.portrait_y if use_portrait else found.y
+		)
+		var at: Vector2 = placement.get(id, fallback)
 		(
 			elements
 			. append(
 				{
 					"id": id,
 					"action": found.action,
-					"x": found.portrait_x if use_portrait else found.x,
-					"y": found.portrait_y if use_portrait else found.y,
+					"x": at.x,
+					"y": at.y,
 					"scale": found.scale,
 					"opacity": 1.0,
 					# Every registered control starts on. A descriptor cannot ship
@@ -481,6 +553,24 @@ func default_elements(profile: String, orientation: String = "landscape") -> Arr
 			)
 		)
 	return elements
+
+
+static func _choice(value: Variant, choices: Array[String], fallback: String) -> String:
+	return value if value is String and value in choices else fallback
+
+
+# A cluster cell is two integers in -1..1, as [col, row]. Anything else is no cell,
+# so a malformed one stacks the control instead of drawing it on top of another.
+static func _cell(value: Variant) -> Variant:
+	if not (value is Array and (value as Array).size() == 2):
+		return null
+	var col: Variant = (value as Array)[0]
+	var row: Variant = (value as Array)[1]
+	if not ((col is int or col is float) and (row is int or row is float)):
+		return null
+	if absf(float(col)) > 1.0 or absf(float(row)) > 1.0:
+		return null
+	return Vector2(roundf(float(col)), roundf(float(row)))
 
 
 static func _text(value: Variant) -> String:

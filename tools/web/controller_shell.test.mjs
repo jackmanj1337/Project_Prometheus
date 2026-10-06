@@ -730,6 +730,29 @@ ok(
 );
 await clear();
 
+// ── controls stay inside the safe rect [UUI-6] ───────────────────────────────
+// A notch or home indicator is reported through the PWA shell. A control placed in
+// the corner must be drawn clear of it, not under it.
+await page.evaluate(() => {
+  window.PrometheusPWA = { safeArea: () => ({ top: 0, right: 0, bottom: 30, left: 40 }) };
+});
+await page.evaluate((p) => window.PrometheusController.apply(p), payload({
+  elements: [
+    { id: "act_back", action: "cancel", label: "Back", group: "action", glyph: "",
+      x: 0, y: 1, scale: 1, opacity: 1 },
+  ],
+}));
+const safeBox = await page.locator('[data-element-id="act_back"]').boundingBox();
+ok(
+  safeBox.x >= 40 + 4 - 0.5 && safeBox.y + safeBox.height <= 480 - 30 - 4 + 0.5,
+  "a control in the corner is drawn inside the safe insets, clear of the notch"
+);
+await page.evaluate(() => {
+  delete window.PrometheusPWA;
+});
+await page.evaluate((p) => window.PrometheusController.apply(p), payload());
+await clear();
+
 // ── the engine's answer wins, but not mid-gesture ────────────────────────────
 await page.evaluate((p) => window.PrometheusController.apply(p), gameView());
 await setCanvas({ x: 100, y: 60, width: 600, height: 360 });

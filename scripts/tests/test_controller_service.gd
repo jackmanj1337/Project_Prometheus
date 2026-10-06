@@ -12,6 +12,7 @@ const ControllerPressLedgerS = preload("res://scripts/resources/ControllerPressL
 const ControllerWebBridgeS = preload("res://scripts/shared/ControllerWebBridge.gd")
 const ControllerServiceS = preload("res://scripts/autoloads/ControllerService.gd")
 const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
+const ControllerPlacementS = preload("res://scripts/resources/ControllerPlacement.gd")
 
 
 # Stands in for the SettingsManager autoload so the persistence round-trip can be
@@ -74,6 +75,7 @@ func _init() -> void:
 	await _test_optional_controls()
 	await _test_viewport_editing()
 	await _test_game_view_presets()
+	await _test_placement_follows_game_view()
 
 	await _test_gui_reach()
 	await _test_tap_outlives_its_frame()
@@ -1438,8 +1440,8 @@ func _test_game_view_presets() -> void:
 
 	_ok(
 		(
-			is_equal_approx(SettingsManagerS.controller_side_column_px(floor_landscape), 137.0)
-			and is_equal_approx(SettingsManagerS.controller_side_column_px(phone_landscape), 143.0)
+			is_equal_approx(ControllerPlacementS.side_column_px(floor_landscape), 137.0)
+			and is_equal_approx(ControllerPlacementS.side_column_px(phone_landscape), 143.0)
 		),
 		"a side column is three short-edge-sized controls plus the shell's margins"
 	)
@@ -1566,6 +1568,73 @@ func _test_game_view_presets() -> void:
 	_ok(
 		absf(portrait_rect.size.y - 667.0 * 0.55) < 1.0,
 		"the default portrait canvas is 55% of the height, not the old 26% [UUI-3]"
+	)
+
+	service.queue_free()
+	stub.queue_free()
+	await process_frame
+
+
+# Slice 4: registry-placed controls follow the game view into its side columns, and
+# only those. A layout the player dragged stays put, and nothing is rebuilt while an
+# editor holds the pointers.
+func _test_placement_follows_game_view() -> void:
+	var stub := StubSettings.new()
+	var service := ProbeService.new()
+	service.stub = stub
+	root.add_child(stub)
+	root.add_child(service)
+	await process_frame
+	service.set_profile("labeled_actions")
+	stub.game_view_preset = "aspect_4_3"
+	service.set_available_pixels(Vector2(852.0, 393.0))
+
+	var x_of := func(payload: Dictionary, id: String) -> float:
+		for element: Dictionary in payload.elements:
+			if element.id == id:
+				return float(element.x)
+		return -1.0
+	var confirm_at_4_3: float = x_of.call(service.build_payload(), "act_confirm")
+	_ok(
+		confirm_at_4_3 * 852.0 > 688.0,
+		"Confirm is drawn in the right column a 4:3 game view leaves"
+	)
+
+	var layouts: Array[Dictionary] = []
+	var rects: Array[Rect2] = []
+	service.layout_changed.connect(func(payload: Dictionary) -> void: layouts.append(payload))
+	service.canvas_rect_changed.connect(func(rect: Rect2) -> void: rects.append(rect))
+	stub.game_view_preset = "aspect_1_1"
+	service.refresh_game_view()
+	_ok(
+		layouts.size() == 1 and x_of.call(layouts[0], "act_confirm") < confirm_at_4_3,
+		"a narrower game view republishes the layout, and Confirm moves in with its column"
+	)
+	layouts.clear()
+	rects.clear()
+	service.refresh_game_view()
+	_ok(
+		layouts.is_empty() and rects.size() == 1,
+		"an unchanged placement re-sends only the canvas, so no press is dropped"
+	)
+
+	# The Game View editor holds the pointers: its frame must survive a canvas move.
+	layouts.clear()
+	service.set_viewport_editing(true)
+	layouts.clear()
+	service.set_viewport_rect(0.3, 0.0, 0.4, 1.0)
+	_ok(layouts.is_empty(), "no layout is published while the Game View editor is open")
+	service.set_viewport_editing(false)
+	_ok(not layouts.is_empty(), "...and closing it publishes one, with the controls re-placed")
+
+	# A dragged control freezes the whole placement; the frozen layout stays put.
+	service.move_element("act_confirm", 0.95, 0.5)
+	layouts.clear()
+	stub.game_view_preset = "aspect_16_9"
+	service.refresh_game_view()
+	_ok(
+		layouts.is_empty(),
+		"once the player has dragged a control, a new game view moves nothing they placed"
 	)
 
 	service.queue_free()

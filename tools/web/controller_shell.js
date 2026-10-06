@@ -154,19 +154,22 @@
     return Math.min(MAX_BUTTON_PX, Math.max(MIN_BUTTON_PX, Math.round(shortEdge * BASE_SIZE_FRACTION)));
   }
 
-  // Keeps a whole control on screen, given the CENTRE it wants to sit at. Shared
-  // by the renderer and the drag so the two cannot disagree: a drag clamped one
-  // way and re-rendered the other is a control that visibly jumps on release.
+  // Keeps a whole control inside the SAFE rect, given the CENTRE it wants to sit at
+  // ([UUI-6]: the background bleeds under a notch or home indicator, interactive
+  // content does not). Shared by the renderer and the drag so the two cannot
+  // disagree: a drag clamped one way and re-rendered the other is a control that
+  // visibly jumps on release.
   var EDGE_MARGIN = 4;
 
   function clampCentre(centreX, centreY, boxWidth, boxHeight) {
-    var halfW = boxWidth / 2;
-    var halfH = boxHeight / 2;
-    var minX = halfW + EDGE_MARGIN;
-    var minY = halfH + EDGE_MARGIN;
+    var safe = safeAreaInsets();
+    var minX = boxWidth / 2 + EDGE_MARGIN + safe.left;
+    var minY = boxHeight / 2 + EDGE_MARGIN + safe.top;
+    var maxX = window.innerWidth - boxWidth / 2 - EDGE_MARGIN - safe.right;
+    var maxY = window.innerHeight - boxHeight / 2 - EDGE_MARGIN - safe.bottom;
     return {
-      x: Math.min(Math.max(centreX, minX), Math.max(minX, window.innerWidth - minX)),
-      y: Math.min(Math.max(centreY, minY), Math.max(minY, window.innerHeight - minY)),
+      x: Math.min(Math.max(centreX, minX), Math.max(minX, maxX)),
+      y: Math.min(Math.max(centreY, minY), Math.max(minY, maxY)),
     };
   }
 

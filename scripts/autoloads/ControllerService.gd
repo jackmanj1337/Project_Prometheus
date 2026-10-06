@@ -41,6 +41,7 @@ const ControllerActionRegistryS = preload("res://scripts/resources/ControllerAct
 const ControllerPressLedgerS = preload("res://scripts/resources/ControllerPressLedger.gd")
 const InputDisplay = preload("res://scripts/shared/InputDisplay.gd")
 const SettingsManagerS = preload("res://scripts/autoloads/SettingsManager.gd")
+const ControllerPlacementS = preload("res://scripts/resources/ControllerPlacement.gd")
 
 const PAYLOAD_VERSION := 1
 const PROFILE_OFF := "off"
@@ -84,6 +85,9 @@ var _available_pixels: Vector2 = Vector2.ZERO
 # shell overlay to swallow every pointer, so a screen showing both would have the
 # same touch mean "drag a control" and "drag the canvas edge" at once.
 var _edit_mode: String = EDIT_NONE
+# The registry placement last published, so a canvas move that leaves every control
+# where it was does not rebuild them (a rebuild drops any press in flight).
+var _published_placement: Dictionary = {}
 # Authored viewport rects the Game View editor can step back through, oldest
 # first. Each entry also carries the Game View preset that was live when it was
 # pushed, so undoing the very first drag restores the preset the adoption below
@@ -362,7 +366,7 @@ func _game_view_override() -> Dictionary:
 # Called by the Settings screen on every slider tick, which is what makes the
 # preview live: the canvas moves under the player's finger as they drag.
 func refresh_game_view() -> void:
-	canvas_rect_changed.emit(canvas_rect())
+	_canvas_moved()
 
 
 # The browser's window size in CSS pixels. Godot cannot read this itself under
@@ -373,7 +377,7 @@ func set_available_pixels(pixels: Vector2) -> bool:
 	if wanted.is_equal_approx(_available_pixels):
 		return false
 	_available_pixels = wanted
-	canvas_rect_changed.emit(canvas_rect())
+	_canvas_moved()
 	return true
 
 
@@ -437,6 +441,33 @@ func canvas_rect_json() -> String:
 			}
 		)
 	)
+
+
+# Where the registry's controls go for this window and game view ([UUI-2]). Empty
+# while the window is unmeasured, which falls back to the descriptors' fixed x/y.
+func _placement() -> Dictionary:
+	if registry == null or profile() == PROFILE_OFF:
+		return {}
+	return ControllerPlacementS.place(
+		registry.descriptors_for_profile(profile()),
+		_available_pixels,
+		canvas_rect(),
+		_placement_orientation()
+	)
+
+
+# Every canvas move comes through here. Registry-placed controls sit in the columns
+# the game view leaves, so when the game view moves they must move with it -- that
+# needs a layout, which rebuilds the controls. Only then, though: a layout the player
+# has dragged stays where they put it, nothing moves while an editor holds the
+# pointers (a rebuild would drop the frame or control under the finger), and an
+# unchanged placement only re-sends the canvas.
+func _canvas_moved() -> void:
+	var following: bool = (_active.get("elements", []) as Array).is_empty()
+	if following and _edit_mode == EDIT_NONE and _placement() != _published_placement:
+		layout_changed.emit(build_payload())
+		return
+	canvas_rect_changed.emit(canvas_rect())
 
 
 # Applies one combination directly (Slice 4's editor and preview path).
@@ -559,7 +590,7 @@ func adopt_game_view_override() -> bool:
 	next.viewport = override
 	_active = ControllerLayoutS.normalize(next)
 	_clear_game_view_override()
-	canvas_rect_changed.emit(canvas_rect())
+	_canvas_moved()
 	return true
 
 
@@ -631,7 +662,7 @@ func undo_viewport_edit() -> bool:
 	var preset := String(previous.get("preset", SettingsManagerS.GAME_VIEW_CUSTOM))
 	if settings != null and String(settings.game_view_preset) != preset:
 		settings.set("game_view_preset", preset)
-	canvas_rect_changed.emit(canvas_rect())
+	_canvas_moved()
 	return true
 
 
@@ -673,7 +704,7 @@ func _apply_viewport_fractions(changes: Dictionary) -> void:
 	# to do nothing. Adoption on entering the editor normally clears it already;
 	# this makes the outcome independent of how the editor was reached.
 	_clear_game_view_override()
-	canvas_rect_changed.emit(canvas_rect())
+	_canvas_moved()
 
 
 # ── Auto-hide ────────────────────────────────────────────────────────────────
@@ -746,7 +777,7 @@ func _materialized_elements() -> Array:
 		return stored.duplicate(true)
 	if registry == null or profile() == PROFILE_OFF:
 		return []
-	return registry.default_elements(profile(), _placement_orientation())
+	return registry.default_elements(profile(), _placement_orientation(), _placement())
 
 
 func element_layout(element_id: String) -> Dictionary:
@@ -925,6 +956,7 @@ func held_actions() -> Array[String]:
 # layout, so a tampered save cannot rebind a control to another action.
 func build_payload() -> Dictionary:
 	var brand := InputDisplay.active_pad_brand_for_tree(self)
+	_published_placement = _placement()
 	return build_payload_for(
 		_active,
 		registry,
@@ -934,7 +966,8 @@ func build_payload() -> Dictionary:
 		_placement_orientation(),
 		_selected_element_id,
 		auto_hide_seconds(),
-		_edit_mode
+		_edit_mode,
+		_published_placement
 	)
 
 
@@ -947,14 +980,15 @@ static func build_payload_for(
 	placement_orientation: String = "landscape",
 	selected: String = "",
 	auto_hide: float = 0.0,
-	edit_mode: String = EDIT_NONE
+	edit_mode: String = EDIT_NONE,
+	placement: Dictionary = {}
 ) -> Dictionary:
 	var normalized := ControllerLayoutS.normalize(combination)
 	var active_profile := String(normalized.profile)
 	var elements: Array[Dictionary] = []
 	var source: Array = normalized.elements
 	if source.is_empty() and action_registry != null and active_profile != PROFILE_OFF:
-		source = action_registry.default_elements(active_profile, placement_orientation)
+		source = action_registry.default_elements(active_profile, placement_orientation, placement)
 
 	var seen: Dictionary = {}
 	for raw: Variant in source:
