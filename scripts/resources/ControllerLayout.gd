@@ -8,7 +8,13 @@ const SCHEMA_VERSION := 1
 const VALID_ORIENTATIONS: Array[String] = ["portrait", "landscape", "both"]
 const VALID_PROFILES: Array[String] = ["off", "virtual_gamepad", "labeled_actions"]
 const DEFAULT_THEME := "prometheus:minimal_black"
-const MIN_VIEWPORT_PIXELS := Vector2(640.0, 360.0)
+# A TECHNICAL minimum, not a design floor ([UUI-20] point 3): the smallest canvas the
+# Game View editor can still grab and undo from. Its eight 30px handles sit on the
+# corners and edge midpoints, so three must fit along each side without overlapping.
+# Below this a drag would bury the handles that undo it. There is no design floor on
+# the game view any more; [UUI-18]'s confirm-or-revert is the guard against a view the
+# player cannot use, and it replaced the retired 640x360 that used to live here.
+const TECHNICAL_MIN_VIEWPORT_PIXELS := Vector2(96.0, 96.0)
 const DEFAULT_SLOT_COUNT := 6
 
 # Per-element edit bounds, named rather than inlined in the clamp below because
@@ -80,7 +86,7 @@ static func normalize(raw: Variant) -> Dictionary:
 static func effective_viewport(
 	combination: Dictionary,
 	available_pixels: Vector2,
-	minimum_pixels: Vector2 = MIN_VIEWPORT_PIXELS
+	minimum_pixels: Vector2 = TECHNICAL_MIN_VIEWPORT_PIXELS
 ) -> Rect2:
 	if available_pixels.x <= 0.0 or available_pixels.y <= 0.0:
 		return Rect2(Vector2.ZERO, Vector2.ZERO)

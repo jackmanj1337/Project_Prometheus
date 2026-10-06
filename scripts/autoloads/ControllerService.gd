@@ -396,9 +396,9 @@ func canvas_rect() -> Rect2:
 	var view: Dictionary = combination.get("viewport", {})
 	if bool(view.get("aspect_locked", false)):
 		rect = _lock_aspect(rect, float(view.get("aspect", 0.0)))
-		# Centred on the rect the player chose, not on the one the minimum-size clamp
-		# grew it into: the clamp grows from the authored corner, so re-centring in
-		# the clamped rect pushed a 4:3 preset 58px right of centre at 852x393.
+		# Centred on the rect the player chose, not on the one the technical-minimum
+		# clamp grew it into: the clamp grows from the authored corner, so re-centring
+		# in the clamped rect would push a small locked view off its own centre.
 		var authored := Vector2(
 			(float(view.get("x", 0.0)) + float(view.get("width", 1.0)) * 0.5) * _available_pixels.x,
 			(float(view.get("y", 0.0)) + float(view.get("height", 1.0)) * 0.5) * _available_pixels.y
@@ -1017,8 +1017,8 @@ static func build_payload_for(
 		# disagreed would let a player drag to a size that visibly snapped back.
 		"min_viewport":
 		{
-			"width": ControllerLayoutS.MIN_VIEWPORT_PIXELS.x,
-			"height": ControllerLayoutS.MIN_VIEWPORT_PIXELS.y,
+			"width": ControllerLayoutS.TECHNICAL_MIN_VIEWPORT_PIXELS.x,
+			"height": ControllerLayoutS.TECHNICAL_MIN_VIEWPORT_PIXELS.y,
 		},
 		"editing": editing,
 		# Which editor is open, so the shell knows whether a pointer drags a

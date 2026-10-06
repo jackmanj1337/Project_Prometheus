@@ -940,24 +940,11 @@ func _viewport_scale_label(factor: float) -> String:
 	return "%sx" % str(snappedf(factor, 0.5))
 
 
-# The committed label. When the window is too small for the chosen factor, SettingsManager
-# applies a smaller one (the 640x360 logical floor), and the label says so -- "2x (1x)" --
-# instead of showing a 2x that is silently drawing at 1x. The slider keeps the preference,
-# so a larger window gives it back.
+# The committed label. The factor is applied as chosen since [UUI-20] removed the
+# window limit, so there is no "2x (1x)" case to explain any more.
 func _refresh_viewport_scale_label(preference: float) -> void:
-	var text := _viewport_scale_label(preference)
-	var tip := ""
-	var sm := get_node_or_null("/root/SettingsManager")
-	if sm != null and sm.has_method("is_content_scale_limited_by_window"):
-		if bool(sm.call("is_content_scale_limited_by_window")):
-			var applied: float = sm.call("get_applied_content_scale_factor")
-			text = "%s (%s)" % [text, _viewport_scale_label(applied)]
-			tip = (
-				"This window is too small for %s, so %s is used. A larger window restores it."
-				% [_viewport_scale_label(preference), _viewport_scale_label(applied)]
-			)
-	_label_viewport_scale.text = text
-	_label_viewport_scale.tooltip_text = tip
+	_label_viewport_scale.text = _viewport_scale_label(preference)
+	_label_viewport_scale.tooltip_text = ""
 
 
 # Tracks whether the HUD layout editor this screen spawned is open, so the base

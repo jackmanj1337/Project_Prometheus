@@ -728,6 +728,7 @@ c8b643784c4a6df6d26df94fd33a362831bb2702	Decide IMP-1..6; the importer being pro
 c98b8be431bb8f27f7bfa4e71be11d7a83ae91dd	Derive the content scale on a genuinely fresh install, not only on upgrade
 c9bcaee018f0f1b13c69842776a234eb197fa98b	Correct ICO-5 seed and repair contract
 c9c92581dd26df1803425bec5c89281f050bd555	Complete documentation audit pillar
+ca27a92747983c53e7651e62c6e8d2524dbb3c0c	Retire the UUI-20 size limits: Viewport Scale cap, 640x360 game-view floor, 30% Game Size
 caeb864dc7e983738a4826856c2ebf0a240dfc1f	Session note: DRC-1..33 closed across groups A-E
 cb32da1089aa44ffbed5e8dc56b4ed5c141f8f88	Resolve active-pack unit sprite frames
 cb3e51da577808ae305d20cad30e320044f8a239	Refuse a hand-appended commit ledger instead of leaving it for a merge
