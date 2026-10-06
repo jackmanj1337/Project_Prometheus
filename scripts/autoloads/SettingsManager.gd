@@ -1546,18 +1546,12 @@ static func has_web_touch_platform() -> bool:
 
 
 # The largest 0.5 step that still fits the 1280x720 design floor inside `window_px`.
+# Desktop only since MOBILE-LANDSCAPE-UI-SCALE-2026-10-06; a phone browser takes
+# web_touch_content_scale_factor below.
 #
-# The identity factor above is calibrated for a DESKTOP MONITOR at desk distance and
-# is derived from the SCREEN size. Neither holds for a phone browser: the screen is
-# not the canvas (browser chrome, and an orientation-dependent report), and a 6-inch
-# display at arm's length is a different legibility problem from a 27-inch one. On a
-# 852x393 CSS canvas the screen-derived answer landed at the 0.5 minimum — the
-# smallest UI available — which is exactly the reported "text is physically small".
-#
-# Fitting to the canvas gives the biggest UI the layouts can take without clipping,
-# which is the best answer available before a physical-device pass tunes it. Snapping
-# DOWN matters: snapping to nearest (what identity_factor_for_height does) can round
-# up past the floor and clip every authored layout.
+# Fitting to the window gives the biggest UI the layouts can take without clipping.
+# Snapping DOWN matters: snapping to nearest (what identity_factor_for_height does) can
+# round up past the floor and clip every authored layout.
 static func fit_content_scale_factor_for_size(window_px: Vector2i) -> float:
 	if window_px.x <= 0 or window_px.y <= 0:
 		return 1.0
@@ -1565,10 +1559,29 @@ static func fit_content_scale_factor_for_size(window_px: Vector2i) -> float:
 	return normalize_content_scale_factor(floorf(fit / 0.5) * 0.5)
 
 
+# A phone or tablet browser's default: one logical pixel per CSS pixel, i.e. the
+# device pixel ratio snapped DOWN to a 0.5 step, never below 1.0.
+#
+# [UUI-20] sets the test floor in CSS px (375x667 / 667x375), so a screen designed and
+# verified there is designed at exactly this factor. Fitting the window against the
+# retired 1280x720 base instead (MOBILE-LANDSCAPE-UI-SCALE-2026-10-06) gave 0.5 in
+# landscape -- text a few px tall -- and 1.0 in portrait only by accident: 375/1280
+# snapped down to 0, which normalize treats as corrupt and replaces with 1.0.
+#
+# The ratio, not a window size, because the window is not stable: at first launch it is
+# the whole browser viewport, and once the shell sizes the canvas it is the game view
+# ([UUI-20] point 6), so a size-derived default would change between first launch and
+# Reset. Snapping down keeps the logical view at least as large as the CSS view.
+static func web_touch_content_scale_factor(device_pixel_ratio: float) -> float:
+	if not is_finite(device_pixel_ratio) or device_pixel_ratio <= 0.0:
+		return 1.0
+	return normalize_content_scale_factor(maxf(floorf(device_pixel_ratio / 0.5) * 0.5, 1.0))
+
+
 # First-launch / reset default: the identity diagonal for the current display so an
 # existing player's view is unchanged. Falls back to 1.0 when no screen is queryable
 # (headless), which is also the correct neutral for a 720p display. A mobile browser
-# fits the canvas instead — see fit_content_scale_factor_for_size.
+# takes one logical pixel per CSS pixel instead — see web_touch_content_scale_factor.
 #
 # [V070-01] The identity diagonal is derived from the SCREEN, but the factor is applied
 # to the WINDOW, and project.godot opens that window at 1280x720. On a 3840x2160 desktop
@@ -1581,7 +1594,9 @@ func _derived_content_scale_factor() -> float:
 	if DisplayServer.get_name() == "headless":
 		return 1.0
 	if has_web_touch_platform():
-		return fit_content_scale_factor_for_size(DisplayServer.window_get_size())
+		return web_touch_content_scale_factor(
+			DisplayServer.screen_get_scale(DisplayServer.window_get_current_screen())
+		)
 	var screen := DisplayServer.window_get_current_screen()
 	var identity := identity_factor_for_height(DisplayServer.screen_get_size(screen).y)
 	var fit := fit_content_scale_factor_for_size(DisplayServer.window_get_size())
