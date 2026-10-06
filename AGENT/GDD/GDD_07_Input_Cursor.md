@@ -1,14 +1,14 @@
 ---
 Role: topic
 Topic ID: GDD-07-INPUT-CURSOR
-Last verified: 2026-10-05
+Last verified: 2026-10-06
 ---
 
 # GDD_07 — Input And Cursor
 
 **Status:** Active input/cursor contract — implemented and planned slices are labelled
 per section.
-**Last verified:** 2026-10-05
+**Last verified:** 2026-10-06
 **Governance:** section template + status vocabulary in
 `AGENT/Docs/governance/documentation_governance_2026-06-13.md`.
 
@@ -406,6 +406,23 @@ landscape shape — and the choice is remembered rather than discarded, so rotat
 back restores it. A combination whose element list is empty follows the registry's
 built-in placement rather than a frozen copy of it, which is what lets an updated
 build move a default control for a player who never edited one.
+
+**The built-in placement never covers the game** (`[UUI-2]`, `[UUI-20]` point 8,
+slice 4 2026-10-06). `ControllerPlacement` lays the registry's controls into the
+space the game view leaves: in landscape the two side columns, in portrait the band
+below the game split into a left and a right half. A descriptor names its column, a
+`cell` in a 3×3 cluster (the D-pad, the face-button diamond) drawn at the column's
+foot, and an `order` for the controls packed into rows above it, as many per row as
+fit; shoulders pin to the top of their column. For the virtual pad that puts the
+D-pad and SELECT/START on the left and the face buttons on the right; for labelled
+actions the cross and the unit/zoom controls on the left and Confirm, Back, More,
+Info and Menu on the right. Placement is recomputed whenever the game view moves —
+a preset, a Game Size change, a resize — but only for a layout still following the
+registry, never while an editor holds the pointers, and only when a control would
+actually move, since a republish rebuilds the controls and drops any press in
+flight. Where a preset leaves a column narrower than a cluster, the column is
+widened at the window edge and overlaps the game, which the player chose. The shell
+clamps every control, placed or dragged, inside the safe rect (`[UUI-6]`).
 
 The delay before idle on-screen controls fade out persists as
 `controller_auto_hide_seconds`, whose vocabulary is exactly `0`, `3`, `5`, `10`, or

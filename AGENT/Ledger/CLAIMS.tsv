@@ -47,6 +47,7 @@
 09edd7dfacce39444017a20f5f8a44494270d106	Project authored advancement edges into live class changes
 09f09f10fc316c02df7a28db4b4e65731663d258	Bake the distribution-surface albums so they need no JavaScript
 0a1bdf1784653317a72217860b9474c0220fbaa2	Draw the Band-4 / PREP-V1 boundary, with the restocking store as the end state
+0a45695b277e37a679fdaf330d1fd3a07e59dc2d	Place registry controls in the columns the game view leaves (UUI-2), clamp to the safe rect (UUI-6)
 0a6a63fffc79215ccf2f5b5acd62a54456c58503	Harden registry concurrency test startup budget
 0b1668a6b250835208e3eb1422c0f7eafe1173cc	Add stable record screen restoration state
 0bb965dda4a1e23572fac7dfa88455cdbfe4221f	Record compendium and run status rulings

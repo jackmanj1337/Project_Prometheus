@@ -4,6 +4,7 @@ extends Node
 
 const SETTINGS_PATH := "user://settings.cfg"
 const UserDataMigrationScript = preload("res://scripts/shared/UserDataMigration.gd")
+const ControllerPlacementS = preload("res://scripts/resources/ControllerPlacement.gd")
 
 # --- Signals ---
 # Emitted after save() completes so runtime managers can re-read in-memory
@@ -153,16 +154,6 @@ const VALID_GAME_VIEW_PRESETS: Array[String] = [
 # [UUI-3]: the portrait band, and the strip left above it.
 const GAME_VIEW_PORTRAIT_BAND: float = 0.55
 const GAME_VIEW_PORTRAIT_TOP: float = 0.03
-# How wide a side column has to be to hold the D-pad: three controls across, plus
-# the shell's edge margin either side. These mirror BASE_SIZE_FRACTION,
-# MIN_BUTTON_PX, MAX_BUTTON_PX and EDGE_MARGIN in tools/web/controller_shell.js,
-# which sizes controls from the window's short edge; change them together. They
-# reproduce both of [UUI-1]'s worked cases: 137px needed at 667x375, where 1:1
-# leaves 146 and 4:3 leaves 83; 143px at 852x393, where 4:3 leaves 164 and 16:9 76.
-const CONTROLLER_BUTTON_SHORT_EDGE_FRACTION: float = 0.115
-const CONTROLLER_BUTTON_MIN_PX: float = 38.0
-const CONTROLLER_BUTTON_MAX_PX: float = 96.0
-const CONTROLLER_EDGE_MARGIN_PX: float = 4.0
 # The Game Size slider's lower end: one 5% step, so it cannot reach zero. Not a design
 # floor ([UUI-20]); the real guard on a too-small view is TECHNICAL_MIN_VIEWPORT_PIXELS in
 # ControllerLayout, plus the confirm-or-revert dialog.
@@ -1642,23 +1633,13 @@ static func normalize_game_view_size(value: Variant) -> float:
 	return clampf(size, GAME_VIEW_MIN_SIZE, 1.0)
 
 
-# The width one side column needs to hold the D-pad, in the same CSS pixels as
-# `available`. See CONTROLLER_BUTTON_SHORT_EDGE_FRACTION for where the numbers come from.
-static func controller_side_column_px(available: Vector2) -> float:
-	var short_edge := minf(available.x, available.y)
-	var button := clampf(
-		roundf(short_edge * CONTROLLER_BUTTON_SHORT_EDGE_FRACTION),
-		CONTROLLER_BUTTON_MIN_PX,
-		CONTROLLER_BUTTON_MAX_PX
-	)
-	return button * 3.0 + CONTROLLER_EDGE_MARGIN_PX * 2.0
-
-
 # [UUI-1] as amended: the widest aspect preset whose full-height rect still leaves a
-# D-pad's width either side. Falls back to the narrowest, which is the most room the
+# D-pad's width either side -- the column ControllerPlacement lays the controls into.
+# Reproduces both of the ruling's worked cases: 137px needed at 667x375, where 1:1
+# leaves 146 and 4:3 leaves 83; 143px at 852x393, where 4:3 leaves 164 and 16:9 76. Falls back to the narrowest, which is the most room the
 # list can give; below that, only a custom rect can do better.
 static func widest_game_view_preset(available: Vector2) -> String:
-	var column := controller_side_column_px(available)
+	var column := ControllerPlacementS.side_column_px(available)
 	var narrowest := ""
 	for preset: String in GAME_VIEW_ASPECTS:
 		narrowest = preset
