@@ -922,11 +922,10 @@ func _init() -> void:
 		print("FAIL safe-area provider: zero=%s feed=%s" % [safe_zero_ok, safe_feed_ok])
 		failed += 1
 
-	# ---- mobile-web default content scale (MOBILE-WEB-UX-GAPS-2026-08-03) ----
-	# The largest 0.5 step that still fits 1280x720 in the actual canvas. An iPhone
-	# landscape canvas backed at 3x (2556x1179) fits 1.5 on both axes; the same device
-	# reported by CSS pixels alone (852x393) cannot reach even one design floor and
-	# floors at the 0.5 minimum, which is what the screen-derived factor was picking.
+	# ---- window fit against the 1280x720 floor (desktop default) ----
+	# The largest 0.5 step that still fits 1280x720 in the window. A 2556x1179 window fits
+	# 1.5 on both axes; 852x393 cannot reach even one design floor and floors at the 0.5
+	# minimum -- which is why a phone browser no longer takes this path (below).
 	var fit_iphone: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(2556, 1179))
 	var fit_css_only: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(852, 393))
 	var fit_720p: float = SettingsManagerS.fit_content_scale_factor_for_size(Vector2i(1280, 720))
@@ -954,6 +953,26 @@ func _init() -> void:
 				% [fit_iphone, fit_css_only, fit_720p, fit_snap_down, fit_degenerate]
 			)
 		)
+		failed += 1
+
+	# ---- phone/tablet browser default (MOBILE-LANDSCAPE-UI-SCALE-2026-10-06) ----
+	# One logical pixel per CSS pixel: the device pixel ratio snapped down, never below
+	# 1.0. A Pixel 7 (2.625) gets 2.5 and an iPhone (3.0) gets 3.0 in EITHER orientation;
+	# the old window fit gave 0.5 in landscape and an accidental 1.0 in portrait.
+	var dpr_cases := {1.0: 1.0, 2.0: 2.0, 2.625: 2.5, 3.0: 3.0, 0.75: 1.0, 0.0: 1.0, -1.0: 1.0}
+	var dpr_bad: Array[String] = []
+	for dpr: float in dpr_cases:
+		var got: float = SettingsManagerS.web_touch_content_scale_factor(dpr)
+		if not is_equal_approx(got, float(dpr_cases[dpr])):
+			dpr_bad.append("%s->%s" % [dpr, got])
+	if (
+		dpr_bad.is_empty()
+		and is_equal_approx(SettingsManagerS.web_touch_content_scale_factor(NAN), 1.0)
+	):
+		print("OK  phone browser default is one logical px per CSS px, snapped down, >= 1.0")
+		passed += 1
+	else:
+		print("FAIL phone browser default: %s" % [dpr_bad])
 		failed += 1
 
 	# ---- V070-01: the desktop first-launch default must fit the WINDOW, not the screen ----
